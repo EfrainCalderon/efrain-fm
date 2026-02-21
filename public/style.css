@@ -4,33 +4,60 @@
   box-sizing: border-box;
 }
 
-/* Light/Dark Mode Color Variables */
-:root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f5;
-  --bg-header-footer: #ffffff;
-  --text-primary: #000000;
-  --text-secondary: #666666;
-  --border-color: #e0e0e0;
-  --user-bubble-bg: linear-gradient(135deg, #3399ff 0%, #1a7acc 100%);
-  --user-bubble-shadow: rgba(51, 153, 255, 0.15);
-  --assistant-bubble-bg: linear-gradient(135deg, #e8e8e8 0%, #d8d8d8 100%);
-  --assistant-bubble-shadow: rgba(0, 0, 0, 0.05);
-  --assistant-bubble-base: #e0e0e0;
-  --input-bg: #f5f5f5;
-  --input-border: #d0d0d0;
-  --input-focus-border: #3399ff;
-  --typing-dot: #999999;
-  --live-tag-bg: rgba(0, 0, 0, 0.08);
-  --live-tag-hover-bg: rgba(0, 0, 0, 0.12);
-  --live-tag-text: #000000;
-  --link-color: #0066cc;
-  --link-hover: #0052a3;
-  --scrollbar-thumb: rgba(0, 0, 0, 0.2);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
-  --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.14);
+/* =====================
+   COLOR VARIABLES
+   ===================== */
 
-  /* Light mode background blob colors — soft teal/blue/green */
+:root {
+  /* Card surfaces — semi-transparent for frosted glass effect */
+  --bg-primary: rgba(245, 242, 238, 0.72);
+  --bg-secondary: rgba(236, 232, 226, 0.6);
+  --bg-header-footer: rgba(245, 242, 238, 0.82);
+
+  /* Text */
+  --text-primary: hsla(210, 6%, 7%, 1);
+  --text-secondary: hsla(210, 4%, 40%, 1);
+
+  /* Logo */
+  --logo-color: hsla(210, 6%, 7%, 1);
+
+  /* Borders */
+  --border-color: rgba(180, 172, 160, 0.4);
+
+  /* User bubble — near-black */
+  --user-bubble-bg: hsla(210, 6%, 12%, 0.88);
+  --user-bubble-text: hsla(36, 10%, 90%, 1);
+  --user-bubble-shadow: rgba(0, 0, 0, 0.12);
+
+  /* Assistant bubble — warm off-white */
+  --assistant-bubble-bg: rgba(232, 228, 220, 0.85);
+  --assistant-bubble-text: hsla(210, 6%, 7%, 1);
+  --assistant-bubble-shadow: rgba(0, 0, 0, 0.05);
+
+  /* Input */
+  --input-bg: rgba(232, 228, 220, 0.7);
+  --input-border: rgba(180, 172, 160, 0.5);
+  --input-focus-border: hsla(210, 6%, 30%, 0.8);
+
+  /* Tags & links */
+  --typing-dot: hsla(210, 4%, 50%, 1);
+  --live-tag-bg: rgba(20, 20, 24, 0.07);
+  --live-tag-hover-bg: rgba(20, 20, 24, 0.12);
+  --live-tag-text: hsla(210, 6%, 7%, 1);
+  --link-color: hsla(210, 6%, 22%, 1);
+  --link-hover: hsla(210, 6%, 8%, 1);
+
+  /* Scrollbar */
+  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+
+  /* Card */
+  --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.12);
+  --card-border: rgba(255, 255, 255, 0.45);
+  --backdrop-blur: blur(24px);
+
+  /* Background gradient blobs — light: soft teal/sage/blue */
+  --grad-base: #b0cac4;
   --grad-1: #a8d8d0;
   --grad-2: #7ec8c8;
   --grad-3: #b8d4e8;
@@ -42,31 +69,42 @@
 /* Dark mode - auto-detect */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg-primary: #1a1a1a;
-    --bg-secondary: #0f0f0f;
-    --bg-header-footer: #1a1a1a;
-    --text-primary: #ffffff;
-    --text-secondary: #aaaaaa;
-    --border-color: #333333;
-    --user-bubble-bg: linear-gradient(135deg, #3399ff 0%, #1a7acc 100%);
-    --user-bubble-shadow: rgba(51, 153, 255, 0.15);
-    --assistant-bubble-bg: linear-gradient(135deg, #3a3a3a 0%, #2f2f2f 100%);
-    --assistant-bubble-shadow: rgba(0, 0, 0, 0.2);
-    --assistant-bubble-base: #353535;
-    --input-bg: #2a2a2a;
-    --input-border: #4a4a4a;
-    --input-focus-border: #3399ff;
-    --typing-dot: #888888;
-    --live-tag-bg: rgba(255, 255, 255, 0.08);
-    --live-tag-hover-bg: rgba(255, 255, 255, 0.12);
-    --live-tag-text: #ffffff;
-    --link-color: #66aaff;
-    --link-hover: #88ccff;
-    --scrollbar-thumb: rgba(255, 255, 255, 0.2);
-    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
-    --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.5);
+    --bg-primary: rgba(22, 26, 26, 0.72);
+    --bg-secondary: rgba(14, 18, 18, 0.65);
+    --bg-header-footer: rgba(22, 26, 26, 0.82);
 
-    /* Dark mode background — deep moody teal/slate */
+    --text-primary: hsla(36, 10%, 90%, 1);
+    --text-secondary: hsla(36, 6%, 60%, 1);
+    --logo-color: hsla(36, 10%, 90%, 1);
+    --border-color: rgba(80, 100, 96, 0.35);
+
+    --user-bubble-bg: rgba(232, 228, 220, 0.9);
+    --user-bubble-text: hsla(210, 6%, 7%, 1);
+    --user-bubble-shadow: rgba(0, 0, 0, 0.2);
+
+    --assistant-bubble-bg: rgba(38, 46, 44, 0.85);
+    --assistant-bubble-text: hsla(36, 10%, 90%, 1);
+    --assistant-bubble-shadow: rgba(0, 0, 0, 0.2);
+
+    --input-bg: rgba(30, 38, 36, 0.75);
+    --input-border: rgba(80, 100, 96, 0.4);
+    --input-focus-border: hsla(36, 10%, 70%, 0.7);
+
+    --typing-dot: hsla(36, 6%, 55%, 1);
+    --live-tag-bg: rgba(232, 228, 220, 0.08);
+    --live-tag-hover-bg: rgba(232, 228, 220, 0.14);
+    --live-tag-text: hsla(36, 10%, 90%, 1);
+    --link-color: hsla(36, 10%, 75%, 1);
+    --link-hover: hsla(36, 10%, 90%, 1);
+
+    --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
+
+    --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.45);
+    --card-border: rgba(80, 110, 104, 0.3);
+
+    /* Dark background blobs — deep moody teal/slate */
+    --grad-base: #0f1e1e;
     --grad-1: #1a3a3a;
     --grad-2: #0f2a38;
     --grad-3: #1a2e3a;
@@ -78,29 +116,33 @@
 
 /* Force dark mode */
 :root[data-theme="dark"] {
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #0f0f0f;
-  --bg-header-footer: #1a1a1a;
-  --text-primary: #ffffff;
-  --text-secondary: #aaaaaa;
-  --border-color: #333333;
-  --user-bubble-bg: linear-gradient(135deg, #3399ff 0%, #1a7acc 100%);
-  --user-bubble-shadow: rgba(51, 153, 255, 0.15);
-  --assistant-bubble-bg: linear-gradient(135deg, #3a3a3a 0%, #2f2f2f 100%);
+  --bg-primary: rgba(22, 26, 26, 0.72);
+  --bg-secondary: rgba(14, 18, 18, 0.65);
+  --bg-header-footer: rgba(22, 26, 26, 0.82);
+  --text-primary: hsla(36, 10%, 90%, 1);
+  --text-secondary: hsla(36, 6%, 60%, 1);
+  --logo-color: hsla(36, 10%, 90%, 1);
+  --border-color: rgba(80, 100, 96, 0.35);
+  --user-bubble-bg: rgba(232, 228, 220, 0.9);
+  --user-bubble-text: hsla(210, 6%, 7%, 1);
+  --user-bubble-shadow: rgba(0, 0, 0, 0.2);
+  --assistant-bubble-bg: rgba(38, 46, 44, 0.85);
+  --assistant-bubble-text: hsla(36, 10%, 90%, 1);
   --assistant-bubble-shadow: rgba(0, 0, 0, 0.2);
-  --assistant-bubble-base: #353535;
-  --input-bg: #2a2a2a;
-  --input-border: #4a4a4a;
-  --input-focus-border: #3399ff;
-  --typing-dot: #888888;
-  --live-tag-bg: rgba(255, 255, 255, 0.08);
-  --live-tag-hover-bg: rgba(255, 255, 255, 0.12);
-  --live-tag-text: #ffffff;
-  --link-color: #66aaff;
-  --link-hover: #88ccff;
-  --scrollbar-thumb: rgba(255, 255, 255, 0.2);
-  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
-  --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.5);
+  --input-bg: rgba(30, 38, 36, 0.75);
+  --input-border: rgba(80, 100, 96, 0.4);
+  --input-focus-border: hsla(36, 10%, 70%, 0.7);
+  --typing-dot: hsla(36, 6%, 55%, 1);
+  --live-tag-bg: rgba(232, 228, 220, 0.08);
+  --live-tag-hover-bg: rgba(232, 228, 220, 0.14);
+  --live-tag-text: hsla(36, 10%, 90%, 1);
+  --link-color: hsla(36, 10%, 75%, 1);
+  --link-hover: hsla(36, 10%, 90%, 1);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
+  --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.45);
+  --card-border: rgba(80, 110, 104, 0.3);
+  --grad-base: #0f1e1e;
   --grad-1: #1a3a3a;
   --grad-2: #0f2a38;
   --grad-3: #1a2e3a;
@@ -111,29 +153,33 @@
 
 /* Force light mode */
 :root[data-theme="light"] {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f5;
-  --bg-header-footer: #ffffff;
-  --text-primary: #000000;
-  --text-secondary: #666666;
-  --border-color: #e0e0e0;
-  --user-bubble-bg: linear-gradient(135deg, #3399ff 0%, #1a7acc 100%);
-  --user-bubble-shadow: rgba(51, 153, 255, 0.15);
-  --assistant-bubble-bg: linear-gradient(135deg, #e8e8e8 0%, #d8d8d8 100%);
+  --bg-primary: rgba(245, 242, 238, 0.72);
+  --bg-secondary: rgba(236, 232, 226, 0.6);
+  --bg-header-footer: rgba(245, 242, 238, 0.82);
+  --text-primary: hsla(210, 6%, 7%, 1);
+  --text-secondary: hsla(210, 4%, 40%, 1);
+  --logo-color: hsla(210, 6%, 7%, 1);
+  --border-color: rgba(180, 172, 160, 0.4);
+  --user-bubble-bg: hsla(210, 6%, 12%, 0.88);
+  --user-bubble-text: hsla(36, 10%, 90%, 1);
+  --user-bubble-shadow: rgba(0, 0, 0, 0.12);
+  --assistant-bubble-bg: rgba(232, 228, 220, 0.85);
+  --assistant-bubble-text: hsla(210, 6%, 7%, 1);
   --assistant-bubble-shadow: rgba(0, 0, 0, 0.05);
-  --assistant-bubble-base: #e0e0e0;
-  --input-bg: #f5f5f5;
-  --input-border: #d0d0d0;
-  --input-focus-border: #3399ff;
-  --typing-dot: #999999;
-  --live-tag-bg: rgba(0, 0, 0, 0.08);
-  --live-tag-hover-bg: rgba(0, 0, 0, 0.12);
-  --live-tag-text: #000000;
-  --link-color: #0066cc;
-  --link-hover: #0052a3;
-  --scrollbar-thumb: rgba(0, 0, 0, 0.2);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
-  --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.14);
+  --input-bg: rgba(232, 228, 220, 0.7);
+  --input-border: rgba(180, 172, 160, 0.5);
+  --input-focus-border: hsla(210, 6%, 30%, 0.8);
+  --typing-dot: hsla(210, 4%, 50%, 1);
+  --live-tag-bg: rgba(20, 20, 24, 0.07);
+  --live-tag-hover-bg: rgba(20, 20, 24, 0.12);
+  --live-tag-text: hsla(210, 6%, 7%, 1);
+  --link-color: hsla(210, 6%, 22%, 1);
+  --link-hover: hsla(210, 6%, 8%, 1);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+  --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.12);
+  --card-border: rgba(255, 255, 255, 0.45);
+  --grad-base: #b0cac4;
   --grad-1: #a8d8d0;
   --grad-2: #7ec8c8;
   --grad-3: #b8d4e8;
@@ -156,10 +202,9 @@ body {
   justify-content: center;
   overflow: hidden;
   position: relative;
-  background-color: var(--grad-1);
+  background-color: var(--grad-base);
 }
 
-/* Animated gradient blobs */
 body::before {
   content: '';
   position: fixed;
@@ -185,7 +230,7 @@ body::before {
 }
 
 /* =====================
-   CARD
+   CARD — frosted glass
    ===================== */
 
 #app-card {
@@ -197,15 +242,17 @@ body::before {
   display: flex;
   flex-direction: column;
   background-color: var(--bg-primary);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   overflow: hidden;
 }
 
-/* On desktop: float as a card with rounded corners */
 @media (min-width: 769px) {
   #app-card {
     height: calc(100dvh - 48px);
     border-radius: 16px;
     box-shadow: var(--card-shadow);
+    border: 1px solid var(--card-border);
   }
 }
 
@@ -215,28 +262,30 @@ body::before {
 
 #header {
   background-color: var(--bg-header-footer);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   padding: 12px 24px;
   z-index: 100;
   flex-shrink: 0;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.03);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) #header {
-    box-shadow: 0 2px 24px rgba(0, 0, 0, 0.2);
-  }
-}
-
-:root[data-theme="dark"] #header {
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--border-color);
 }
 
 #header h1 {
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--logo-color);
   text-align: left;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  letter-spacing: 0;
 }
+
+.logo-efr { letter-spacing: -0.04em; font-weight: 600; }
+.logo-ai  { letter-spacing: -0.06em; font-weight: 600; }
+.logo-n   { letter-spacing: -0.08em; font-weight: 600; }
+.logo-dot { letter-spacing: -0.11em; font-weight: 700; }
+.logo-fm  { letter-spacing: -0.05em; font-weight: 300; }
 
 /* =====================
    CHAT CONTAINER
@@ -297,23 +346,23 @@ body::before {
   line-height: 1.5;
   display: inline-block;
   word-wrap: break-word;
-  box-shadow: 0 1px 3px var(--user-bubble-shadow);
 }
 
 .message.user {
   background: var(--user-bubble-bg);
+  color: var(--user-bubble-text);
+  box-shadow: 0 1px 3px var(--user-bubble-shadow);
   margin-left: auto;
   float: right;
   clear: both;
-  color: #ffffff;
 }
 
 .message.assistant {
   background: var(--assistant-bubble-bg);
+  color: var(--assistant-bubble-text);
   box-shadow: 0 1px 3px var(--assistant-bubble-shadow);
   float: left;
   clear: both;
-  color: var(--text-primary);
 }
 
 .message.typing {
@@ -397,12 +446,12 @@ body::before {
 
 .song-story {
   background: var(--assistant-bubble-bg);
+  color: var(--assistant-bubble-text);
   box-shadow: 0 1px 3px var(--assistant-bubble-shadow);
   padding: 12px 16px;
   border-radius: 18px;
   max-width: 75%;
   line-height: 1.5;
-  color: var(--text-primary);
   clear: both;
 }
 
@@ -418,20 +467,12 @@ body::before {
 
 #input-footer {
   background-color: var(--bg-header-footer);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   padding: 12px 24px;
   z-index: 100;
   flex-shrink: 0;
-  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.03);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) #input-footer {
-    box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.2);
-  }
-}
-
-:root[data-theme="dark"] #input-footer {
-  box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--border-color);
 }
 
 #input-wrapper {
@@ -462,7 +503,7 @@ body::before {
 #user-input:focus {
   outline: none;
   border-color: var(--input-focus-border);
-  box-shadow: 0 0 0 2px rgba(51, 153, 255, 0.08);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
 }
 
 #send-button {
@@ -493,6 +534,7 @@ body::before {
     height: 100dvh;
     border-radius: 0;
     box-shadow: none;
+    border: none;
   }
 
   #header,

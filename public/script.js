@@ -2,7 +2,6 @@ const chatMessages = document.getElementById('chat-messages');
 const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
 
-// Unique ID for this browser session so played songs don't bleed between users
 const sessionId = Math.random().toString(36).substring(2);
 
 let sessionStats = {
@@ -19,7 +18,7 @@ userInput.addEventListener('input', function() {
   this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
-// Typing animation for text
+// Typing animation
 async function typeText(element, text, speed = 15) {
   return new Promise((resolve) => {
     let index = 0;
@@ -38,7 +37,7 @@ async function typeText(element, text, speed = 15) {
   });
 }
 
-// Secret command parser
+// Secret commands
 function handleSecretCommand(command) {
   const parts = command.trim().split(' ');
   const cmd = parts[0].toLowerCase();
@@ -57,11 +56,7 @@ function handleSecretCommand(command) {
 
     case '/reset':
       chatMessages.innerHTML = '';
-      sessionStats = {
-        songsPlayed: 0,
-        messagesExchanged: 0,
-        startTime: new Date()
-      };
+      sessionStats = { songsPlayed: 0, messagesExchanged: 0, startTime: new Date() };
       return true;
 
     case '/debug':
@@ -78,14 +73,12 @@ function handleSecretCommand(command) {
   }
 }
 
-// Send message function
 async function sendMessage() {
   if (isTyping) return;
 
   const message = userInput.value.trim();
   if (!message) return;
 
-  // Check for secret commands
   if (message.startsWith('/')) {
     const handled = handleSecretCommand(message);
     if (handled) {
@@ -106,9 +99,7 @@ async function sendMessage() {
   try {
     const response = await fetch('/api/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, sessionId }),
     });
 
@@ -146,7 +137,6 @@ async function addMessageToChatWithTyping(message, sender) {
   messageDiv.classList.add('message', sender);
   chatMessages.appendChild(messageDiv);
   scrollToElement(messageDiv);
-
   await typeText(messageDiv, message);
 }
 
@@ -211,7 +201,6 @@ async function displaySong(song, storyText) {
       const link = document.createElement('a');
       link.href = song.tag_url;
       link.target = '_blank';
-
       link.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -220,7 +209,6 @@ async function displaySong(song, storyText) {
         </svg>
         ${song.tag_title}
       `;
-
       liveTag.appendChild(link);
     } else {
       liveTag.innerHTML = `
@@ -250,8 +238,6 @@ function scrollToElement(element) {
   setTimeout(() => {
     const containerRect = container.getBoundingClientRect();
     const elementRect = element.getBoundingClientRect();
-
-    // Only scroll if the element's bottom is below the visible area
     if (elementRect.bottom > containerRect.bottom) {
       container.scrollTop += (elementRect.bottom - containerRect.bottom) + 16;
     }
