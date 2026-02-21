@@ -179,6 +179,12 @@ async function displaySong(song, storyText) {
   iframe.classList.add('song-embed');
   iframe.frameBorder = '0';
 
+  // Fade in the embed once loaded, remove skeleton shimmer
+  iframe.addEventListener('load', () => {
+    iframe.classList.add('loaded');
+    embedWrapper.classList.add('loaded');
+  });
+
   if (isYouTube) {
     let embedUrl = song.spotify_url;
     if (embedUrl.includes('watch?v=')) {

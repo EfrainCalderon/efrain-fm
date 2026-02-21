@@ -20,7 +20,7 @@
 
   /* Card surfaces */
   --bg-primary: rgba(245, 242, 238, 0.05);
-  --bg-secondary: transparent;
+  --bg-secondary: rgba(245, 242, 238, 0.05);
   --bg-header-footer: rgba(245, 242, 238, 0.06);
 
   --text-primary: hsla(36, 10%, 90%, 1);
@@ -55,8 +55,9 @@
   --card-shadow: 0 0 0 1px rgba(245, 242, 238, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6);
   --card-border: rgba(245, 242, 238, 0.07);
   --backdrop-blur: blur(24px);
-  /* Ring line colors */
-  --ring-color: rgba(245, 242, 238, 0.12);
+  /* Skeleton loader */
+  --skeleton-base: rgba(245, 242, 238, 0.06);
+  --skeleton-shine: rgba(245, 242, 238, 0.1);
 }
 
 /* Light mode */
@@ -70,9 +71,11 @@
     --grad-5: hsla(34, 8%, 80%, 1);
     --grad-6: hsla(42, 9%, 86%, 1);
     --ring-color: rgba(14, 16, 18, 0.14);
+    --skeleton-base: rgba(14, 16, 18, 0.06);
+    --skeleton-shine: rgba(14, 16, 18, 0.1);
 
     --bg-primary: rgba(14, 16, 18, 0.04);
-    --bg-secondary: transparent;
+    --bg-secondary: rgba(14, 16, 18, 0.04);
     --bg-header-footer: rgba(14, 16, 18, 0.05);
 
     --text-primary: hsla(210, 8%, 8%, 1);
@@ -117,7 +120,7 @@
   --grad-5: hsla(205, 7%, 13%, 1);
   --grad-6: hsla(218, 8%, 11%, 1);
   --bg-primary: rgba(245, 242, 238, 0.05);
-  --bg-secondary: transparent;
+  --bg-secondary: rgba(245, 242, 238, 0.05);
   --bg-header-footer: rgba(245, 242, 238, 0.06);
   --text-primary: hsla(36, 10%, 90%, 1);
   --text-secondary: hsla(36, 6%, 55%, 1);
@@ -143,6 +146,8 @@
   --card-shadow: 0 0 0 1px rgba(245, 242, 238, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6);
   --card-border: rgba(245, 242, 238, 0.07);
   --ring-color: rgba(245, 242, 238, 0.12);
+  --skeleton-base: rgba(245, 242, 238, 0.06);
+  --skeleton-shine: rgba(245, 242, 238, 0.1);
 }
 
 /* Force light */
@@ -155,7 +160,7 @@
   --grad-5: hsla(34, 8%, 80%, 1);
   --grad-6: hsla(42, 9%, 86%, 1);
   --bg-primary: rgba(14, 16, 18, 0.04);
-  --bg-secondary: transparent;
+  --bg-secondary: rgba(14, 16, 18, 0.04);
   --bg-header-footer: rgba(14, 16, 18, 0.05);
   --text-primary: hsla(210, 8%, 8%, 1);
   --text-secondary: hsla(210, 4%, 38%, 1);
@@ -181,6 +186,8 @@
   --card-shadow: 0 0 0 1px rgba(14, 16, 18, 0.06), 0 24px 64px rgba(0, 0, 0, 0.08);
   --card-border: rgba(14, 16, 18, 0.07);
   --ring-color: rgba(14, 16, 18, 0.14);
+  --skeleton-base: rgba(14, 16, 18, 0.06);
+  --skeleton-shine: rgba(14, 16, 18, 0.1);
 }
 
 /* =====================
@@ -228,11 +235,9 @@ body::after {
   fill: none;
   stroke: var(--ring-color);
   stroke-width: 0.75;
-  transform-origin: 720px 900px;
   animation: ringBreathe 10s ease-in-out infinite;
 }
 
-/* Stagger each ring so the breathing ripples outward sequentially */
 #bg-rings circle:nth-child(1)  { animation-delay: 0s; }
 #bg-rings circle:nth-child(2)  { animation-delay: -0.45s; }
 #bg-rings circle:nth-child(3)  { animation-delay: -0.9s; }
@@ -255,14 +260,13 @@ body::after {
 #bg-rings circle:nth-child(20) { animation-delay: -8.55s; }
 #bg-rings circle:nth-child(21) { animation-delay: -9s; }
 
-/* 10s breath cycle: 4s expand, 1s hold, 4s contract, 1s rest
-   Mirrors a relaxed human breath (~6 breaths/min) */
+/* Animate opacity only — no transform, eliminates flicker entirely */
 @keyframes ringBreathe {
-  0%   { transform: scale(1);    opacity: 1; }
-  40%  { transform: scale(1.06); opacity: 0.7; }
-  50%  { transform: scale(1.06); opacity: 0.65; }
-  90%  { transform: scale(1);    opacity: 1; }
-  100% { transform: scale(1);    opacity: 1; }
+  0%   { opacity: 0.9; }
+  40%  { opacity: 0.4; }
+  50%  { opacity: 0.35; }
+  90%  { opacity: 0.9; }
+  100% { opacity: 0.9; }
 }
 
 /* =====================
@@ -298,7 +302,7 @@ body::after {
   background-color: var(--bg-header-footer);
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
-  padding: 16px 24px 10px;
+  padding: 20px 24px 8px;
   z-index: 100;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border-color);
@@ -449,10 +453,39 @@ body::after {
   overflow: hidden;
   margin-bottom: 4px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+  position: relative;
+  background: var(--skeleton-base);
 }
 
 .song-embed-wrapper.youtube {
   height: 280px;
+}
+
+/* Skeleton shimmer */
+.song-embed-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--skeleton-shine) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  z-index: 1;
+  transition: opacity 0.4s ease;
+}
+
+.song-embed-wrapper.loaded::before {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .song-embed {
@@ -460,6 +493,12 @@ body::after {
   height: 100%;
   border: none;
   display: block;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.song-embed.loaded {
+  opacity: 1;
 }
 
 .live-tag {
@@ -518,7 +557,7 @@ body::after {
   background-color: var(--bg-header-footer);
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
-  padding: 12px 24px;
+  padding: 12px 12px;
   z-index: 100;
   flex-shrink: 0;
   border-top: 1px solid var(--border-color);
@@ -557,22 +596,31 @@ body::after {
 
 #send-button {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
+  right: 8px;
+  bottom: 8px;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease;
   color: var(--link-color);
 }
 
-#send-button:hover { color: var(--link-hover); }
-#send-button:active { color: var(--link-hover); }
-#send-button svg { width: 20px; height: 20px; }
+#send-button:hover {
+  color: var(--link-hover);
+  background: var(--live-tag-bg);
+}
+
+#send-button:active {
+  color: var(--link-hover);
+  background: var(--live-tag-hover-bg);
+}
+
+#send-button svg { width: 18px; height: 18px; }
 
 /* =====================
    RESPONSIVE
