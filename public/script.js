@@ -19,7 +19,7 @@ userInput.addEventListener('input', function() {
 });
 
 // Typing animation
-async function typeText(element, text, speed = 15) {
+async function typeText(element, text, speed = 20) {
   return new Promise((resolve) => {
     let index = 0;
     element.textContent = '';
@@ -93,6 +93,7 @@ async function sendMessage() {
   userInput.style.height = 'auto';
   sessionStats.messagesExchanged++;
 
+  await new Promise(r => setTimeout(r, 250));
   const typingIndicator = showTypingIndicator();
   isTyping = true;
 

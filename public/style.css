@@ -235,38 +235,6 @@ body::after {
   fill: none;
   stroke: var(--ring-color);
   stroke-width: 0.75;
-  animation: ringBreathe 10s ease-in-out infinite;
-}
-
-#bg-rings circle:nth-child(1)  { animation-delay: 0s; }
-#bg-rings circle:nth-child(2)  { animation-delay: -0.45s; }
-#bg-rings circle:nth-child(3)  { animation-delay: -0.9s; }
-#bg-rings circle:nth-child(4)  { animation-delay: -1.35s; }
-#bg-rings circle:nth-child(5)  { animation-delay: -1.8s; }
-#bg-rings circle:nth-child(6)  { animation-delay: -2.25s; }
-#bg-rings circle:nth-child(7)  { animation-delay: -2.7s; }
-#bg-rings circle:nth-child(8)  { animation-delay: -3.15s; }
-#bg-rings circle:nth-child(9)  { animation-delay: -3.6s; }
-#bg-rings circle:nth-child(10) { animation-delay: -4.05s; }
-#bg-rings circle:nth-child(11) { animation-delay: -4.5s; }
-#bg-rings circle:nth-child(12) { animation-delay: -4.95s; }
-#bg-rings circle:nth-child(13) { animation-delay: -5.4s; }
-#bg-rings circle:nth-child(14) { animation-delay: -5.85s; }
-#bg-rings circle:nth-child(15) { animation-delay: -6.3s; }
-#bg-rings circle:nth-child(16) { animation-delay: -6.75s; }
-#bg-rings circle:nth-child(17) { animation-delay: -7.2s; }
-#bg-rings circle:nth-child(18) { animation-delay: -7.65s; }
-#bg-rings circle:nth-child(19) { animation-delay: -8.1s; }
-#bg-rings circle:nth-child(20) { animation-delay: -8.55s; }
-#bg-rings circle:nth-child(21) { animation-delay: -9s; }
-
-/* Animate opacity only — no transform, eliminates flicker entirely */
-@keyframes ringBreathe {
-  0%   { opacity: 0.9; }
-  40%  { opacity: 0.4; }
-  50%  { opacity: 0.35; }
-  90%  { opacity: 0.9; }
-  100% { opacity: 0.9; }
 }
 
 /* =====================

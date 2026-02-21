@@ -11,30 +11,71 @@
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Background rings - emanating from bottom center like sound waves -->
+  <!-- Background rings - emanating from bottom center, breathing via SMIL -->
   <svg id="bg-rings" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-    <!-- Rings centered at bottom-center origin point (720, 900) -->
-    <circle cx="720" cy="900" r="80"/>
-    <circle cx="720" cy="900" r="160"/>
-    <circle cx="720" cy="900" r="240"/>
-    <circle cx="720" cy="900" r="320"/>
-    <circle cx="720" cy="900" r="400"/>
-    <circle cx="720" cy="900" r="480"/>
-    <circle cx="720" cy="900" r="560"/>
-    <circle cx="720" cy="900" r="640"/>
-    <circle cx="720" cy="900" r="730"/>
-    <circle cx="720" cy="900" r="820"/>
-    <circle cx="720" cy="900" r="920"/>
-    <circle cx="720" cy="900" r="1020"/>
-    <circle cx="720" cy="900" r="1130"/>
-    <circle cx="720" cy="900" r="1250"/>
-    <circle cx="720" cy="900" r="1380"/>
-    <circle cx="720" cy="900" r="1520"/>
-    <circle cx="720" cy="900" r="1670"/>
-    <circle cx="720" cy="900" r="1830"/>
-    <circle cx="720" cy="900" r="2000"/>
-    <circle cx="720" cy="900" r="2180"/>
-    <circle cx="720" cy="900" r="2370"/>
+    <circle cx="720" cy="900" r="80">
+      <animate attributeName="r" values="80;85;80" dur="10s" begin="0s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="160">
+      <animate attributeName="r" values="160;170;160" dur="10s" begin="-0.45s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="240">
+      <animate attributeName="r" values="240;255;240" dur="10s" begin="-0.9s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="320">
+      <animate attributeName="r" values="320;340;320" dur="10s" begin="-1.35s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="400">
+      <animate attributeName="r" values="400;425;400" dur="10s" begin="-1.8s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="480">
+      <animate attributeName="r" values="480;510;480" dur="10s" begin="-2.25s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="560">
+      <animate attributeName="r" values="560;595;560" dur="10s" begin="-2.7s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="640">
+      <animate attributeName="r" values="640;680;640" dur="10s" begin="-3.15s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="730">
+      <animate attributeName="r" values="730;775;730" dur="10s" begin="-3.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="820">
+      <animate attributeName="r" values="820;870;820" dur="10s" begin="-4.05s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="920">
+      <animate attributeName="r" values="920;975;920" dur="10s" begin="-4.5s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="1020">
+      <animate attributeName="r" values="1020;1080;1020" dur="10s" begin="-4.95s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="1130">
+      <animate attributeName="r" values="1130;1195;1130" dur="10s" begin="-5.4s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="1250">
+      <animate attributeName="r" values="1250;1320;1250" dur="10s" begin="-5.85s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="1380">
+      <animate attributeName="r" values="1380;1455;1380" dur="10s" begin="-6.3s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="1520">
+      <animate attributeName="r" values="1520;1600;1520" dur="10s" begin="-6.75s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="1670">
+      <animate attributeName="r" values="1670;1755;1670" dur="10s" begin="-7.2s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="1830">
+      <animate attributeName="r" values="1830;1920;1830" dur="10s" begin="-7.65s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="2000">
+      <animate attributeName="r" values="2000;2100;2000" dur="10s" begin="-8.1s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="2180">
+      <animate attributeName="r" values="2180;2285;2180" dur="10s" begin="-8.55s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
+    <circle cx="720" cy="900" r="2370">
+      <animate attributeName="r" values="2370;2480;2370" dur="10s" begin="-9s" repeatCount="indefinite" calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/>
+    </circle>
   </svg>
 
   <div id="app-card">
