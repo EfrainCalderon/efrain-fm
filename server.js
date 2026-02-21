@@ -53,17 +53,25 @@ async function extractKeywords(userMessage) {
     messages: [
       {
         role: 'user',
-        content: `Extract music-related keywords from this request. Return ONLY a JSON array of keywords (genres, moods, eras, themes, artist names, song titles).
+        content: `Extract music-related search keywords from this request. Return ONLY a JSON array of keywords.
+
+Be semantic — expand to related terms, but stay specific and accurate:
+- "rap" or "hip-hop" → ["rap", "hip-hop", "hip hop", "MC"]
+- "outsider" or "outsider music" → ["outsider", "lo-fi", "primitive", "raw", "weird", "eccentric", "homemade", "diy"]
+- "sad" → ["sad", "melancholy", "heartbreak", "lonely", "grief"]
+- "chill" or "mellow" → ["chill", "mellow", "relaxed", "ambient", "downtempo"]
+- "brazil" or "brazilian" → ["brazil", "brazilian", "bossa nova", "samba", "mpb", "tropicalia", "latin"]
+- "80s" → ["80s", "1980s", "synth", "new wave", "post-punk"]
+- "electronic" → ["electronic", "synth", "electro", "techno", "dance"]
+- artist names and song titles → return them as-is
+
+IMPORTANT: Do NOT expand "outsider" to "alternative", "indie", or "underground" — those are different genres.
+Do NOT use vague terms like "classic", "good", or "popular".
 
 User request: "${userMessage}"
 
 Return format: ["keyword1", "keyword2", "keyword3"]
-
-Examples:
-- "play me something groovy from the 70s" → ["groovy", "70s", "1970s", "funk"]
-- "give me a love song" → ["love", "romance", "romantic"]
-- "play Sweet Jane" → ["Sweet Jane"]
-- "something dark and electronic" → ["dark", "electronic", "experimental"]`
+Return ONLY the JSON array, nothing else.`
       }
     ]
   });
@@ -84,7 +92,10 @@ function scoreSongs(songs, keywords) {
     const tags = Array.isArray(song.tags) ? song.tags.join(' ') : song.tags;
     const searchText = `${song.title} ${song.artist} ${song.genre} ${song.mood} ${song.year} ${tags}`.toLowerCase();
     keywords.forEach(keyword => {
-      if (searchText.includes(keyword)) {
+      // Word boundary matching so "rap" doesn't match "rape", etc.
+      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp('\\b' + escaped + '\\b', 'i');
+      if (re.test(searchText)) {
         score++;
       }
     });
@@ -131,7 +142,7 @@ app.post('/api/chat', async (req, res) => {
     // Check if all songs exhausted
     if (session.playedSongs.length >= songsData.songs.length) {
       return res.json({
-        response: "I've shared my entire collection with you! That's all the music I have for now. If you want to suggest songs for me to add, feel free to reach out!",
+        response: "That's the whole collection — nothing left I haven't played you.",
         song: null
       });
     }
@@ -216,7 +227,7 @@ app.post('/api/chat', async (req, res) => {
     // Had matches but all already played
     if (availableMatches.length === 0 && fullCollectionMatches.length > 0) {
       return res.json({
-        response: "I've already shared all my songs that match that vibe! Want to try something different?",
+        response: "Already played everything that fits that. Try a different angle?",
         song: null
       });
     }
