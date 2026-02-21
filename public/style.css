@@ -115,7 +115,7 @@ body {
   font-weight: 400;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -126,9 +126,15 @@ body {
   position: sticky;
   top: 0;
   background-color: var(--bg-header-footer);
-  padding: 16px 80px;
+  padding: 12px 0;
   z-index: 100;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.03);
+}
+
+#header-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -145,7 +151,7 @@ body {
   font-size: 20px;
   font-weight: 500;
   color: var(--text-primary);
-  text-align: center;
+  text-align: left;
 }
 
 /* Main Chat Container with auto-hide scrollbar */
@@ -153,7 +159,7 @@ body {
   flex: 1;
   overflow-y: scroll;
   overflow-x: hidden;
-  padding: 20px 80px;
+  padding: 20px 0;
   background-color: var(--bg-secondary);
   position: relative;
   z-index: 1;
@@ -195,8 +201,9 @@ body {
 }
 
 #chat-messages {
-  max-width: 800px;
+  max-width: 680px;
   margin: 0 auto;
+  padding: 0 24px;
 }
 
 /* Messages */
@@ -347,7 +354,7 @@ body {
   position: sticky;
   bottom: 0;
   background-color: var(--bg-header-footer);
-  padding: 16px 80px;
+  padding: 12px 0;
   z-index: 100;
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.03);
 }
@@ -364,8 +371,9 @@ body {
 
 /* Input wrapper - contains textarea and send button */
 #input-wrapper {
-  max-width: 800px;
+  max-width: 680px;
   margin: 0 auto;
+  padding: 0 24px;
   position: relative;
   display: flex;
   align-items: flex-end;
@@ -426,16 +434,27 @@ body {
   height: 20px;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
-  #header,
-  #input-footer {
-    padding-left: 20px;
-    padding-right: 20px;
+  #chat-messages,
+  #input-wrapper,
+  #header-inner {
+    padding: 0 16px;
   }
-  
-  #chat-container {
-    padding-left: 20px;
-    padding-right: 20px;
+
+  #header {
+    padding: 10px 0;
+  }
+
+  #input-footer {
+    padding: 10px 0;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  #header {
+    padding: 8px 0;
+  }
+  #input-footer {
+    padding: 8px 0;
   }
 }

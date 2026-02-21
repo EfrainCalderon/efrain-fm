@@ -248,12 +248,15 @@ async function displaySong(song, storyText) {
 
 function scrollToElement(element) {
   const container = document.getElementById('chat-container');
-  const elementTop = element.offsetTop;
-  
-  container.scrollTo({
-    top: elementTop - 20,
-    behavior: 'smooth'
-  });
+  setTimeout(() => {
+    const containerRect = container.getBoundingClientRect();
+    const elementRect = element.getBoundingClientRect();
+
+    // Only scroll if the element's bottom is below the visible area
+    if (elementRect.bottom > containerRect.bottom) {
+      container.scrollTop += (elementRect.bottom - containerRect.bottom) + 16;
+    }
+  }, 50);
 }
 
 sendButton.addEventListener('click', sendMessage);
