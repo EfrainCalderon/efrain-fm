@@ -229,12 +229,17 @@ async function displaySong(song, storyText) {
 
   const storyDiv = document.createElement('div');
   storyDiv.classList.add('song-story');
+  storyDiv.style.marginTop = '8px';
   songContainer.appendChild(storyDiv);
 
   chatMessages.appendChild(songContainer);
   scrollToElement(songContainer);
 
-  await typeText(storyDiv, storyText);
+  if (storyText && storyText.trim() !== '') {
+    await typeText(storyDiv, storyText);
+  } else {
+    storyDiv.remove();
+  }
 }
 
 function scrollToElement(element) {

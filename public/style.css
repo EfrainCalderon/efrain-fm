@@ -55,6 +55,8 @@
   --card-shadow: 0 0 0 1px rgba(245, 242, 238, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6);
   --card-border: rgba(245, 242, 238, 0.07);
   --backdrop-blur: blur(24px);
+  /* Ring line colors */
+  --ring-color: rgba(245, 242, 238, 0.12);
 }
 
 /* Light mode */
@@ -67,6 +69,7 @@
     --grad-4: hsla(38, 7%, 84%, 1);
     --grad-5: hsla(34, 8%, 80%, 1);
     --grad-6: hsla(42, 9%, 86%, 1);
+    --ring-color: rgba(14, 16, 18, 0.14);
 
     --bg-primary: rgba(14, 16, 18, 0.04);
     --bg-secondary: rgba(14, 16, 18, 0.02);
@@ -77,7 +80,7 @@
     --logo-color: hsla(210, 8%, 8%, 1);
     --border-color: rgba(14, 16, 18, 0.07);
 
-    --user-bubble-bg: hsla(210, 8%, 10%, 1);
+    --user-bubble-bg: hsla(210, 6%, 28%, 1);
     --user-bubble-text: hsla(36, 10%, 90%, 1);
     --user-bubble-shadow: rgba(0, 0, 0, 0.1);
 
@@ -139,6 +142,7 @@
   --scrollbar-thumb-hover: rgba(245, 242, 238, 0.18);
   --card-shadow: 0 0 0 1px rgba(245, 242, 238, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6);
   --card-border: rgba(245, 242, 238, 0.07);
+  --ring-color: rgba(245, 242, 238, 0.12);
 }
 
 /* Force light */
@@ -157,7 +161,7 @@
   --text-secondary: hsla(210, 4%, 38%, 1);
   --logo-color: hsla(210, 8%, 8%, 1);
   --border-color: rgba(14, 16, 18, 0.07);
-  --user-bubble-bg: hsla(210, 8%, 10%, 1);
+  --user-bubble-bg: hsla(210, 6%, 28%, 1);
   --user-bubble-text: hsla(36, 10%, 90%, 1);
   --user-bubble-shadow: rgba(0, 0, 0, 0.1);
   --assistant-bubble-bg: rgba(255, 254, 252, 0.82);
@@ -176,6 +180,7 @@
   --scrollbar-thumb-hover: rgba(14, 16, 18, 0.2);
   --card-shadow: 0 0 0 1px rgba(14, 16, 18, 0.06), 0 24px 64px rgba(0, 0, 0, 0.08);
   --card-border: rgba(14, 16, 18, 0.07);
+  --ring-color: rgba(14, 16, 18, 0.14);
 }
 
 /* =====================
@@ -195,24 +200,6 @@ body {
   background-color: var(--grad-base);
 }
 
-/* Animated monochromatic gradient blobs */
-body::before {
-  content: '';
-  position: fixed;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
-  background:
-    radial-gradient(ellipse 60% 50% at 20% 30%, var(--grad-1) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 60% at 80% 20%, var(--grad-2) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 45% at 60% 80%, var(--grad-3) 0%, transparent 70%),
-    radial-gradient(ellipse 45% 55% at 10% 70%, var(--grad-4) 0%, transparent 70%),
-    radial-gradient(ellipse 65% 40% at 90% 60%, var(--grad-5) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 60% at 40% 10%, var(--grad-6) 0%, transparent 70%);
-  animation: blobDrift 24s ease-in-out infinite alternate;
-  z-index: 0;
-}
-
 /* Grain texture overlay */
 body::after {
   content: '';
@@ -226,11 +213,37 @@ body::after {
   z-index: 0;
 }
 
-@keyframes blobDrift {
-  0%   { transform: translate(0%, 0%) rotate(0deg) scale(1); }
-  33%  { transform: translate(3%, -4%) rotate(3deg) scale(1.04); }
-  66%  { transform: translate(-4%, 3%) rotate(-2deg) scale(0.97); }
-  100% { transform: translate(2%, -2%) rotate(4deg) scale(1.02); }
+/* Background rings SVG layer */
+#bg-rings {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+#bg-rings circle {
+  fill: none;
+  stroke: var(--ring-color);
+  stroke-width: 1;
+  animation: ringDrift 28s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+
+#bg-rings circle:nth-child(2) { animation-delay: -4s; animation-duration: 32s; }
+#bg-rings circle:nth-child(3) { animation-delay: -8s; animation-duration: 26s; }
+#bg-rings circle:nth-child(4) { animation-delay: -12s; animation-duration: 30s; }
+#bg-rings circle:nth-child(5) { animation-delay: -6s; animation-duration: 34s; }
+#bg-rings circle:nth-child(6) { animation-delay: -10s; animation-duration: 24s; }
+#bg-rings circle:nth-child(7) { animation-delay: -2s; animation-duration: 36s; }
+
+@keyframes ringDrift {
+  0%   { transform: translate(0px, 0px) scale(1); }
+  33%  { transform: translate(18px, -24px) scale(1.04); }
+  66%  { transform: translate(-20px, 14px) scale(0.97); }
+  100% { transform: translate(12px, -10px) scale(1.02); }
 }
 
 /* =====================
@@ -266,7 +279,7 @@ body::after {
 
 #header {
   background-color: var(--bg-header-footer);
-  padding: 12px 24px;
+  padding: 16px 24px 10px;
   z-index: 100;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border-color);
