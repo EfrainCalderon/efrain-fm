@@ -176,13 +176,32 @@ async function displaySong(song, storyText) {
   const songContainer = document.createElement('div');
   songContainer.classList.add('message', 'song');
 
+  const isYouTube = song.spotify_url && (song.spotify_url.includes('youtube.com') || song.spotify_url.includes('youtu.be'));
+
   const iframe = document.createElement('iframe');
   iframe.classList.add('song-embed');
-  iframe.src = song.spotify_url;
-  iframe.width = '100%';
-  iframe.height = '152';
+
+  if (isYouTube) {
+    let embedUrl = song.spotify_url;
+    if (embedUrl.includes('watch?v=')) {
+      embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+    } else if (embedUrl.includes('youtu.be/')) {
+      embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
+    }
+    iframe.src = embedUrl;
+    iframe.width = '100%';
+    iframe.height = '280';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    iframe.allowFullscreen = true;
+    iframe.classList.add('youtube-embed');
+  } else {
+    iframe.src = song.spotify_url;
+    iframe.width = '100%';
+    iframe.height = '152';
+    iframe.allow = 'encrypted-media';
+  }
+
   iframe.frameBorder = '0';
-  iframe.allow = 'encrypted-media';
   songContainer.appendChild(iframe);
 
   if (song.tag_title && song.tag_title.trim() !== '') {
