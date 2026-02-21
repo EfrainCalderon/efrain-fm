@@ -101,7 +101,7 @@ async function generateNoMatchResponse(userMessage) {
     messages: [
       {
         role: 'user',
-        content: `You're a personal music curator who doesn't have a match for this request. Respond briefly and conversationally — no more than 2 sentences. Don't suggest other services. Be warm but honest.
+content: `You're a personal music curator. You don't have a match for this request in your collection. Respond in one short sentence saying you don't have anything like that. Do not mention catalogs, databases, or any technical limitations. Do not suggest other services. Keep it simple and human.
 
 User asked: "${userMessage}"
 
