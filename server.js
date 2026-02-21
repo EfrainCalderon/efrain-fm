@@ -53,17 +53,20 @@ async function extractKeywords(userMessage) {
     messages: [
       {
         role: 'user',
-        content: `Extract music-related keywords from this request. Return ONLY a JSON array of keywords (genres, moods, eras, themes, artist names, song titles).
+        content: `Extract music-related search concepts from this request. Return ONLY a JSON array of keywords.
+
+Be semantic — expand concepts to related terms:
+- "rap" or "hip-hop" → ["rap", "hip-hop", "hip hop", "MC", "rhymes"]
+- "outsider" → ["outsider", "lo-fi", "raw", "DIY", "underground", "weird", "eccentric"]
+- "sad" → ["sad", "melancholy", "heartbreak", "lonely", "grief"]
+- "chill" → ["chill", "mellow", "relaxed", "laid back", "ambient"]
+- "80s" → ["80s", "1980s", "synth", "new wave", "post-punk"]
+- artist names and song titles → return them as-is
 
 User request: "${userMessage}"
 
 Return format: ["keyword1", "keyword2", "keyword3"]
-
-Examples:
-- "play me something groovy from the 70s" → ["groovy", "70s", "1970s", "funk"]
-- "give me a love song" → ["love", "romance", "romantic"]
-- "play Sweet Jane" → ["Sweet Jane"]
-- "something dark and electronic" → ["dark", "electronic", "experimental"]`
+Return ONLY the JSON array, nothing else.`
       }
     ]
   });
@@ -84,7 +87,9 @@ function scoreSongs(songs, keywords) {
     const tags = Array.isArray(song.tags) ? song.tags.join(' ') : song.tags;
     const searchText = `${song.title} ${song.artist} ${song.genre} ${song.mood} ${song.year} ${tags}`.toLowerCase();
     keywords.forEach(keyword => {
-      if (searchText.includes(keyword)) {
+      // Use word boundary matching so "rap" doesn't match "rape", "trap", etc.
+      const wordBoundary = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (wordBoundary.test(searchText)) {
         score++;
       }
     });
@@ -131,7 +136,7 @@ app.post('/api/chat', async (req, res) => {
     // Check if all songs exhausted
     if (session.playedSongs.length >= songsData.songs.length) {
       return res.json({
-        response: "I've shared my entire collection with you! That's all the music I have for now. If you want to suggest songs for me to add, feel free to reach out!",
+        response: "That's the whole collection. Nothing left I haven't played you.",
         song: null
       });
     }
@@ -151,24 +156,21 @@ app.post('/api/chat', async (req, res) => {
 
     if (specificSongRequest) {
       if (session.playedSongs.includes(specificSongRequest.title)) {
+        // Don't dead-end — fall through to normal matching below
+        // (just skip the specific song logic and let scoring handle it)
+      } else {
+        session.playedSongs.push(specificSongRequest.title);
         return res.json({
-          response: `I already shared ${specificSongRequest.title} with you earlier in our conversation! Want to explore something else?`,
-          song: null
+          response: specificSongRequest.commentary,
+          song: {
+            title: specificSongRequest.title,
+            artist: specificSongRequest.artist,
+            spotify_url: specificSongRequest.spotify_url,
+            tag_title: specificSongRequest.tag_title || "",
+            tag_url: specificSongRequest.tag_url || ""
+          }
         });
       }
-      
-      session.playedSongs.push(specificSongRequest.title);
-      
-      return res.json({
-        response: specificSongRequest.commentary,
-        song: {
-          title: specificSongRequest.title,
-          artist: specificSongRequest.artist,
-          spotify_url: specificSongRequest.spotify_url,
-          tag_title: specificSongRequest.tag_title || "",
-          tag_url: specificSongRequest.tag_url || ""
-        }
-      });
     }
 
     // Score all songs in full collection
@@ -216,7 +218,7 @@ app.post('/api/chat', async (req, res) => {
     // Had matches but all already played
     if (availableMatches.length === 0 && fullCollectionMatches.length > 0) {
       return res.json({
-        response: "I've already shared all my songs that match that vibe! Want to try something different?",
+        response: "Already played everything that fits that. Try a different angle?",
         song: null
       });
     }
