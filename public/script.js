@@ -165,10 +165,19 @@ async function displaySong(song, storyText) {
   const songContainer = document.createElement('div');
   songContainer.classList.add('message', 'song');
 
-  const isYouTube = song.spotify_url && (song.spotify_url.includes('youtube.com') || song.spotify_url.includes('youtu.be'));
+  const isYouTube = song.spotify_url && (
+    song.spotify_url.includes('youtube.com') ||
+    song.spotify_url.includes('youtu.be')
+  );
+
+  // Wrapper div clamps the iframe height — prevents Spotify from stretching
+  const embedWrapper = document.createElement('div');
+  embedWrapper.classList.add('song-embed-wrapper');
+  if (isYouTube) embedWrapper.classList.add('youtube');
 
   const iframe = document.createElement('iframe');
   iframe.classList.add('song-embed');
+  iframe.frameBorder = '0';
 
   if (isYouTube) {
     let embedUrl = song.spotify_url;
@@ -178,20 +187,15 @@ async function displaySong(song, storyText) {
       embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
     }
     iframe.src = embedUrl;
-    iframe.width = '100%';
-    iframe.height = '280';
     iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     iframe.allowFullscreen = true;
-    iframe.classList.add('youtube-embed');
   } else {
     iframe.src = song.spotify_url;
-    iframe.width = '100%';
-    iframe.height = '152';
     iframe.allow = 'encrypted-media';
   }
 
-  iframe.frameBorder = '0';
-  songContainer.appendChild(iframe);
+  embedWrapper.appendChild(iframe);
+  songContainer.appendChild(embedWrapper);
 
   if (song.tag_title && song.tag_title.trim() !== '') {
     const liveTag = document.createElement('div');
