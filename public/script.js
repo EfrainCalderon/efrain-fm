@@ -3,6 +3,9 @@ const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
 const siteTitle = document.getElementById('site-title');
 
+// Unique ID for this browser session so played songs don't bleed between users
+const sessionId = Math.random().toString(36).substring(2);
+
 let sessionStats = {
   songsPlayed: 0,
   messagesExchanged: 0,
@@ -107,7 +110,7 @@ async function sendMessage() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, sessionId }),
     });
 
     const data = await response.json();
