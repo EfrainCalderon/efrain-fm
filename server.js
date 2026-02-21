@@ -81,8 +81,8 @@ Examples:
 function scoreSongs(songs, keywords) {
   return songs.map(song => {
     let score = 0;
-    const searchText = `${song.title} ${song.artist} ${song.genre} ${song.mood} ${song.year} ${song.tags}`.toLowerCase();
-    
+    const tags = Array.isArray(song.tags) ? song.tags.join(' ') : song.tags;
+    const searchText = `${song.title} ${song.artist} ${song.genre} ${song.mood} ${song.year} ${tags}`.toLowerCase();
     keywords.forEach(keyword => {
       if (searchText.includes(keyword)) {
         score++;
