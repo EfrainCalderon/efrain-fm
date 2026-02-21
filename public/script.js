@@ -1,7 +1,6 @@
 const chatMessages = document.getElementById('chat-messages');
 const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
-const siteTitle = document.getElementById('site-title');
 
 // Unique ID for this browser session so played songs don't bleed between users
 const sessionId = Math.random().toString(36).substring(2);
@@ -17,7 +16,7 @@ let isTyping = false;
 // Auto-expand textarea
 userInput.addEventListener('input', function() {
   this.style.height = 'auto';
-  this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
 // Typing animation for text
@@ -25,7 +24,7 @@ async function typeText(element, text, speed = 15) {
   return new Promise((resolve) => {
     let index = 0;
     element.textContent = '';
-    
+
     const interval = setInterval(() => {
       if (index < text.length) {
         element.textContent += text[index];
@@ -82,7 +81,7 @@ function handleSecretCommand(command) {
 // Send message function
 async function sendMessage() {
   if (isTyping) return;
-  
+
   const message = userInput.value.trim();
   if (!message) return;
 
@@ -147,7 +146,7 @@ async function addMessageToChatWithTyping(message, sender) {
   messageDiv.classList.add('message', sender);
   chatMessages.appendChild(messageDiv);
   scrollToElement(messageDiv);
-  
+
   await typeText(messageDiv, message);
 }
 
@@ -207,12 +206,12 @@ async function displaySong(song, storyText) {
   if (song.tag_title && song.tag_title.trim() !== '') {
     const liveTag = document.createElement('div');
     liveTag.classList.add('live-tag');
-    
+
     if (song.tag_url && song.tag_url.trim() !== '') {
       const link = document.createElement('a');
       link.href = song.tag_url;
       link.target = '_blank';
-      
+
       link.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -221,7 +220,7 @@ async function displaySong(song, storyText) {
         </svg>
         ${song.tag_title}
       `;
-      
+
       liveTag.appendChild(link);
     } else {
       liveTag.innerHTML = `
@@ -232,7 +231,7 @@ async function displaySong(song, storyText) {
         ${song.tag_title}
       `;
     }
-    
+
     songContainer.appendChild(liveTag);
   }
 

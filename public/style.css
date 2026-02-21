@@ -28,6 +28,15 @@
   --link-hover: #0052a3;
   --scrollbar-thumb: rgba(0, 0, 0, 0.2);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+  --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.14);
+
+  /* Light mode background blob colors — soft teal/blue/green */
+  --grad-1: #a8d8d0;
+  --grad-2: #7ec8c8;
+  --grad-3: #b8d4e8;
+  --grad-4: #9ecfbc;
+  --grad-5: #a0c8d8;
+  --grad-6: #c4dfe0;
 }
 
 /* Dark mode - auto-detect */
@@ -55,10 +64,19 @@
     --link-hover: #88ccff;
     --scrollbar-thumb: rgba(255, 255, 255, 0.2);
     --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
+    --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.5);
+
+    /* Dark mode background — deep moody teal/slate */
+    --grad-1: #1a3a3a;
+    --grad-2: #0f2a38;
+    --grad-3: #1a2e3a;
+    --grad-4: #0f3028;
+    --grad-5: #162838;
+    --grad-6: #1e3230;
   }
 }
 
-/* Force dark mode with data-theme */
+/* Force dark mode */
 :root[data-theme="dark"] {
   --bg-primary: #1a1a1a;
   --bg-secondary: #0f0f0f;
@@ -82,9 +100,16 @@
   --link-hover: #88ccff;
   --scrollbar-thumb: rgba(255, 255, 255, 0.2);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
+  --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.5);
+  --grad-1: #1a3a3a;
+  --grad-2: #0f2a38;
+  --grad-3: #1a2e3a;
+  --grad-4: #0f3028;
+  --grad-5: #162838;
+  --grad-6: #1e3230;
 }
 
-/* Force light mode with data-theme */
+/* Force light mode */
 :root[data-theme="light"] {
   --bg-primary: #ffffff;
   --bg-secondary: #f5f5f5;
@@ -108,33 +133,92 @@
   --link-hover: #0052a3;
   --scrollbar-thumb: rgba(0, 0, 0, 0.2);
   --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+  --card-shadow: 0 8px 48px rgba(0, 0, 0, 0.14);
+  --grad-1: #a8d8d0;
+  --grad-2: #7ec8c8;
+  --grad-3: #b8d4e8;
+  --grad-4: #9ecfbc;
+  --grad-5: #a0c8d8;
+  --grad-6: #c4dfe0;
 }
+
+/* =====================
+   ANIMATED BACKGROUND
+   ===================== */
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-weight: 400;
-  background-color: var(--bg-primary);
   color: var(--text-primary);
   height: 100dvh;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--grad-1);
+}
+
+/* Animated gradient blobs */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 30%, var(--grad-1) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 80% 20%, var(--grad-2) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 45% at 60% 80%, var(--grad-3) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 55% at 10% 70%, var(--grad-4) 0%, transparent 70%),
+    radial-gradient(ellipse 65% 40% at 90% 60%, var(--grad-5) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 40% 10%, var(--grad-6) 0%, transparent 70%);
+  animation: blobDrift 20s ease-in-out infinite alternate;
+  z-index: 0;
+}
+
+@keyframes blobDrift {
+  0%   { transform: translate(0%, 0%) rotate(0deg) scale(1); }
+  33%  { transform: translate(3%, -4%) rotate(3deg) scale(1.03); }
+  66%  { transform: translate(-4%, 3%) rotate(-2deg) scale(0.97); }
+  100% { transform: translate(2%, -2%) rotate(4deg) scale(1.02); }
+}
+
+/* =====================
+   CARD
+   ===================== */
+
+#app-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 680px;
+  height: 100dvh;
+  display: flex;
   flex-direction: column;
+  background-color: var(--bg-primary);
   overflow: hidden;
 }
 
-/* Sticky Header */
-#header {
-  position: sticky;
-  top: 0;
-  background-color: var(--bg-header-footer);
-  padding: 12px 0;
-  z-index: 100;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.03);
+/* On desktop: float as a card with rounded corners */
+@media (min-width: 769px) {
+  #app-card {
+    height: calc(100dvh - 48px);
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+  }
 }
 
-#header-inner {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 0 24px;
+/* =====================
+   HEADER
+   ===================== */
+
+#header {
+  background-color: var(--bg-header-footer);
+  padding: 12px 24px;
+  z-index: 100;
+  flex-shrink: 0;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.03);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -154,7 +238,10 @@ body {
   text-align: left;
 }
 
-/* Main Chat Container with auto-hide scrollbar */
+/* =====================
+   CHAT CONTAINER
+   ===================== */
+
 #chat-container {
   flex: 1;
   overflow-y: scroll;
@@ -172,14 +259,8 @@ body {
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
-/* Webkit scrollbar - auto-hide */
-#chat-container::-webkit-scrollbar {
-  width: 10px;
-}
-
-#chat-container::-webkit-scrollbar-track {
-  background: transparent;
-}
+#chat-container::-webkit-scrollbar { width: 10px; }
+#chat-container::-webkit-scrollbar-track { background: transparent; }
 
 #chat-container::-webkit-scrollbar-thumb {
   background: transparent;
@@ -201,12 +282,13 @@ body {
 }
 
 #chat-messages {
-  max-width: 680px;
-  margin: 0 auto;
   padding: 0 24px;
 }
 
-/* Messages */
+/* =====================
+   MESSAGES
+   ===================== */
+
 .message {
   margin-bottom: 15px;
   padding: 12px 16px;
@@ -234,7 +316,6 @@ body {
   color: var(--text-primary);
 }
 
-/* Typing indicator */
 .message.typing {
   background: var(--assistant-bubble-bg);
   box-shadow: 0 1px 3px var(--assistant-bubble-shadow);
@@ -259,26 +340,14 @@ body {
   animation: typing 1.4s infinite;
 }
 
-.typing-dots span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-dots span:nth-child(3) {
-  animation-delay: 0.4s;
-}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 
 @keyframes typing {
-  0%, 60%, 100% {
-    opacity: 0.3;
-    transform: translateY(0);
-  }
-  30% {
-    opacity: 1;
-    transform: translateY(-10px);
-  }
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-10px); }
 }
 
-/* Song container */
 .message.song {
   background: transparent;
   box-shadow: none;
@@ -289,14 +358,12 @@ body {
   margin-bottom: 20px;
 }
 
-/* Spotify embed */
 .song-embed {
   border-radius: 12px;
   margin-bottom: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Live show tag */
 .live-tag {
   display: inline-block;
   font-size: 12px;
@@ -312,9 +379,7 @@ body {
   cursor: pointer;
 }
 
-.live-tag:hover {
-  background: var(--live-tag-hover-bg);
-}
+.live-tag:hover { background: var(--live-tag-hover-bg); }
 
 .live-tag a {
   color: inherit;
@@ -330,7 +395,6 @@ body {
   stroke: currentColor;
 }
 
-/* Song story */
 .song-story {
   background: var(--assistant-bubble-bg);
   box-shadow: 0 1px 3px var(--assistant-bubble-shadow);
@@ -342,20 +406,21 @@ body {
   clear: both;
 }
 
-/* Clear floats */
 #chat-messages::after {
   content: "";
   display: table;
   clear: both;
 }
 
-/* Sticky Input Footer */
+/* =====================
+   INPUT FOOTER
+   ===================== */
+
 #input-footer {
-  position: sticky;
-  bottom: 0;
   background-color: var(--bg-header-footer);
-  padding: 12px 0;
+  padding: 12px 24px;
   z-index: 100;
+  flex-shrink: 0;
   box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.03);
 }
 
@@ -369,11 +434,7 @@ body {
   box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.2);
 }
 
-/* Input wrapper - contains textarea and send button */
 #input-wrapper {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 0 24px;
   position: relative;
   display: flex;
   align-items: flex-end;
@@ -391,14 +452,12 @@ body {
   resize: none;
   overflow: hidden;
   min-height: 44px;
-  max-height: 200px;
+  max-height: 120px;
   line-height: 1.5;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-#user-input::placeholder {
-  color: var(--text-secondary);
-}
+#user-input::placeholder { color: var(--text-secondary); }
 
 #user-input:focus {
   outline: none;
@@ -421,40 +480,34 @@ body {
   color: var(--link-color);
 }
 
-#send-button:hover {
-  color: var(--link-hover);
-}
+#send-button:hover { color: var(--link-hover); }
+#send-button:active { color: var(--link-hover); }
+#send-button svg { width: 20px; height: 20px; }
 
-#send-button:active {
-  color: var(--link-hover);
-}
-
-#send-button svg {
-  width: 20px;
-  height: 20px;
-}
+/* =====================
+   RESPONSIVE
+   ===================== */
 
 @media (max-width: 768px) {
-  #chat-messages,
-  #input-wrapper,
-  #header-inner {
-    padding: 0 16px;
+  #app-card {
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
   }
 
-  #header {
-    padding: 10px 0;
-  }
-
+  #header,
   #input-footer {
-    padding: 10px 0;
+    padding: 10px 16px;
+  }
+
+  #chat-messages {
+    padding: 0 16px;
   }
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
-  #header {
-    padding: 8px 0;
-  }
+  #header,
   #input-footer {
-    padding: 8px 0;
+    padding: 8px 16px;
   }
 }
