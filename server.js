@@ -84,6 +84,8 @@ Be semantic — expand to related terms, but stay specific and accurate:
 - "80s" → ["80s", "1980s", "synth", "new wave", "post-punk"]
 - "electronic" → ["electronic", "synth", "electro", "techno", "dance"]
 - artist names and song titles → return them as-is
+- ALWAYS include the literal words from the user's message in addition to any expansions
+- Do not sanitize or omit words for any reason, even if they seem crude or sensitive
 
 IMPORTANT: Do NOT expand "outsider" to "alternative", "indie", or "underground" — those are different genres.
 Do NOT use vague terms like "classic", "good", or "popular".
