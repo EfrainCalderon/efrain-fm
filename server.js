@@ -173,12 +173,12 @@ app.post('/api/chat', async (req, res) => {
 
     // Score all songs in full collection
     const allSongsScored = scoreSongs(songsData.songs, keywords);
-    const fullCollectionMatches = allSongsScored.filter(s => s.score > 0);
+    const fullCollectionMatches = allSongsScored.filter(s => s.score > 1);
 
     // Filter to available (unplayed) songs only
     const availableSongs = songsData.songs.filter(s => !session.playedSongs.includes(s.title));
     const availableSongsScored = scoreSongs(availableSongs, keywords);
-    const availableMatches = availableSongsScored.filter(s => s.score > 0);
+    const availableMatches = availableSongsScored.filter(s => s.score > 1);
 
     // Handle generic requests — pick a random available song
     if (isGenericRequest) {
