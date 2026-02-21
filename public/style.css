@@ -20,7 +20,7 @@
 
   /* Card surfaces */
   --bg-primary: rgba(245, 242, 238, 0.05);
-  --bg-secondary: rgba(245, 242, 238, 0.03);
+  --bg-secondary: transparent;
   --bg-header-footer: rgba(245, 242, 238, 0.06);
 
   --text-primary: hsla(36, 10%, 90%, 1);
@@ -72,7 +72,7 @@
     --ring-color: rgba(14, 16, 18, 0.14);
 
     --bg-primary: rgba(14, 16, 18, 0.04);
-    --bg-secondary: rgba(14, 16, 18, 0.02);
+    --bg-secondary: transparent;
     --bg-header-footer: rgba(14, 16, 18, 0.05);
 
     --text-primary: hsla(210, 8%, 8%, 1);
@@ -117,7 +117,7 @@
   --grad-5: hsla(205, 7%, 13%, 1);
   --grad-6: hsla(218, 8%, 11%, 1);
   --bg-primary: rgba(245, 242, 238, 0.05);
-  --bg-secondary: rgba(245, 242, 238, 0.03);
+  --bg-secondary: transparent;
   --bg-header-footer: rgba(245, 242, 238, 0.06);
   --text-primary: hsla(36, 10%, 90%, 1);
   --text-secondary: hsla(36, 6%, 55%, 1);
@@ -155,7 +155,7 @@
   --grad-5: hsla(34, 8%, 80%, 1);
   --grad-6: hsla(42, 9%, 86%, 1);
   --bg-primary: rgba(14, 16, 18, 0.04);
-  --bg-secondary: rgba(14, 16, 18, 0.02);
+  --bg-secondary: transparent;
   --bg-header-footer: rgba(14, 16, 18, 0.05);
   --text-primary: hsla(210, 8%, 8%, 1);
   --text-secondary: hsla(210, 4%, 38%, 1);
@@ -227,23 +227,42 @@ body::after {
 #bg-rings circle {
   fill: none;
   stroke: var(--ring-color);
-  stroke-width: 1;
-  animation: ringDrift 28s ease-in-out infinite alternate;
-  transform-origin: center;
+  stroke-width: 0.75;
+  transform-origin: 720px 900px;
+  animation: ringBreathe 10s ease-in-out infinite;
 }
 
-#bg-rings circle:nth-child(2) { animation-delay: -4s; animation-duration: 32s; }
-#bg-rings circle:nth-child(3) { animation-delay: -8s; animation-duration: 26s; }
-#bg-rings circle:nth-child(4) { animation-delay: -12s; animation-duration: 30s; }
-#bg-rings circle:nth-child(5) { animation-delay: -6s; animation-duration: 34s; }
-#bg-rings circle:nth-child(6) { animation-delay: -10s; animation-duration: 24s; }
-#bg-rings circle:nth-child(7) { animation-delay: -2s; animation-duration: 36s; }
+/* Stagger each ring so the breathing ripples outward sequentially */
+#bg-rings circle:nth-child(1)  { animation-delay: 0s; }
+#bg-rings circle:nth-child(2)  { animation-delay: -0.45s; }
+#bg-rings circle:nth-child(3)  { animation-delay: -0.9s; }
+#bg-rings circle:nth-child(4)  { animation-delay: -1.35s; }
+#bg-rings circle:nth-child(5)  { animation-delay: -1.8s; }
+#bg-rings circle:nth-child(6)  { animation-delay: -2.25s; }
+#bg-rings circle:nth-child(7)  { animation-delay: -2.7s; }
+#bg-rings circle:nth-child(8)  { animation-delay: -3.15s; }
+#bg-rings circle:nth-child(9)  { animation-delay: -3.6s; }
+#bg-rings circle:nth-child(10) { animation-delay: -4.05s; }
+#bg-rings circle:nth-child(11) { animation-delay: -4.5s; }
+#bg-rings circle:nth-child(12) { animation-delay: -4.95s; }
+#bg-rings circle:nth-child(13) { animation-delay: -5.4s; }
+#bg-rings circle:nth-child(14) { animation-delay: -5.85s; }
+#bg-rings circle:nth-child(15) { animation-delay: -6.3s; }
+#bg-rings circle:nth-child(16) { animation-delay: -6.75s; }
+#bg-rings circle:nth-child(17) { animation-delay: -7.2s; }
+#bg-rings circle:nth-child(18) { animation-delay: -7.65s; }
+#bg-rings circle:nth-child(19) { animation-delay: -8.1s; }
+#bg-rings circle:nth-child(20) { animation-delay: -8.55s; }
+#bg-rings circle:nth-child(21) { animation-delay: -9s; }
 
-@keyframes ringDrift {
-  0%   { transform: translate(0px, 0px) scale(1); }
-  33%  { transform: translate(18px, -24px) scale(1.04); }
-  66%  { transform: translate(-20px, 14px) scale(0.97); }
-  100% { transform: translate(12px, -10px) scale(1.02); }
+/* 10s breath cycle: 4s expand, 1s hold, 4s contract, 1s rest
+   Mirrors a relaxed human breath (~6 breaths/min) */
+@keyframes ringBreathe {
+  0%   { transform: scale(1);    opacity: 1; }
+  40%  { transform: scale(1.06); opacity: 0.7; }
+  50%  { transform: scale(1.06); opacity: 0.65; }
+  90%  { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
 }
 
 /* =====================
@@ -259,8 +278,6 @@ body::after {
   display: flex;
   flex-direction: column;
   background-color: var(--bg-primary);
-  backdrop-filter: var(--backdrop-blur);
-  -webkit-backdrop-filter: var(--backdrop-blur);
   overflow: hidden;
 }
 
@@ -279,6 +296,8 @@ body::after {
 
 #header {
   background-color: var(--bg-header-footer);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   padding: 16px 24px 10px;
   z-index: 100;
   flex-shrink: 0;
@@ -497,6 +516,8 @@ body::after {
 
 #input-footer {
   background-color: var(--bg-header-footer);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   padding: 12px 24px;
   z-index: 100;
   flex-shrink: 0;
@@ -511,9 +532,9 @@ body::after {
 
 #user-input {
   flex: 1;
-  padding: 12px 50px 12px 16px;
+  padding: 12px 46px 12px 14px;
   border: 1px solid var(--input-border);
-  border-radius: 20px;
+  border-radius: 14px;
   background-color: var(--input-bg);
   color: var(--text-primary);
   font-size: 16px;
