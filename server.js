@@ -180,9 +180,14 @@ function findFavoriteInCollection(input) {
 }
 
 async function generateFavoriteResponse(userInput, collectionMatch) {
-  const matchContext = collectionMatch
-    ? `You DO have "${collectionMatch.match.title}" by ${collectionMatch.match.artist} in your collection. Acknowledge this warmly and offer to play it.`
-    : `You don't have that in your collection. Acknowledge their taste warmly — share a genuine thought about the artist or song if you know it.`;
+  let matchContext;
+  if (collectionMatch && collectionMatch.alreadyPlayed) {
+    matchContext = collectionMatch.context;
+  } else if (collectionMatch) {
+    matchContext = `You DO have "${collectionMatch.match.title}" by ${collectionMatch.match.artist} in your collection. Acknowledge this warmly and offer to play it.`;
+  } else {
+    matchContext = `You don't have that in your collection. Acknowledge their taste warmly — share a genuine thought about the artist or song if you know it.`;
+  }
 
   const r = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514', max_tokens: 200,
@@ -196,7 +201,12 @@ Respond in 2-3 sentences. Be warm and specific. Plain text only, no markdown.` }
   return r.content[0].text;
 }
 
-function buildSongResponse(song, session, interrupt = null) {
+function isConversational(msg) {
+  // Detect messages that are chatty/contextual rather than direct music requests
+  return /\b(just listened|listened to that|already heard|heard that|love that|loved that|nice|great|good one|that was|anything else|what else|keep going|what about|how about)\b/i.test(msg);
+}
+
+function buildSongResponse(song, session, interrupt = null, bridge = null) {
   session.playedSongs.push(song.title);
   session.lastSong = song;
   session.lastSongTags = Array.isArray(song.tags) ? song.tags : (song.tags || '').split(',').map(t => t.trim());
@@ -205,6 +215,7 @@ function buildSongResponse(song, session, interrupt = null) {
   const int = interrupt || decideInterrupt(session, song);
   return {
     response: song.commentary,
+    bridgingResponse: bridge,
     song: { title: song.title, artist: song.artist, spotify_url: song.spotify_url, tag_title: song.tag_title || '', tag_url: song.tag_url || '' },
     interrupt: int,
   };
@@ -223,6 +234,14 @@ app.post('/api/favorite', async (req, res) => {
     const artistName = byMatch ? byMatch[2].trim() : input.trim();
     saveFavorite(songTitle || input, artistName);
     const collectionMatch = findFavoriteInCollection(input);
+
+    // Already played — acknowledge warmly without re-sending the embed
+    if (collectionMatch && session.playedSongs.includes(collectionMatch.match.title)) {
+      const alreadyPlayedContext = `You already shared "${collectionMatch.match.title}" by ${collectionMatch.match.artist} with them earlier in this conversation. Acknowledge warmly — something like "oh yeah, I already shared that one with you!" Make them feel seen without replaying it.`;
+      const responseText = await generateFavoriteResponse(input, { match: collectionMatch.match, alreadyPlayed: true, context: alreadyPlayedContext });
+      return res.json({ response: responseText, song: null });
+    }
+
     const responseText = await generateFavoriteResponse(input, collectionMatch);
     let song = null;
     if (collectionMatch && !session.playedSongs.includes(collectionMatch.match.title)) {
@@ -336,6 +355,8 @@ app.post('/api/chat', async (req, res) => {
     console.log('Keywords:', keywords);
 
     const preferVideo = isVideoRequest(message);
+    const conversational = isConversational(message);
+    const bridge = conversational ? "Okay, let me find something else." : null;
     const isGeneric = /\b(another|random|something|anything|surprise|different|else)\b/i.test(message) || keywords.length === 0;
 
     const specificSong = songsData.songs.find(s => keywords.some(k => normalize(s.title) === normalize(k)));
@@ -352,7 +373,7 @@ app.post('/api/chat', async (req, res) => {
 
     if (isGeneric) {
       if (!avSongs.length) return res.json({ response: "I've shared my entire collection with you! That's all I have for now.", song: null });
-      return res.json(buildSongResponse(avSongs[Math.floor(Math.random() * avSongs.length)], session));
+      return res.json(buildSongResponse(avSongs[Math.floor(Math.random() * avSongs.length)], session, null, bridge));
     }
 
     if (!fullMatches.length) {
@@ -365,7 +386,7 @@ app.post('/api/chat', async (req, res) => {
 
     const top = Math.max(...avMatches.map(s => s.score));
     const topPicks = avMatches.filter(s => s.score === top);
-    return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session));
+    return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session, null, bridge));
 
   } catch (error) {
     console.error('Error:', error);

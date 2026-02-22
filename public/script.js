@@ -118,6 +118,9 @@ async function sendMessage() {
     sessionStats.messagesExchanged++;
 
     if (data.song) {
+      if (data.bridgingResponse) {
+        await addMessageToChatWithTyping(data.bridgingResponse, 'assistant');
+      }
       await displaySong(data.song, data.response);
       sessionStats.songsPlayed++;
     } else {
@@ -290,6 +293,11 @@ async function showInterrupt(interrupt) {
   inputWrapper.style.pointerEvents = 'none';
 
   await new Promise(r => setTimeout(r, 200));
+
+  // Send interrupt question as assistant message
+  if (!interrupt.freeText) {
+    await addMessageToChatWithTyping(interrupt.message, 'assistant');
+  }
 
   // Build interrupt UI
   const interruptEl = document.createElement('div');
