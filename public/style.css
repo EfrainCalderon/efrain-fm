@@ -55,6 +55,7 @@
   --card-shadow: 0 0 0 1px rgba(245, 242, 238, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6);
   --card-border: rgba(245, 242, 238, 0.07);
   --backdrop-blur: blur(24px);
+  --bg-interrupt: rgba(245, 242, 238, 0.10);
   /* Ring line colors */
   --ring-color: rgba(245, 242, 238, 0.13);
   /* Skeleton loader */
@@ -110,6 +111,7 @@
     --card-shadow: 0 0 0 1px rgba(14, 16, 18, 0.06), 0 24px 64px rgba(0, 0, 0, 0.08);
     --card-border: rgba(14, 16, 18, 0.07);
   }
+    --bg-interrupt: rgba(14, 16, 18, 0.08);
 }
 
 /* Force dark */
@@ -147,6 +149,7 @@
   --scrollbar-thumb-hover: rgba(245, 242, 238, 0.18);
   --card-shadow: 0 0 0 1px rgba(245, 242, 238, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6);
   --card-border: rgba(245, 242, 238, 0.07);
+  --bg-interrupt: rgba(245, 242, 238, 0.10);
   --ring-color: rgba(245, 242, 238, 0.12);
   --skeleton-base: rgba(245, 242, 238, 0.06);
   --skeleton-shine: rgba(245, 242, 238, 0.1);
@@ -188,6 +191,7 @@
   --card-shadow: 0 0 0 1px rgba(14, 16, 18, 0.06), 0 24px 64px rgba(0, 0, 0, 0.08);
   --card-border: rgba(14, 16, 18, 0.07);
   --ring-color: rgba(14, 16, 18, 0.14);
+    --bg-interrupt: rgba(14, 16, 18, 0.08);
   --skeleton-base: rgba(14, 16, 18, 0.06);
   --skeleton-shine: rgba(14, 16, 18, 0.1);
 }
@@ -520,6 +524,115 @@ body::after {
 }
 
 /* =====================
+   INTERRUPT / BUTTON BAR
+   ===================== */
+
+#input-footer {
+  transition: background-color 0.4s ease;
+}
+
+#input-footer.interrupt-active {
+  background-color: var(--bg-interrupt);
+}
+
+#input-wrapper {
+  transition: opacity 0.2s ease;
+}
+
+#interrupt-bar {
+  padding: 4px 0 10px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  position: relative;
+}
+
+#interrupt-bar.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#interrupt-question {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  padding: 0 2px;
+  line-height: 1.4;
+}
+
+#interrupt-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.interrupt-btn {
+  background: var(--user-bubble-bg);
+  color: var(--user-bubble-text);
+  border: none;
+  border-radius: 14px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: btnEntrance 0.4s ease forwards;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  animation-fill-mode: both;
+
+  /* subtle continuous float */
+  animation: btnEntrance 0.4s ease forwards, btnFloat 4s ease-in-out infinite;
+}
+
+/* Override: entrance plays once, float loops after */
+.interrupt-btn {
+  animation: btnEntrance 0.4s ease both, btnFloat 4s ease-in-out 0.4s infinite;
+}
+
+.interrupt-btn:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.interrupt-btn:active {
+  transform: translateY(0px);
+  box-shadow: none;
+}
+
+@keyframes btnEntrance {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes btnFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-3px); }
+}
+
+#interrupt-dismiss {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+#interrupt-dismiss:hover {
+  color: var(--text-primary);
+  background: var(--live-tag-bg);
+}
+
+/* =====================
    INPUT FOOTER
    ===================== */
 
@@ -604,9 +717,12 @@ body::after {
     border: none;
   }
 
-  #header,
+  #header {
+    padding: 16px 16px 8px;
+  }
+
   #input-footer {
-    padding: 10px 16px;
+    padding: 10px 12px;
   }
 
   #chat-messages {

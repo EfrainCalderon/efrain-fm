@@ -11,6 +11,7 @@ let sessionStats = {
 };
 
 let isTyping = false;
+let pendingFavoriteInput = false;
 
 // Auto-expand textarea
 userInput.addEventListener('input', function() {
@@ -98,10 +99,18 @@ async function sendMessage() {
   isTyping = true;
 
   try {
-    const response = await fetch('/api/chat', {
+    // If we're in a pending favorite state, route to /api/favorite
+    const endpoint = pendingFavoriteInput ? '/api/favorite' : '/api/chat';
+    const body = pendingFavoriteInput
+      ? { input: message, sessionId }
+      : { message, sessionId };
+
+    pendingFavoriteInput = false;
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, sessionId }),
+      body: JSON.stringify(body),
     });
 
     const data = await response.json();
@@ -113,6 +122,11 @@ async function sendMessage() {
       sessionStats.songsPlayed++;
     } else {
       await addMessageToChatWithTyping(data.response, 'assistant');
+    }
+
+    // Handle interrupt if present
+    if (data.interrupt) {
+      await showInterrupt(data.interrupt);
     }
 
     isTyping = false;
@@ -258,6 +272,103 @@ function scrollToElement(element) {
       container.scrollTop += (elementRect.bottom - containerRect.bottom) + 16;
     }
   }, 50);
+}
+
+// =====================
+// INTERRUPT / BUTTON UI
+// =====================
+
+async function showInterrupt(interrupt) {
+  const footer = document.getElementById('input-footer');
+  const inputWrapper = document.getElementById('input-wrapper');
+
+  // Fade footer to slightly more opaque
+  footer.classList.add('interrupt-active');
+
+  // Hide input
+  inputWrapper.style.opacity = '0';
+  inputWrapper.style.pointerEvents = 'none';
+
+  await new Promise(r => setTimeout(r, 200));
+
+  // Build interrupt UI
+  const interruptEl = document.createElement('div');
+  interruptEl.id = 'interrupt-bar';
+
+  const question = document.createElement('p');
+  question.id = 'interrupt-question';
+  question.textContent = interrupt.message;
+  interruptEl.appendChild(question);
+
+  const btnRow = document.createElement('div');
+  btnRow.id = 'interrupt-buttons';
+
+  if (interrupt.freeText) {
+    // Favorite question — restore input but flag it as favorite mode
+    pendingFavoriteInput = true;
+    userInput.placeholder = 'Type a song or artist...';
+    interruptEl.remove();
+    footer.classList.remove('interrupt-active');
+    inputWrapper.style.opacity = '1';
+    inputWrapper.style.pointerEvents = 'auto';
+
+    // Show question as assistant message instead
+    await addMessageToChatWithTyping(interrupt.message, 'assistant');
+    return;
+  }
+
+  // Button options
+  if (interrupt.options) {
+    interrupt.options.forEach((label, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'interrupt-btn';
+      btn.textContent = label;
+      btn.style.animationDelay = `${i * 80}ms`;
+      btn.addEventListener('click', () => {
+        dismissInterrupt();
+        // Send choice as a message
+        userInput.value = label;
+        sendMessage();
+      });
+      btnRow.appendChild(btn);
+    });
+  }
+
+  // Dismiss X
+  const dismissBtn = document.createElement('button');
+  dismissBtn.id = 'interrupt-dismiss';
+  dismissBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+  dismissBtn.title = 'Dismiss';
+  dismissBtn.addEventListener('click', dismissInterrupt);
+  interruptEl.appendChild(dismissBtn);
+
+  interruptEl.appendChild(btnRow);
+  footer.insertBefore(interruptEl, inputWrapper);
+
+  // Trigger entrance
+  requestAnimationFrame(() => {
+    interruptEl.classList.add('visible');
+  });
+}
+
+function dismissInterrupt() {
+  const footer = document.getElementById('input-footer');
+  const inputWrapper = document.getElementById('input-wrapper');
+  const interruptEl = document.getElementById('interrupt-bar');
+
+  if (interruptEl) {
+    interruptEl.classList.remove('visible');
+    setTimeout(() => interruptEl.remove(), 300);
+  }
+
+  footer.classList.remove('interrupt-active');
+  userInput.placeholder = 'Ask me for a song recommendation...';
+  pendingFavoriteInput = false;
+
+  setTimeout(() => {
+    inputWrapper.style.opacity = '1';
+    inputWrapper.style.pointerEvents = 'auto';
+  }, 150);
 }
 
 sendButton.addEventListener('click', sendMessage);

@@ -9,71 +9,62 @@ const app = express();
 app.set('trust proxy', 1);
 const port = process.env.PORT || 3000;
 
-// Initialize Anthropic client
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-// Middleware
 app.use(express.json());
 app.use(express.static('public'));
 
-// Rate limiting — 10 requests per minute per IP
 const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  message: {
-    response: "You're moving fast! Take a breath and try again in a minute.",
-    song: null
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
+  windowMs: 60 * 1000, max: 10,
+  message: { response: "You're moving fast! Take a breath and try again in a minute.", song: null },
+  standardHeaders: true, legacyHeaders: false,
 });
-
 app.use('/api/chat', limiter);
 
-// Load songs database
 const songsData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'songs.json'), 'utf8'));
+const favoritesPath = path.join(__dirname, 'data', 'favorites.json');
 
-// Session storage
 const sessions = new Map();
 
 function getSession(sessionId) {
   if (!sessions.has(sessionId)) {
-    sessions.set(sessionId, { playedSongs: [], lastSongTags: null, lastSongArtist: null });
+    sessions.set(sessionId, {
+      playedSongs: [], lastSongTags: null, lastSongArtist: null, lastSong: null,
+      songCount: 0, askedFavorite: false, askedMoreOf: false, lastInterruptSong: 0,
+      _pendingRelatedSong: null,
+    });
   }
   return sessions.get(sessionId);
 }
 
-// Helper: Check if user is asking for more of the same thing
-function isMoreRequest(message) {
-  return /\b(more|yes|another|again|keep going|similar|same vibe|like that|more please|more of that|yes more|love it|love this|keep it|that kind)\b/i.test(message);
+function normalize(str) {
+  return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
-// Helper: Find songs by artist name — exact match on artist field, case-insensitive
+function isMoreRequest(msg) {
+  return /\b(more|yes|another|again|keep going|similar|same vibe|like that|more please|more of that|yes more|love it|love this|keep it|that kind)\b/i.test(msg);
+}
+
+function isVideoRequest(msg) {
+  return /\b(video|music video|youtube|visual|watch|clip)\b/i.test(msg);
+}
+
 function findSongsByArtist(message) {
-  const msgLower = message.toLowerCase();
-  // Build a list of all unique artists, sort longest first to match "The Velvet Underground" before "Velvet"
+  const msgNorm = normalize(message);
   const artists = [...new Set(songsData.songs.map(s => s.artist))];
   artists.sort((a, b) => b.length - a.length);
-
   for (const artist of artists) {
-    if (msgLower.includes(artist.toLowerCase())) {
+    if (msgNorm.includes(normalize(artist))) {
       return songsData.songs.filter(s => s.artist.toLowerCase() === artist.toLowerCase());
     }
   }
   return null;
 }
 
-// Helper: Extract keywords from user message using Claude (small, cheap call)
 async function extractKeywords(userMessage) {
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 200,
-    messages: [
-      {
-        role: 'user',
-        content: `Extract music-related search keywords from this request. Return ONLY a JSON array of keywords.
+    model: 'claude-sonnet-4-20250514', max_tokens: 200,
+    messages: [{ role: 'user', content: `Extract music-related search keywords from this request. Return ONLY a JSON array of keywords.
 
 Be semantic — expand to related terms, but stay specific and accurate:
 - "rap" or "hip-hop" → ["rap", "hip-hop", "hip hop", "MC"]
@@ -86,264 +77,300 @@ Be semantic — expand to related terms, but stay specific and accurate:
 - artist names and song titles → return them as-is
 - ALWAYS include the literal words from the user's message in addition to any expansions
 - Do not sanitize or omit words for any reason, even if they seem crude or sensitive
-
-IMPORTANT: Do NOT expand "outsider" to "alternative", "indie", or "underground" — those are different genres.
+IMPORTANT: Do NOT expand "outsider" to "alternative", "indie", or "underground".
 Do NOT use vague terms like "classic", "good", or "popular".
-
 User request: "${userMessage}"
-
 Return format: ["keyword1", "keyword2", "keyword3"]
-Return ONLY the JSON array, nothing else.`
-      }
-    ]
+Return ONLY the JSON array, nothing else.` }]
   });
-
   try {
-    const keywords = JSON.parse(response.content[0].text);
-    return keywords.map(k => k.toLowerCase());
-  } catch (e) {
-    console.error('Failed to parse keywords:', e);
-    return [];
-  }
+    return JSON.parse(response.content[0].text).map(k => k.toLowerCase());
+  } catch (e) { return []; }
 }
 
-// Helper: Score songs based on keyword matches
-function scoreSongs(songs, keywords) {
+function scoreSongs(songs, keywords, preferVideo = false) {
   return songs.map(song => {
     let score = 0;
-    const tags = Array.isArray(song.tags) ? song.tags.join(' ') : song.tags;
-    const searchText = `${song.title} ${song.artist} ${song.genre} ${song.mood} ${song.year} ${tags}`.toLowerCase();
+    const tags = Array.isArray(song.tags) ? song.tags.join(' ') : (song.tags || '');
+    const searchText = normalize(`${song.title} ${song.artist} ${song.genre} ${song.mood} ${song.year} ${tags} ${song.commentary || ''}`);
     keywords.forEach(keyword => {
-      // Word boundary matching so "rap" doesn't match "rape", etc.
-      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escaped = normalize(keyword).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const re = new RegExp('\\b' + escaped + '\\b', 'i');
-      if (re.test(searchText)) {
-        score++;
-      }
+      if (re.test(searchText)) score++;
     });
-
+    const isYT = song.spotify_url && (song.spotify_url.includes('youtube.com') || song.spotify_url.includes('youtu.be'));
+    if (preferVideo && isYT) score += 5;
     return { ...song, score };
   });
 }
 
-// Helper: Generate a response only when no song is found
 async function generateNoMatchResponse(userMessage) {
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 150,
-    messages: [
-      {
-        role: 'user',
-content: `You're a personal music curator. You don't have a match for this request in your collection. Respond in one short sentence saying you don't have anything like that. Do not mention catalogs, databases, or any technical limitations. Do not suggest other services. Keep it simple and human.
-
-User asked: "${userMessage}"
-
-IMPORTANT: Plain text only, no markdown.`
-      }
-    ]
+  const r = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514', max_tokens: 150,
+    messages: [{ role: 'user', content: `You're a personal music curator. You don't have a match for this request. Respond in one short sentence. No catalogs, databases, or other services. Keep it human.\n\nUser asked: "${userMessage}"\n\nPlain text only, no markdown.` }]
   });
-
-  return response.content[0].text;
+  return r.content[0].text;
 }
 
-// Chat endpoint
-app.post('/api/chat', async (req, res) => {
+function findRelatedSong(lastSong, playedTitles) {
+  if (!lastSong) return null;
+  const lastTags = Array.isArray(lastSong.tags) ? lastSong.tags.map(t => normalize(t)) : (lastSong.tags || '').split(',').map(t => normalize(t.trim()));
+  let best = null, bestOverlap = 0;
+  for (const song of songsData.songs) {
+    if (playedTitles.includes(song.title) || song.artist === lastSong.artist) continue;
+    const sTags = Array.isArray(song.tags) ? song.tags.map(t => normalize(t)) : (song.tags || '').split(',').map(t => normalize(t.trim()));
+    const overlap = lastTags.filter(t => sTags.includes(t)).length;
+    if (overlap >= 3 && overlap > bestOverlap) { bestOverlap = overlap; best = song; }
+  }
+  return best;
+}
+
+function decideInterrupt(session, justPlayedSong) {
+  const count = session.songCount; // already incremented
+  const sinceLastInterrupt = count - session.lastInterruptSong;
+  if (sinceLastInterrupt < 3) return null;
+
+  // Song 6: ask favorite
+  if (count === 6 && !session.askedFavorite) {
+    session.askedFavorite = true;
+    session.lastInterruptSong = count;
+    return { type: 'favorite', message: "What's a song or artist you keep coming back to?", freeText: true };
+  }
+
+  // Opportunistic related song (song 5+, every 4 songs)
+  if (count >= 5 && sinceLastInterrupt >= 4) {
+    const related = findRelatedSong(justPlayedSong, session.playedSongs);
+    if (related) {
+      session.lastInterruptSong = count;
+      session._pendingRelatedSong = related.title;
+      return { type: 'related', message: "This makes me think of something else. Want to hear it?", options: ['Tell me more', 'Not right now'] };
+    }
+  }
+
+  // Every 4th song starting at 9: vibe check
+  if (count >= 9 && (count - 9) % 4 === 0 && sinceLastInterrupt >= 4) {
+    session.lastInterruptSong = count;
+    return { type: 'vibe_check', message: "Want to keep going in this direction?", options: ['Keep this vibe', 'Try something different', 'Surprise me'] };
+  }
+
+  // Song 12+: what do you want more of
+  if (count >= 12 && !session.askedMoreOf && sinceLastInterrupt >= 4) {
+    session.askedMoreOf = true;
+    session.lastInterruptSong = count;
+    return { type: 'more_of', message: "What's been landing for you?", options: ['More of that energy', 'Something slower', 'Something weirder', 'Mix it up'] };
+  }
+
+  return null;
+}
+
+function saveFavorite(songTitle, artist) {
+  let favorites = [];
+  try { if (fs.existsSync(favoritesPath)) favorites = JSON.parse(fs.readFileSync(favoritesPath, 'utf8')); } catch (e) {}
+  favorites.push({ songTitle, artist, timestamp: new Date().toISOString() });
+  fs.writeFileSync(favoritesPath, JSON.stringify(favorites, null, 2));
+}
+
+function findFavoriteInCollection(input) {
+  const norm = normalize(input);
+  const byArtist = songsData.songs.find(s => normalize(s.artist).includes(norm) || norm.includes(normalize(s.artist)));
+  if (byArtist) return { match: byArtist, matchType: 'artist' };
+  const byTitle = songsData.songs.find(s => normalize(s.title).includes(norm) || norm.includes(normalize(s.title)));
+  if (byTitle) return { match: byTitle, matchType: 'title' };
+  return null;
+}
+
+async function generateFavoriteResponse(userInput, collectionMatch) {
+  const matchContext = collectionMatch
+    ? `You DO have "${collectionMatch.match.title}" by ${collectionMatch.match.artist} in your collection. Acknowledge this warmly and offer to play it.`
+    : `You don't have that in your collection. Acknowledge their taste warmly — share a genuine thought about the artist or song if you know it.`;
+
+  const r = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514', max_tokens: 200,
+    messages: [{ role: 'user', content: `You are Efrain, a music curator — ex-record store employee, deep eclectic taste spanning outsider music, vintage jazz, proto-punk, experimental, and international sounds. Knowledgeable but never pretentious. Speak naturally in first person.
+
+The visitor's favorite is: "${userInput}"
+${matchContext}
+
+Respond in 2-3 sentences. Be warm and specific. Plain text only, no markdown.` }]
+  });
+  return r.content[0].text;
+}
+
+function buildSongResponse(song, session, interrupt = null) {
+  session.playedSongs.push(song.title);
+  session.lastSong = song;
+  session.lastSongTags = Array.isArray(song.tags) ? song.tags : (song.tags || '').split(',').map(t => t.trim());
+  session.lastSongArtist = song.artist;
+  session.songCount++;
+  const int = interrupt || decideInterrupt(session, song);
+  return {
+    response: song.commentary,
+    song: { title: song.title, artist: song.artist, spotify_url: song.spotify_url, tag_title: song.tag_title || '', tag_url: song.tag_url || '' },
+    interrupt: int,
+  };
+}
+
+// =====================
+// FAVORITE ENDPOINT
+// =====================
+app.post('/api/favorite', async (req, res) => {
   try {
-    const { message, sessionId = 'default' } = req.body;
-
-    // Input length guard
-    if (!message || message.trim().length === 0) {
-      return res.json({ response: "Say something and I'll find you a song.", song: null });
-    }
-    if (message.length > 500) {
-      return res.json({ response: "Keep it short — I just need a vibe, not an essay.", song: null });
-    }
-
+    const { input, sessionId = 'default' } = req.body;
+    if (!input || !input.trim()) return res.json({ response: "Tell me something and I'll see what I've got.", song: null });
     const session = getSession(sessionId);
-
-    // Check if all songs exhausted
-    if (session.playedSongs.length >= songsData.songs.length) {
-      return res.json({
-        response: "That's the whole collection — nothing left I haven't played you.",
-        song: null
-      });
+    const byMatch = input.match(/^(.+?)\s+by\s+(.+)$/i);
+    const songTitle = byMatch ? byMatch[1].trim() : null;
+    const artistName = byMatch ? byMatch[2].trim() : input.trim();
+    saveFavorite(songTitle || input, artistName);
+    const collectionMatch = findFavoriteInCollection(input);
+    const responseText = await generateFavoriteResponse(input, collectionMatch);
+    let song = null;
+    if (collectionMatch && !session.playedSongs.includes(collectionMatch.match.title)) {
+      const s = collectionMatch.match;
+      session.playedSongs.push(s.title);
+      session.lastSong = s;
+      session.lastSongTags = Array.isArray(s.tags) ? s.tags : (s.tags || '').split(',').map(t => t.trim());
+      session.lastSongArtist = s.artist;
+      session.songCount++;
+      song = { title: s.title, artist: s.artist, spotify_url: s.spotify_url, tag_title: s.tag_title || '', tag_url: s.tag_url || '' };
     }
-
-    // Step 0a: Check if user is asking for more of the same thing
-    if (isMoreRequest(message) && session.lastSongTags) {
-      const availableSongs = songsData.songs.filter(s => !session.playedSongs.includes(s.title));
-      // Score available songs against last song's tags
-      const scored = scoreSongs(availableSongs, session.lastSongTags).filter(s => s.score > 0);
-      // Exclude same artist if we have enough options
-      const differentArtist = scored.filter(s => s.artist !== session.lastSongArtist);
-      const pool = differentArtist.length > 0 ? differentArtist : scored;
-
-      if (pool.length > 0) {
-        const topScore = Math.max(...pool.map(s => s.score));
-        const topMatches = pool.filter(s => s.score === topScore);
-        const selectedSong = topMatches[Math.floor(Math.random() * topMatches.length)];
-        session.playedSongs.push(selectedSong.title);
-        session.lastSongTags = Array.isArray(selectedSong.tags) ? selectedSong.tags : selectedSong.tags.split(',').map(t => t.trim());
-        session.lastSongArtist = selectedSong.artist;
-        return res.json({
-          response: selectedSong.commentary,
-          song: {
-            title: selectedSong.title,
-            artist: selectedSong.artist,
-            spotify_url: selectedSong.spotify_url,
-            tag_title: selectedSong.tag_title || "",
-            tag_url: selectedSong.tag_url || ""
-          }
-        });
-      }
-      // Fall through to normal flow if no similar songs left
-    }
-
-    // Step 0b: Check if user mentioned an artist name directly
-    const artistSongs = findSongsByArtist(message);
-    if (artistSongs) {
-      const available = artistSongs.filter(s => !session.playedSongs.includes(s.title));
-      if (available.length === 0) {
-        const artistName = artistSongs[0].artist;
-        return res.json({
-          response: `I've already played everything I have from ${artistName}. Want to try something else?`,
-          song: null
-        });
-      }
-      const selectedSong = available[Math.floor(Math.random() * available.length)];
-      session.playedSongs.push(selectedSong.title);
-      session.lastSongTags = Array.isArray(selectedSong.tags) ? selectedSong.tags : selectedSong.tags.split(',').map(t => t.trim());
-      session.lastSongArtist = selectedSong.artist;
-      return res.json({
-        response: selectedSong.commentary,
-        song: {
-          title: selectedSong.title,
-          artist: selectedSong.artist,
-          spotify_url: selectedSong.spotify_url,
-          tag_title: selectedSong.tag_title || "",
-          tag_url: selectedSong.tag_url || ""
-        }
-      });
-    }
-
-    // Step 1: Extract keywords from user message
-    const keywords = await extractKeywords(message);
-    console.log('Extracted keywords:', keywords);
-
-    // Detect generic "give me anything" requests
-    const genericRequestPattern = /\b(another|random|something|anything|surprise|different|else)\b/i;
-    const isGenericRequest = genericRequestPattern.test(message) || keywords.length === 0;
-
-    // Check if user is asking for a specific song by title (exact match only)
-    const specificSongRequest = songsData.songs.find(song => 
-      keywords.some(k => song.title.toLowerCase() === k)
-    );
-
-    if (specificSongRequest) {
-      if (session.playedSongs.includes(specificSongRequest.title)) {
-        return res.json({
-          response: `I already shared ${specificSongRequest.title} with you earlier in our conversation! Want to explore something else?`,
-          song: null
-        });
-      }
-      
-      session.playedSongs.push(specificSongRequest.title);
-      session.lastSongTags = Array.isArray(specificSongRequest.tags) ? specificSongRequest.tags : specificSongRequest.tags.split(',').map(t => t.trim());
-      session.lastSongArtist = specificSongRequest.artist;
-      
-      return res.json({
-        response: specificSongRequest.commentary,
-        song: {
-          title: specificSongRequest.title,
-          artist: specificSongRequest.artist,
-          spotify_url: specificSongRequest.spotify_url,
-          tag_title: specificSongRequest.tag_title || "",
-          tag_url: specificSongRequest.tag_url || ""
-        }
-      });
-    }
-
-    // Score all songs in full collection
-    const allSongsScored = scoreSongs(songsData.songs, keywords);
-    const fullCollectionMatches = allSongsScored.filter(s => s.score > 1);
-
-    // Filter to available (unplayed) songs only
-    const availableSongs = songsData.songs.filter(s => !session.playedSongs.includes(s.title));
-    const availableSongsScored = scoreSongs(availableSongs, keywords);
-    const availableMatches = availableSongsScored.filter(s => s.score > 1);
-
-    // Handle generic requests — pick a random available song
-    if (isGenericRequest) {
-      if (availableSongs.length === 0) {
-        return res.json({
-          response: "I've shared my entire collection with you! That's all the music I have for now.",
-          song: null
-        });
-      }
-      
-      const randomSong = availableSongs[Math.floor(Math.random() * availableSongs.length)];
-      session.playedSongs.push(randomSong.title);
-      session.lastSongTags = Array.isArray(randomSong.tags) ? randomSong.tags : randomSong.tags.split(',').map(t => t.trim());
-      session.lastSongArtist = randomSong.artist;
-      
-      return res.json({
-        response: randomSong.commentary,
-        song: {
-          title: randomSong.title,
-          artist: randomSong.artist,
-          spotify_url: randomSong.spotify_url,
-          tag_title: randomSong.tag_title || "",
-          tag_url: randomSong.tag_url || ""
-        }
-      });
-    }
-
-    // No matches at all in the full collection
-    if (fullCollectionMatches.length === 0) {
-      const noMatchResponse = await generateNoMatchResponse(message);
-      return res.json({
-        response: noMatchResponse,
-        song: null
-      });
-    }
-
-    // Had matches but all already played
-    if (availableMatches.length === 0 && fullCollectionMatches.length > 0) {
-      return res.json({
-        response: "Already played everything that fits that. Try a different angle?",
-        song: null
-      });
-    }
-
-    // Pick random song from top matches
-    const topScore = Math.max(...availableMatches.map(s => s.score));
-    const topMatches = availableMatches.filter(s => s.score === topScore);
-    const selectedSong = topMatches[Math.floor(Math.random() * topMatches.length)];
-
-    session.playedSongs.push(selectedSong.title);
-    session.lastSongTags = Array.isArray(selectedSong.tags) ? selectedSong.tags : selectedSong.tags.split(',').map(t => t.trim());
-    session.lastSongArtist = selectedSong.artist;
-
-    res.json({
-      response: selectedSong.commentary,
-      song: {
-        title: selectedSong.title,
-        artist: selectedSong.artist,
-        spotify_url: selectedSong.spotify_url,
-        tag_title: selectedSong.tag_title || "",
-        tag_url: selectedSong.tag_url || ""
-      }
-    });
-
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ 
-      error: 'Something went wrong',
-      details: error.message 
-    });
+    res.json({ response: responseText, song });
+  } catch (e) {
+    console.error('Favorite error:', e);
+    res.status(500).json({ response: "Something went wrong.", song: null });
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+// =====================
+// CHAT ENDPOINT
+// =====================
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, sessionId = 'default' } = req.body;
+    if (!message || !message.trim()) return res.json({ response: "Say something and I'll find you a song.", song: null });
+    if (message.length > 500) return res.json({ response: "Keep it short — I just need a vibe, not an essay.", song: null });
+
+    const session = getSession(sessionId);
+    if (session.playedSongs.length >= songsData.songs.length) {
+      return res.json({ response: "That's the whole collection — nothing left I haven't played you.", song: null });
+    }
+
+    const msgLower = message.toLowerCase().trim();
+
+    // ---- Button choice handlers ----
+    const pickFromPool = (pool) => {
+      if (!pool.length) return null;
+      const top = Math.max(...pool.map(s => s.score || 0));
+      const picks = pool.filter(s => (s.score || 0) === top);
+      return picks[Math.floor(Math.random() * picks.length)];
+    };
+
+    const available = () => songsData.songs.filter(s => !session.playedSongs.includes(s.title));
+
+    if (msgLower === 'keep this vibe' && session.lastSongTags) {
+      const scored = scoreSongs(available(), session.lastSongTags).filter(s => s.score > 0);
+      const diff = scored.filter(s => s.artist !== session.lastSongArtist);
+      const song = pickFromPool(diff.length ? diff : scored);
+      if (song) return res.json(buildSongResponse(song, session));
+    }
+
+    if (msgLower === 'try something different') {
+      const pool = available().filter(s => s.artist !== session.lastSongArtist);
+      const lastTags = session.lastSongTags || [];
+      const diff = pool.filter(s => {
+        const st = Array.isArray(s.tags) ? s.tags : (s.tags || '').split(',').map(t => t.trim());
+        return lastTags.filter(t => st.includes(t)).length < 2;
+      });
+      const av = diff.length ? diff : pool;
+      if (av.length) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
+    }
+
+    if (msgLower === 'surprise me' || msgLower === 'mix it up') {
+      const av = available();
+      if (av.length) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
+    }
+
+    if (msgLower === 'tell me more' && session._pendingRelatedSong) {
+      const related = songsData.songs.find(s => s.title === session._pendingRelatedSong);
+      session._pendingRelatedSong = null;
+      if (related && !session.playedSongs.includes(related.title)) return res.json(buildSongResponse(related, session));
+    }
+
+    if (msgLower === 'not right now') {
+      session._pendingRelatedSong = null;
+      return res.json({ response: "No problem — keep asking.", song: null });
+    }
+
+    if (msgLower === 'more of that energy' && session.lastSongTags) {
+      const scored = scoreSongs(available(), session.lastSongTags).filter(s => s.score > 0);
+      const song = pickFromPool(scored);
+      if (song) return res.json(buildSongResponse(song, session));
+    }
+
+    if (msgLower === 'something slower') {
+      const scored = scoreSongs(available(), ['slow', 'mellow', 'gentle', 'quiet', 'ballad', 'acoustic']).filter(s => s.score > 0);
+      if (scored.length) return res.json(buildSongResponse(scored[Math.floor(Math.random() * scored.length)], session));
+    }
+
+    if (msgLower === 'something weirder') {
+      const scored = scoreSongs(available(), ['outsider', 'weird', 'experimental', 'strange', 'lo-fi', 'eccentric', 'raw']).filter(s => s.score > 0);
+      if (scored.length) return res.json(buildSongResponse(scored[Math.floor(Math.random() * scored.length)], session));
+    }
+
+    // ---- Normal flow ----
+    if (isMoreRequest(message) && session.lastSongTags) {
+      const scored = scoreSongs(available(), session.lastSongTags).filter(s => s.score > 0);
+      const diff = scored.filter(s => s.artist !== session.lastSongArtist);
+      const song = pickFromPool(diff.length ? diff : scored);
+      if (song) return res.json(buildSongResponse(song, session));
+    }
+
+    const artistSongs = findSongsByArtist(message);
+    if (artistSongs) {
+      const av = artistSongs.filter(s => !session.playedSongs.includes(s.title));
+      if (!av.length) return res.json({ response: `I've already played everything I have from ${artistSongs[0].artist}. Want to try something else?`, song: null });
+      return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
+    }
+
+    const keywords = await extractKeywords(message);
+    console.log('Keywords:', keywords);
+
+    const preferVideo = isVideoRequest(message);
+    const isGeneric = /\b(another|random|something|anything|surprise|different|else)\b/i.test(message) || keywords.length === 0;
+
+    const specificSong = songsData.songs.find(s => keywords.some(k => normalize(s.title) === normalize(k)));
+    if (specificSong) {
+      if (session.playedSongs.includes(specificSong.title)) return res.json({ response: `I already shared ${specificSong.title} with you earlier! Want to explore something else?`, song: null });
+      return res.json(buildSongResponse(specificSong, session));
+    }
+
+    const allScored = scoreSongs(songsData.songs, keywords, preferVideo);
+    const fullMatches = allScored.filter(s => s.score > 1);
+    const avSongs = available();
+    const avScored = scoreSongs(avSongs, keywords, preferVideo);
+    const avMatches = avScored.filter(s => s.score > 1);
+
+    if (isGeneric) {
+      if (!avSongs.length) return res.json({ response: "I've shared my entire collection with you! That's all I have for now.", song: null });
+      return res.json(buildSongResponse(avSongs[Math.floor(Math.random() * avSongs.length)], session));
+    }
+
+    if (!fullMatches.length) {
+      return res.json({ response: await generateNoMatchResponse(message), song: null });
+    }
+
+    if (!avMatches.length) {
+      return res.json({ response: "Already played everything that fits that. Try a different angle?", song: null });
+    }
+
+    const top = Math.max(...avMatches.map(s => s.score));
+    const topPicks = avMatches.filter(s => s.score === top);
+    return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session));
+
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Something went wrong', details: error.message });
+  }
 });
+
+app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
