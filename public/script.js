@@ -388,6 +388,7 @@ function dismissInterrupt() {
   pendingFavoriteInput = false;
 
   setTimeout(() => {
+    inputWrapper.style.display = '';
     inputWrapper.style.opacity = '1';
     inputWrapper.style.pointerEvents = 'auto';
   }, 150);

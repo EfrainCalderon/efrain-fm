@@ -49,6 +49,16 @@ function isVideoRequest(msg) {
   return /\b(video|music video|youtube|visual|watch|clip)\b/i.test(msg);
 }
 
+// Common words too generic to use as partial artist name signals
+const ARTIST_STOPWORDS = new Set([
+  'music', 'band', 'sound', 'sounds', 'noise', 'group', 'club', 'party',
+  'world', 'street', 'city', 'house', 'rock', 'pop', 'jazz', 'soul',
+  'boys', 'girls', 'kids', 'men', 'women', 'people', 'gang', 'crew',
+  'new', 'old', 'young', 'good', 'real', 'true', 'pure', 'wild',
+  'black', 'white', 'red', 'blue', 'gold', 'silver',
+  'tapes', 'records', 'collective', 'project', 'unit',
+]);
+
 function findSongsByArtist(message) {
   const msgNorm = normalize(message);
   const words = msgNorm.split(/\s+/);
@@ -56,12 +66,13 @@ function findSongsByArtist(message) {
   artists.sort((a, b) => b.length - a.length);
   for (const artist of artists) {
     const artistNorm = normalize(artist);
-    // Full artist name match
+    // Full artist name match — always valid
     if (msgNorm.includes(artistNorm)) {
       return songsData.songs.filter(s => s.artist.toLowerCase() === artist.toLowerCase());
     }
-    // Partial: any word in message matches any word in artist name (min 4 chars to avoid noise)
-    const artistWords = artistNorm.split(/\s+/).filter(w => w.length >= 4);
+    // Partial match — only on words that are specific enough to be meaningful
+    // filters out generic words like "music", "tapes", "band", colors, etc.
+    const artistWords = artistNorm.split(/\s+/).filter(w => w.length >= 5 && !ARTIST_STOPWORDS.has(w));
     if (artistWords.length > 0 && artistWords.some(aw => words.some(w => w === aw))) {
       return songsData.songs.filter(s => s.artist.toLowerCase() === artist.toLowerCase());
     }
@@ -79,7 +90,9 @@ Be semantic — expand to related terms, but stay specific and accurate:
 - "outsider" or "outsider music" → ["outsider", "lo-fi", "primitive", "raw", "weird", "eccentric", "homemade", "diy"]
 - "sad" → ["sad", "melancholy", "heartbreak", "lonely", "grief"]
 - "chill" or "mellow" → ["chill", "mellow", "relaxed", "ambient", "downtempo"]
-- "brazil" or "brazilian" → ["brazil", "brazilian", "bossa nova", "samba", "mpb", "tropicalia", "latin"]
+- "brazil" or "brazilian" → ["brazil", "brazilian", "bossa nova", "samba", "mpb", "tropicalia"]
+- "latin" or "latin music" → ["latin", "salsa", "cumbia", "bossa nova", "reggaeton", "latin jazz", "bolero", "merengue"] — do NOT expand to "classical", "orchestral", "strings", "chamber", or anything European
+- "classical" → ["classical", "orchestra", "symphony", "chamber", "baroque"] — do NOT expand to "latin" or "world music"
 - "80s" → ["80s", "1980s", "synth", "new wave", "post-punk"]
 - "electronic" → ["electronic", "synth", "electro", "techno", "dance"]
 - artist names and song titles → return them as-is
@@ -165,6 +178,35 @@ function findRelatedSong(lastSong, playedTitles) {
   return best;
 }
 
+// Core genres/moods we have solid representation for in the collection
+const COLLECTION_GENRES = [
+  'jazz', 'electronic', 'folk', 'punk', 'soul', 'hip-hop', 'ambient',
+  'funk', 'country', 'reggae', 'classical', 'experimental', 'r&b',
+  'latin', 'afrobeat', 'blues', 'pop', 'noise', 'indie', 'dance',
+];
+
+// Pick 3 genres that contrast with the current song's tags
+function getDynamicOptions(justPlayedSong) {
+  const songTags = Array.isArray(justPlayedSong.tags)
+    ? justPlayedSong.tags.map(t => normalize(t))
+    : (justPlayedSong.tags || '').toLowerCase().split(/[,\s]+/);
+  const songGenre = normalize(justPlayedSong.genre || '');
+
+  // Filter to genres we actually have songs for, that differ from current song
+  const contrasting = COLLECTION_GENRES.filter(g => {
+    if (songTags.some(t => t.includes(g)) || songGenre.includes(g)) return false;
+    // Check we have unplayed songs with this genre/tag
+    return songsData.songs.some(s => {
+      const sTags = Array.isArray(s.tags) ? s.tags.join(' ') : (s.tags || '');
+      return (normalize(s.genre + ' ' + sTags)).includes(g);
+    });
+  });
+
+  // Shuffle and take 3
+  const shuffled = contrasting.sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 3).map(g => g.charAt(0).toUpperCase() + g.slice(1));
+}
+
 function decideInterrupt(session, justPlayedSong) {
   const count = session.songCount; // already incremented
   const sinceLastInterrupt = count - session.lastInterruptSong;
@@ -187,17 +229,21 @@ function decideInterrupt(session, justPlayedSong) {
     }
   }
 
-  // Every 4th song starting at 9: vibe check
+  // Every 4th song starting at 9: pivot offer with dynamic genre options
   if (count >= 9 && (count - 9) % 4 === 0 && sinceLastInterrupt >= 4) {
     session.lastInterruptSong = count;
-    return { type: 'vibe_check', message: "Want to keep going in this direction?", options: ['Keep this vibe', 'Try something different', 'Surprise me'] };
+    const options = getDynamicOptions(justPlayedSong);
+    if (options.length < 2) return null; // not enough contrast, skip
+    return { type: 'vibe_check', message: "Want to go somewhere different?", options };
   }
 
-  // Song 12+: what do you want more of
+  // Song 12+: genre pivot with dynamic options
   if (count >= 12 && !session.askedMoreOf && sinceLastInterrupt >= 4) {
     session.askedMoreOf = true;
     session.lastInterruptSong = count;
-    return { type: 'more_of', message: "What direction do you want to go?", options: ['Keep this vibe', 'Something slower', 'Something weirder'] };
+    const options = getDynamicOptions(justPlayedSong);
+    if (options.length < 2) return null;
+    return { type: 'more_of', message: "What else are you in the mood for?", options };
   }
 
   return null;
@@ -348,21 +394,7 @@ app.post('/api/chat', async (req, res) => {
       if (song) return res.json(buildSongResponse(song, session));
     }
 
-    if (msgLower === 'try something different') {
-      const pool = available().filter(s => s.artist !== session.lastSongArtist);
-      const lastTags = session.lastSongTags || [];
-      const diff = pool.filter(s => {
-        const st = Array.isArray(s.tags) ? s.tags : (s.tags || '').split(',').map(t => t.trim());
-        return lastTags.filter(t => st.includes(t)).length < 2;
-      });
-      const av = diff.length ? diff : pool;
-      if (av.length) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
-    }
-
-    if (msgLower === 'surprise me' || msgLower === 'mix it up') {
-      const av = available();
-      if (av.length) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
-    }
+    // Dynamic genre buttons (e.g. "Jazz", "Electronic") fall through to keyword search below
 
     if (msgLower === 'tell me more' && session._pendingRelatedSong) {
       const related = songsData.songs.find(s => s.title === session._pendingRelatedSong);
@@ -402,7 +434,12 @@ app.post('/api/chat', async (req, res) => {
     const artistSongs = findSongsByArtist(message);
     if (artistSongs) {
       const av = artistSongs.filter(s => !session.playedSongs.includes(s.title));
-      if (!av.length) return res.json({ response: `I've already played everything I have from ${artistSongs[0].artist}. Want to try something else?`, song: null });
+      if (!av.length) {
+        // Fall through to keyword search instead of showing exhaustion message
+        // — user may have typed a genre/mood that coincidentally matched an artist name
+      } else {
+        return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
+      }
       return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
     }
 
