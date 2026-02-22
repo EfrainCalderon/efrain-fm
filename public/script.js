@@ -304,9 +304,8 @@ async function showInterrupt(interrupt) {
   // Fade footer to slightly more opaque
   footer.classList.add('interrupt-active');
 
-  // Hide input
-  inputWrapper.style.opacity = '0';
-  inputWrapper.style.pointerEvents = 'none';
+  // display:none removes it from layout entirely — no ghost space
+  inputWrapper.style.display = 'none';
 
   await new Promise(r => setTimeout(r, 200));
 
@@ -333,8 +332,7 @@ async function showInterrupt(interrupt) {
     userInput.placeholder = 'Type a song or artist...';
     interruptEl.remove();
     footer.classList.remove('interrupt-active');
-    inputWrapper.style.opacity = '1';
-    inputWrapper.style.pointerEvents = 'auto';
+    inputWrapper.style.display = '';
 
     // Show question as assistant message instead
     await addMessageToChatWithTyping(interrupt.message, 'assistant');
