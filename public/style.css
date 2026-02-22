@@ -300,7 +300,7 @@ body::after {
 
 #chat-container {
   flex: 1;
-  overflow-y: scroll;
+  overflow-y: overlay;
   overflow-x: hidden;
   padding: 20px 0;
   background-color: var(--bg-secondary);
@@ -464,7 +464,7 @@ body::after {
   border: none;
   display: block;
   opacity: 0;
-  transition: opacity 0.9s ease;
+  transition: opacity 1.4s ease;
 }
 
 .song-embed.loaded {
