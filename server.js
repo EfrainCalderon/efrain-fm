@@ -186,23 +186,29 @@ const COLLECTION_GENRES = [
 ];
 
 // Pick 3 genres that contrast with the current song's tags
-function getDynamicOptions(justPlayedSong) {
+function getDynamicOptions(justPlayedSong, playedTitles = []) {
   const songTags = Array.isArray(justPlayedSong.tags)
     ? justPlayedSong.tags.map(t => normalize(t))
     : (justPlayedSong.tags || '').toLowerCase().split(/[,\s]+/);
   const songGenre = normalize(justPlayedSong.genre || '');
 
-  // Filter to genres we actually have songs for, that differ from current song
   const contrasting = COLLECTION_GENRES.filter(g => {
-    if (songTags.some(t => t.includes(g)) || songGenre.includes(g)) return false;
-    // Check we have unplayed songs with this genre/tag
-    return songsData.songs.some(s => {
-      const sTags = Array.isArray(s.tags) ? s.tags.join(' ') : (s.tags || '');
-      return (normalize(s.genre + ' ' + sTags)).includes(g);
-    });
+    // Skip if current song already matches this genre
+    if (songTags.some(t => t === g || t.includes(g)) || songGenre.includes(g)) return false;
+
+    // Count unplayed songs that genuinely match this genre via word boundary
+    const re = new RegExp('\\b' + g.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+    const matchCount = songsData.songs.filter(s => {
+      if (playedTitles.includes(s.title)) return false;
+      // Only match against structured fields — not commentary
+      const structured = normalize(`${s.genre || ''} ${Array.isArray(s.tags) ? s.tags.join(' ') : (s.tags || '')} ${s.mood || ''}`);
+      return re.test(structured);
+    }).length;
+
+    // Require at least 2 real matches so it's not a one-off fluke
+    return matchCount >= 2;
   });
 
-  // Shuffle and take 3
   const shuffled = contrasting.sort(() => Math.random() - 0.5);
   return shuffled.slice(0, 3).map(g => g.charAt(0).toUpperCase() + g.slice(1));
 }
@@ -232,7 +238,7 @@ function decideInterrupt(session, justPlayedSong) {
   // Every 4th song starting at 9: pivot offer with dynamic genre options
   if (count >= 9 && (count - 9) % 4 === 0 && sinceLastInterrupt >= 4) {
     session.lastInterruptSong = count;
-    const options = getDynamicOptions(justPlayedSong);
+    const options = getDynamicOptions(justPlayedSong, session.playedSongs);
     if (options.length < 2) return null; // not enough contrast, skip
     return { type: 'vibe_check', message: "Want to go somewhere different?", options };
   }
@@ -241,7 +247,7 @@ function decideInterrupt(session, justPlayedSong) {
   if (count >= 12 && !session.askedMoreOf && sinceLastInterrupt >= 4) {
     session.askedMoreOf = true;
     session.lastInterruptSong = count;
-    const options = getDynamicOptions(justPlayedSong);
+    const options = getDynamicOptions(justPlayedSong, session.playedSongs);
     if (options.length < 2) return null;
     return { type: 'more_of', message: "What else are you in the mood for?", options };
   }
