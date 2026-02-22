@@ -434,13 +434,10 @@ app.post('/api/chat', async (req, res) => {
     const artistSongs = findSongsByArtist(message);
     if (artistSongs) {
       const av = artistSongs.filter(s => !session.playedSongs.includes(s.title));
-      if (!av.length) {
-        // Fall through to keyword search instead of showing exhaustion message
-        // — user may have typed a genre/mood that coincidentally matched an artist name
-      } else {
+      if (av.length) {
         return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
       }
-      return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
+      // All played — fall through to keyword search
     }
 
     const keywords = await extractKeywords(message);
