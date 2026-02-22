@@ -55,6 +55,8 @@
   --card-shadow: 0 0 0 1px rgba(245, 242, 238, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6);
   --card-border: rgba(245, 242, 238, 0.07);
   --backdrop-blur: blur(24px);
+  /* Ring line colors */
+  --ring-color: rgba(245, 242, 238, 0.13);
   /* Skeleton loader */
   --skeleton-base: rgba(245, 242, 238, 0.06);
   --skeleton-shine: rgba(245, 242, 238, 0.1);
@@ -462,7 +464,7 @@ body::after {
   border: none;
   display: block;
   opacity: 0;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.9s ease;
 }
 
 .song-embed.loaded {

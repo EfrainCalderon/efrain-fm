@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <style>
+    .bg   { fill: #13161a; }
+    .text { fill: #f0ece6; }
+    .dot  { fill: #f0ece6; }
+    @media (prefers-color-scheme: light) {
+      .bg   { fill: #ede9e3; }
+      .text { fill: #13161a; }
+      .dot  { fill: #13161a; }
+    }
+  </style>
+  <rect width="32" height="32" rx="7" class="bg"/>
+  <text
+    x="13"
+    y="22"
+    font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+    font-size="21"
+    font-weight="600"
+    letter-spacing="-0.04em"
+    text-anchor="middle"
+    class="text"
+  >e</text>
+  <!-- dot — sits right beside the e, vertically centered on it -->
+  <circle cx="23" cy="21" r="2" class="dot"/>
+</svg>
