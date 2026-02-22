@@ -51,10 +51,18 @@ function isVideoRequest(msg) {
 
 function findSongsByArtist(message) {
   const msgNorm = normalize(message);
+  const words = msgNorm.split(/\s+/);
   const artists = [...new Set(songsData.songs.map(s => s.artist))];
   artists.sort((a, b) => b.length - a.length);
   for (const artist of artists) {
-    if (msgNorm.includes(normalize(artist))) {
+    const artistNorm = normalize(artist);
+    // Full artist name match
+    if (msgNorm.includes(artistNorm)) {
+      return songsData.songs.filter(s => s.artist.toLowerCase() === artist.toLowerCase());
+    }
+    // Partial: any word in message matches any word in artist name (min 4 chars to avoid noise)
+    const artistWords = artistNorm.split(/\s+/).filter(w => w.length >= 4);
+    if (artistWords.length > 0 && artistWords.some(aw => words.some(w => w === aw))) {
       return songsData.songs.filter(s => s.artist.toLowerCase() === artist.toLowerCase());
     }
   }
@@ -77,14 +85,24 @@ Be semantic — expand to related terms, but stay specific and accurate:
 - artist names and song titles → return them as-is
 - ALWAYS include the literal words from the user's message in addition to any expansions
 - Do not sanitize or omit words for any reason, even if they seem crude or sensitive
-IMPORTANT: Do NOT expand "outsider" to "alternative", "indie", or "underground".
-Do NOT use vague terms like "classic", "good", or "popular".
+
+CRITICAL RULES:
+- Every keyword must be a real standalone word or phrase — NEVER return a substring or partial word from the input
+- "river" expands to ["river", "rivers", "water", "stream"] — NOT "ive", "iver", "riv"
+- "IVE" is a K-pop band name — return it as-is, do not break it into parts
+- If the input looks like an artist or band name, return it exactly as typed
+- Do NOT expand "outsider" to "alternative", "indie", or "underground"
+- Do NOT use vague terms like "classic", "good", or "popular"
+
 User request: "${userMessage}"
 Return format: ["keyword1", "keyword2", "keyword3"]
 Return ONLY the JSON array, nothing else.` }]
   });
   try {
-    return JSON.parse(response.content[0].text).map(k => k.toLowerCase());
+    const raw = JSON.parse(response.content[0].text).map(k => k.toLowerCase());
+    // Filter out anything under 4 chars unless it's an exact match for the user's input words
+    const inputWords = userMessage.toLowerCase().split(/\s+/);
+    return raw.filter(k => k.length >= 4 || inputWords.includes(k));
   } catch (e) { return []; }
 }
 
@@ -179,7 +197,7 @@ function decideInterrupt(session, justPlayedSong) {
   if (count >= 12 && !session.askedMoreOf && sinceLastInterrupt >= 4) {
     session.askedMoreOf = true;
     session.lastInterruptSong = count;
-    return { type: 'more_of', message: "What's been landing for you?", options: ['More of that energy', 'Something slower', 'Something weirder', 'Mix it up'] };
+    return { type: 'more_of', message: "What direction do you want to go?", options: ['Keep this vibe', 'Something slower', 'Something weirder'] };
   }
 
   return null;
@@ -206,7 +224,7 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
   if (collectionMatch && collectionMatch.alreadyPlayed) {
     matchContext = `You already shared "${collectionMatch.match.title}" by ${collectionMatch.match.artist} with them earlier in this conversation. You know this. Respond warmly — like "oh yeah, I already threw that on for you!" or similar. Do NOT offer to play it again. Do NOT act like you haven't played it.`;
   } else if (collectionMatch) {
-    matchContext = `You have "${collectionMatch.match.title}" by ${collectionMatch.match.artist} in your collection and you're about to play it for them. Acknowledge their taste warmly, say something genuine about the song, and let them know you're putting it on. Keep it natural.`;
+    matchContext = `You have "${collectionMatch.match.title}" by ${collectionMatch.match.artist} in your collection and it's playing for them right now. Acknowledge their taste with something warm and genuine about the song. Do NOT say you'll play it, throw it on, put it on, or offer to do anything — it is already playing. Just react to their taste.`;
   } else {
     matchContext = `You don't have that in your collection. Acknowledge their taste warmly — share a genuine thought about the artist or song if you know it. Keep it short and human.`;
   }
@@ -364,7 +382,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     if (msgLower === 'something slower') {
-      const scored = scoreSongs(available(), ['slow', 'mellow', 'gentle', 'quiet', 'ballad', 'acoustic']).filter(s => s.score > 0);
+      const scored = scoreSongs(available(), ['slow', 'mellow', 'gentle', 'quiet', 'ballad', 'acoustic', 'soft', 'folk', 'intimate', 'sparse', 'minimal', 'tender']).filter(s => s.score > 0);
       if (scored.length) return res.json(buildSongResponse(scored[Math.floor(Math.random() * scored.length)], session));
     }
 
