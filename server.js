@@ -88,16 +88,38 @@ Return ONLY the JSON array, nothing else.` }]
   } catch (e) { return []; }
 }
 
+// Words too common in personal commentary to be useful search signals
+const COMMENTARY_STOPWORDS = new Set([
+  'love', 'like', 'really', 'great', 'good', 'best', 'favorite', 'favourite',
+  'amazing', 'beautiful', 'perfect', 'incredible', 'awesome', 'fantastic',
+  'one', 'song', 'album', 'music', 'listen', 'hear', 'sound', 'track',
+  'first', 'time', 'ever', 'always', 'never', 'still', 'just', 'even',
+  'kind', 'feel', 'felt', 'think', 'thought', 'know', 'thing', 'way',
+  'make', 'made', 'got', 'get', 'take', 'took', 'come', 'came',
+  'something', 'anything', 'everything', 'nothing', 'someone',
+  'year', 'years', 'day', 'days', 'life', 'world', 'back', 'little',
+]);
+
 function scoreSongs(songs, keywords, preferVideo = false) {
   return songs.map(song => {
     let score = 0;
     const tags = Array.isArray(song.tags) ? song.tags.join(' ') : (song.tags || '');
-    const searchText = normalize(`${song.title} ${song.artist} ${song.genre} ${song.mood} ${song.year} ${tags} ${song.commentary || ''}`);
+    // Structured fields — all keywords match here
+    const structuredText = normalize(`${song.title} ${song.artist} ${song.genre} ${song.mood} ${song.year} ${tags}`);
+    // Commentary — only non-stopwords match here
+    const commentaryText = normalize(song.commentary || '');
+
     keywords.forEach(keyword => {
-      const escaped = normalize(keyword).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const normKw = normalize(keyword);
+      const escaped = normKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const re = new RegExp('\\b' + escaped + '\\b', 'i');
-      if (re.test(searchText)) score++;
+      if (re.test(structuredText)) {
+        score++;
+      } else if (!COMMENTARY_STOPWORDS.has(normKw) && re.test(commentaryText)) {
+        score++;
+      }
     });
+
     const isYT = song.spotify_url && (song.spotify_url.includes('youtube.com') || song.spotify_url.includes('youtu.be'));
     if (preferVideo && isYT) score += 5;
     return { ...song, score };
@@ -182,11 +204,11 @@ function findFavoriteInCollection(input) {
 async function generateFavoriteResponse(userInput, collectionMatch) {
   let matchContext;
   if (collectionMatch && collectionMatch.alreadyPlayed) {
-    matchContext = collectionMatch.context;
+    matchContext = `You already shared "${collectionMatch.match.title}" by ${collectionMatch.match.artist} with them earlier in this conversation. You know this. Respond warmly — like "oh yeah, I already threw that on for you!" or similar. Do NOT offer to play it again. Do NOT act like you haven't played it.`;
   } else if (collectionMatch) {
-    matchContext = `You DO have "${collectionMatch.match.title}" by ${collectionMatch.match.artist} in your collection. Acknowledge this warmly and offer to play it.`;
+    matchContext = `You have "${collectionMatch.match.title}" by ${collectionMatch.match.artist} in your collection and you're about to play it for them. Acknowledge their taste warmly, say something genuine about the song, and let them know you're putting it on. Keep it natural.`;
   } else {
-    matchContext = `You don't have that in your collection. Acknowledge their taste warmly — share a genuine thought about the artist or song if you know it.`;
+    matchContext = `You don't have that in your collection. Acknowledge their taste warmly — share a genuine thought about the artist or song if you know it. Keep it short and human.`;
   }
 
   const r = await anthropic.messages.create({
@@ -199,6 +221,10 @@ ${matchContext}
 Respond in 2-3 sentences. Be warm and specific. Plain text only, no markdown.` }]
   });
   return r.content[0].text;
+}
+
+function isAffirmation(msg) {
+  return /^(that'?s?\s*(awesome|amazing|cool|great|nice|sick|dope|perfect|incredible|wild|crazy|so good)|love it|love this|wow|yes!|yep|yeah|haha|lol|ha|nice|great|good one|so good|damn|whoa|oh wow|oh nice|hell yeah|no way)[\s!.]*$/i.test(msg.trim());
 }
 
 function isConversational(msg) {
@@ -275,6 +301,17 @@ app.post('/api/chat', async (req, res) => {
     }
 
     const msgLower = message.toLowerCase().trim();
+
+    // Affirmations — respond warmly, invite next request
+    if (isAffirmation(message)) {
+      const replies = [
+        "Right? Keep going — what else are you in the mood for?",
+        "Good stuff. What do you want to hear next?",
+        "Yeah. What else can I find you?",
+        "Glad it landed. What are you feeling next?",
+      ];
+      return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
+    }
 
     // ---- Button choice handlers ----
     const pickFromPool = (pool) => {

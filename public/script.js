@@ -127,9 +127,9 @@ async function sendMessage() {
       await addMessageToChatWithTyping(data.response, 'assistant');
     }
 
-    // Handle interrupt if present
+    // Handle interrupt if present — delay so it doesn't feel instant
     if (data.interrupt) {
-      await showInterrupt(data.interrupt);
+      setTimeout(() => showInterrupt(data.interrupt), 3500);
     }
 
     isTyping = false;
@@ -162,18 +162,40 @@ function showTypingIndicator() {
   const typingDiv = document.createElement('div');
   typingDiv.classList.add('message', 'typing');
   typingDiv.innerHTML = `
-    <div class="typing-dots">
-      <span></span>
-      <span></span>
-      <span></span>
+    <div class="typing-triangles">
+      <svg viewBox="0 0 12 14" width="12" height="14"><polygon points="1,1 1,13 11,7" fill="#E6961E" stroke="#E6961E" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 12 14" width="12" height="14"><polygon points="1,1 1,13 11,7" fill="#E6961E" stroke="#E6961E" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 12 14" width="12" height="14"><polygon points="1,1 1,13 11,7" fill="#E6961E" stroke="#E6961E" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
     </div>
   `;
   chatMessages.appendChild(typingDiv);
   scrollToElement(typingDiv);
+
+  // Animate opacity via sine wave
+  const svgs = typingDiv.querySelectorAll('svg');
+  const PERIOD = 1600;
+  const OFFSET = 400;
+  const MIN_OP = 0.15;
+  const MAX_OP = 1.0;
+  let rafId;
+  function animateTris(now) {
+    svgs.forEach((svg, i) => {
+      const phase = (now - i * OFFSET) / PERIOD;
+      const sine = (Math.sin(phase * Math.PI * 2 - Math.PI / 2) + 1) / 2;
+      svg.style.opacity = MIN_OP + sine * (MAX_OP - MIN_OP);
+    });
+    rafId = requestAnimationFrame(animateTris);
+  }
+  rafId = requestAnimationFrame(animateTris);
+  typingDiv._rafId = rafId;
+
   return typingDiv;
 }
 
 function removeTypingIndicator(indicator) {
+  if (indicator && indicator._rafId) {
+    cancelAnimationFrame(indicator._rafId);
+  }
   if (indicator && indicator.parentNode) {
     indicator.parentNode.removeChild(indicator);
   }

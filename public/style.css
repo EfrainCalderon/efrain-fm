@@ -55,9 +55,9 @@
   --card-shadow: 0 0 0 1px rgba(245, 242, 238, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6);
   --card-border: rgba(245, 242, 238, 0.07);
   --backdrop-blur: blur(24px);
-  --bg-interrupt: rgba(245, 242, 238, 0.10);
-  --interrupt-btn-bg: rgba(240, 236, 230, 0.92);
-  --interrupt-btn-text: #13161a;
+  --bg-interrupt: rgba(245, 242, 238, 0.08);
+  --interrupt-btn-bg: rgba(18, 20, 24, 0.95);
+  --interrupt-btn-text: #f0ece6;
   /* Ring line colors */
   --ring-color: rgba(245, 242, 238, 0.13);
   /* Skeleton loader */
@@ -113,9 +113,9 @@
     --card-shadow: 0 0 0 1px rgba(14, 16, 18, 0.06), 0 24px 64px rgba(0, 0, 0, 0.08);
     --card-border: rgba(14, 16, 18, 0.07);
   }
-    --bg-interrupt: rgba(14, 16, 18, 0.08);
-    --interrupt-btn-bg: rgba(20, 22, 26, 0.88);
-    --interrupt-btn-text: #f0ece6;
+    --bg-interrupt: rgba(14, 16, 18, 0.06);
+    --interrupt-btn-bg: rgba(240, 236, 230, 0.96);
+    --interrupt-btn-text: #13161a;
 }
 
 /* Force dark */
@@ -153,9 +153,9 @@
   --scrollbar-thumb-hover: rgba(245, 242, 238, 0.18);
   --card-shadow: 0 0 0 1px rgba(245, 242, 238, 0.06), 0 24px 64px rgba(0, 0, 0, 0.6);
   --card-border: rgba(245, 242, 238, 0.07);
-  --bg-interrupt: rgba(245, 242, 238, 0.10);
-  --interrupt-btn-bg: rgba(240, 236, 230, 0.92);
-  --interrupt-btn-text: #13161a;
+  --bg-interrupt: rgba(245, 242, 238, 0.08);
+  --interrupt-btn-bg: rgba(18, 20, 24, 0.95);
+  --interrupt-btn-text: #f0ece6;
   --ring-color: rgba(245, 242, 238, 0.12);
   --skeleton-base: rgba(245, 242, 238, 0.06);
   --skeleton-shine: rgba(245, 242, 238, 0.1);
@@ -197,9 +197,9 @@
   --card-shadow: 0 0 0 1px rgba(14, 16, 18, 0.06), 0 24px 64px rgba(0, 0, 0, 0.08);
   --card-border: rgba(14, 16, 18, 0.07);
   --ring-color: rgba(14, 16, 18, 0.14);
-    --bg-interrupt: rgba(14, 16, 18, 0.08);
-    --interrupt-btn-bg: rgba(20, 22, 26, 0.88);
-    --interrupt-btn-text: #f0ece6;
+    --bg-interrupt: rgba(14, 16, 18, 0.06);
+    --interrupt-btn-bg: rgba(240, 236, 230, 0.96);
+    --interrupt-btn-text: #13161a;
   --skeleton-base: rgba(14, 16, 18, 0.06);
   --skeleton-shine: rgba(14, 16, 18, 0.1);
 }
@@ -387,33 +387,22 @@ body::after {
 .message.typing {
   background: var(--assistant-bubble-bg);
   box-shadow: 0 1px 3px var(--assistant-bubble-shadow);
-  padding: 12px 20px;
+  padding: 12px 16px;
   float: left;
   clear: both;
-  max-width: 80px;
 }
 
-.typing-dots {
+.typing-triangles {
   display: flex;
-  gap: 4px;
+  gap: 8px;
   align-items: center;
-  height: 20px;
+  height: 14px;
 }
 
-.typing-dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--typing-dot);
-  animation: typing 1.4s infinite;
+.typing-triangles svg {
+  opacity: 0.15;
+  display: block;
 }
-
-.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typing {
-  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-10px); }
 }
 
 .message.song {
@@ -548,7 +537,7 @@ body::after {
 }
 
 #interrupt-bar {
-  padding: 4px 0 10px;
+  padding: 4px 0 6px;
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 0.35s ease, transform 0.35s ease;
@@ -568,7 +557,7 @@ body::after {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 2px 0 4px;
+  padding: 2px 0 0;
 }
 
 .interrupt-btn {
@@ -587,30 +576,24 @@ body::after {
 }
 
 /* Independent float per button — different durations so they're out of sync */
-.interrupt-btn:nth-child(1) { animation: btnEntrance 0.4s ease both, btnFloat 3.8s ease-in-out 0.4s infinite; }
-.interrupt-btn:nth-child(2) { animation: btnEntrance 0.4s 0.08s ease both, btnFloat 4.6s ease-in-out 0.5s infinite; }
-.interrupt-btn:nth-child(3) { animation: btnEntrance 0.4s 0.16s ease both, btnFloat 5.2s ease-in-out 0.6s infinite; }
-.interrupt-btn:nth-child(4) { animation: btnEntrance 0.4s 0.24s ease both, btnFloat 4.1s ease-in-out 0.7s infinite; }
+.interrupt-btn:nth-child(1) { animation: btnEntrance 0.4s ease both; }
+.interrupt-btn:nth-child(2) { animation: btnEntrance 0.4s 0.08s ease both; }
+.interrupt-btn:nth-child(3) { animation: btnEntrance 0.4s 0.16s ease both; }
+.interrupt-btn:nth-child(4) { animation: btnEntrance 0.4s 0.24s ease both; }
 
 .interrupt-btn:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-  transform: translateY(0) !important;
-  animation-play-state: paused !important;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
 }
 
 .interrupt-btn:active {
   box-shadow: none;
-  transform: scale(0.97) !important;
+  transform: scale(0.97);
 }
 
 @keyframes btnEntrance {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes btnFloat {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-4px); }
 }
 
 #interrupt-dismiss {
