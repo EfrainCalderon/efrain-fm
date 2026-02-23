@@ -159,8 +159,8 @@ function scoreSongs(songs, keywords, preferVideo = false) {
 
 async function generateNoMatchResponse(userMessage) {
   const r = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514', max_tokens: 150,
-    messages: [{ role: 'user', content: `You're a personal music curator. You don't have a match for this request. Respond in one short sentence. No catalogs, databases, or other services. Keep it human.\n\nUser asked: "${userMessage}"\n\nPlain text only, no markdown.` }]
+    model: 'claude-sonnet-4-20250514', max_tokens: 80,
+    messages: [{ role: 'user', content: `You are Efrain, a personal music curator with a curated collection. You don't have a match for this request. One short sentence, no filler, no offers to help find music elsewhere. Don't reference "my collection" or "database". Just be human and brief.\n\nUser asked: "${userMessage}"\n\nPlain text only, no markdown.` }]
   });
   return r.content[0].text;
 }
@@ -282,13 +282,13 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
   }
 
   const r = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514', max_tokens: 200,
-    messages: [{ role: 'user', content: `You are Efrain, a music curator — ex-record store employee, deep eclectic taste spanning outsider music, vintage jazz, proto-punk, experimental, and international sounds. Knowledgeable but never pretentious. Speak naturally in first person.
+    model: 'claude-sonnet-4-20250514', max_tokens: 100,
+    messages: [{ role: 'user', content: `You are Efrain — music obsessive, ex-record store. Warm, specific, never pretentious. Short sentences. No wikipedia tone.
 
-The visitor's favorite is: "${userInput}"
+Visitor's favorite: "${userInput}"
 ${matchContext}
 
-Respond in 2-3 sentences. Be warm and specific. Plain text only, no markdown.` }]
+1-2 sentences MAX. Real person reacting, not a critic. Plain text only.` }]
   });
   return r.content[0].text;
 }
@@ -296,9 +296,9 @@ Respond in 2-3 sentences. Be warm and specific. Plain text only, no markdown.` }
 function isAffirmation(msg) {
   const t = msg.trim();
   // Short pure reactions
-  if (/^(wow|damn|whoa|yes!?|yep|yeah|haha|lol|ha|nice|great|dope|sick|fire|banger|bop|slaps|perfect|incredible|wild|crazy|hell yeah|no way|omg|oh wow|oh nice|love it|love this|so good|good one|that's?\s*(great|awesome|amazing|cool|nice|sick|dope|perfect|wild|crazy|so good|a banger|fire))[\s!.]*$/i.test(t)) return true;
-  // Longer affirmations clearly reactions not requests
-  if (/^(nice\s+i\s+(like|love)\s+(it|this)|i\s+(like|love)\s+(it|this(\s+one)?)|this\s+is\s+(great|amazing|awesome|cool|a\s+good\s+one|so\s+good|perfect)|that\s+(was|is)\s+(great|amazing|awesome|cool|so\s+good|perfect|a\s+good\s+one)|i\s+agree(\s+they\s+rule)?|they\s+rule|so\s+good|really\s+good|really\s+like\s+(it|this))[\s!.]*$/i.test(t)) return true;
+  if (/^(wow|damn|whoa|yes!?|yep|yeah|haha|lol|ha|nice|great|dope|sick|fire|banger|bop|slaps|perfect|incredible|wild|crazy|hell yeah|no way|omg|oh wow|oh nice|love it|love this|loved it|so good|good one|that's?\s*(great|awesome|amazing|cool|nice|sick|dope|perfect|wild|crazy|so good|a banger|fire))[\s!.]*$/i.test(t)) return true;
+  // Longer phrases that are clearly reactions, not requests
+  if (/^(nice\s+i\s+(like|love)\s+(it|this)|i\s+(like|love)\s+(it|this(\s+one)?)|this\s+is\s+(great|amazing|awesome|cool|a\s+good\s+one|so\s+good|perfect|a\s+great\s+song)|that\s+(was|is)\s+(great|amazing|awesome|cool|so\s+good|perfect|a\s+good\s+one)|i\s+agree(\s+they\s+rule)?|they\s+rule|really\s+good|really\s+like\s+(it|this)|loved\s+(it|this|that))[\s!.]*$/i.test(t)) return true;
   return false;
 }
 
@@ -377,8 +377,29 @@ app.post('/api/chat', async (req, res) => {
 
     const msgLower = message.toLowerCase().trim();
 
-    // Affirmations — respond warmly, invite next request
+    // "Efrain's favorite" or "your favorite" — redirect gracefully, Efrain is the narrator
+    if (/\b(your|efrain'?s?)\s+(favorite|favourite|fave|best|top|pick|picks)\b/i.test(message)) {
+      const redirects = [
+        "Honestly, they're all favorites in different ways — is there a genre, mood, or era you want to explore?",
+        "That's a trap, I can't pick just one. What are you feeling right now?",
+        "Hard to say. Give me a vibe or a genre and I'll find you something good.",
+        "Too many to count. What kind of mood are you in?",
+      ];
+      return res.json({ response: redirects[Math.floor(Math.random() * redirects.length)], song: null });
+    }
+
+    // Affirmations — respond warmly and reference the last song if we have one
     if (isAffirmation(message)) {
+      if (session.lastSong) {
+        const s = session.lastSong;
+        const replies = [
+          `Yeah, ${s.title} is a good one. What are you in the mood for next?`,
+          `Right? ${s.artist} doesn't miss. What do you want to hear next?`,
+          `Glad that one landed. Keep going — what else?`,
+          `${s.title} holds up every time. What are you feeling next?`,
+        ];
+        return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
+      }
       const replies = [
         "Right? Keep going — what else are you in the mood for?",
         "Good stuff. What do you want to hear next?",
@@ -459,7 +480,7 @@ app.post('/api/chat', async (req, res) => {
     const bridge = conversational ? "Okay, let me find something else." : null;
     const isGeneric = /\b(another|random|something|anything|surprise|different|else)\b/i.test(message) || keywords.length === 0;
 
-    // Words too generic to use as song title signals — avoid false matches like "body" -> "My Body's a Zombie"
+    // Words too generic to use as song title signals
     const TITLE_MATCH_STOPWORDS = new Set([
       'song', 'music', 'track', 'tune', 'play', 'hear', 'listen',
       'like', 'love', 'good', 'great', 'nice', 'best', 'cool', 'bad',
@@ -469,14 +490,14 @@ app.post('/api/chat', async (req, res) => {
       'girl', 'girls', 'boy', 'boys', 'man', 'woman', 'baby', 'home',
       'fire', 'rain', 'sun', 'moon', 'star', 'night', 'dark', 'light',
       'ride', 'walk', 'run', 'come', 'gone', 'lost', 'back', 'down',
-      'feel', 'heart', 'eyes', 'hand', 'face', 'head', 'world', 'away',
+      'heart', 'eyes', 'hand', 'face', 'head', 'world', 'away',
+      'favorite', 'favourite',
     ]);
 
-    // Find specific song by title keyword — skip stopwords and single-char words, try unplayed first
     const titleMatchKeywords = keywords.filter(k => k.length >= 4 && !TITLE_MATCH_STOPWORDS.has(normalize(k)));
     let specificSong = null;
     if (titleMatchKeywords.length > 0) {
-      // Prefer unplayed match first
+      // Prefer unplayed match; if only played songs match, fall through silently to scored search
       specificSong = songsData.songs.find(s =>
         !session.playedSongs.includes(s.title) &&
         titleMatchKeywords.some(k => {
@@ -487,7 +508,6 @@ app.post('/api/chat', async (req, res) => {
           return new RegExp('\\b' + escaped + '\\b').test(normTitle);
         })
       );
-      // If only played songs match, fall through silently to scored search
     }
     if (specificSong) {
       return res.json(buildSongResponse(specificSong, session));
