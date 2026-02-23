@@ -284,7 +284,7 @@ body::after {
   background-color: var(--bg-header-footer);
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
-  padding: 20px 24px 8px;
+  padding: 20px 24px 2px;
   z-index: 100;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border-color);
@@ -540,12 +540,15 @@ body::after {
 }
 
 #input-wrapper {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.4s ease;
 }
 
-#input-wrapper #user-input,
+#input-wrapper #user-input {
+  transition: opacity 0.35s ease-in 0.20s, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
 #input-wrapper #send-button {
-  transition: opacity 0.35s ease 0.1s, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, background 0.2s ease;
+  transition: opacity 0.3s ease-in 0.42s, color 0.2s ease, background 0.2s ease;
 }
 
 #interrupt-bar {
@@ -728,7 +731,7 @@ body::after {
   }
 
   #header {
-    padding: 16px 16px 8px;
+    padding: 16px 16px 2px;
   }
 
   #input-footer {
