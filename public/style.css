@@ -540,7 +540,12 @@ body::after {
 }
 
 #input-wrapper {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.25s ease;
+}
+
+#input-wrapper #user-input,
+#input-wrapper #send-button {
+  transition: opacity 0.35s ease 0.1s, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 
 #interrupt-bar {
