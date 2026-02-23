@@ -19,31 +19,23 @@ userInput.addEventListener('input', function() {
   this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
-// Typing animation
+// =====================
+// TYPING ANIMATION
+// No scroll lock — smooth scroll to bottom when done
+// =====================
 async function typeText(element, text, speed = 20) {
   return new Promise((resolve) => {
     let index = 0;
     element.textContent = '';
     const container = document.getElementById('chat-container');
 
-    // Lock user scrolling during typing
-    container.style.overflow = 'hidden';
-
     const interval = setInterval(() => {
       if (index < text.length) {
         element.textContent += text[index];
         index++;
-        // Track element bottom as text grows
-        const containerRect = container.getBoundingClientRect();
-        const elementRect = element.getBoundingClientRect();
-        if (elementRect.bottom > containerRect.bottom) {
-          container.scrollTop += (elementRect.bottom - containerRect.bottom) + 8;
-        }
       } else {
         clearInterval(interval);
-        // Snap to bottom then restore scrolling
-        container.scrollTop = container.scrollHeight;
-        container.style.overflow = '';
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
         resolve();
       }
     }, speed);
@@ -86,6 +78,30 @@ function handleSecretCommand(command) {
   }
 }
 
+// =====================
+// INPUT FADE HELPERS
+// =====================
+function fadeOutInput() {
+  const inputWrapper = document.getElementById('input-wrapper');
+  // Hide placeholder instantly on submit so it doesn't linger during fade
+  userInput.classList.add('hide-placeholder');
+  inputWrapper.style.opacity = '0';
+  inputWrapper.style.pointerEvents = 'none';
+}
+
+function fadeInInput() {
+  const inputWrapper = document.getElementById('input-wrapper');
+  inputWrapper.style.opacity = '1';
+  inputWrapper.style.pointerEvents = 'auto';
+  // Restore placeholder after input has faded back in
+  setTimeout(() => {
+    userInput.classList.remove('hide-placeholder');
+  }, 200);
+}
+
+// =====================
+// SEND MESSAGE
+// =====================
 async function sendMessage() {
   if (isTyping) return;
 
@@ -106,16 +122,13 @@ async function sendMessage() {
   userInput.style.height = 'auto';
   sessionStats.messagesExchanged++;
 
-  const inputWrapper = document.getElementById('input-wrapper');
-  inputWrapper.style.opacity = '0';
-  inputWrapper.style.pointerEvents = 'none';
+  fadeOutInput();
 
   await new Promise(r => setTimeout(r, 250));
   const typingIndicator = showTypingIndicator();
   isTyping = true;
 
   try {
-    // If we're in a pending favorite state, route to /api/favorite
     const endpoint = pendingFavoriteInput ? '/api/favorite' : '/api/chat';
     const body = pendingFavoriteInput
       ? { input: message, sessionId }
@@ -147,10 +160,7 @@ async function sendMessage() {
     if (data.interrupt) {
       setTimeout(() => { showInterrupt(data.interrupt); }, 4000);
     } else {
-      setTimeout(() => {
-        inputWrapper.style.opacity = '1';
-        inputWrapper.style.pointerEvents = 'auto';
-      }, 600);
+      setTimeout(fadeInInput, 600);
     }
 
     isTyping = false;
@@ -159,36 +169,37 @@ async function sendMessage() {
     console.error('Error:', error);
     removeTypingIndicator(typingIndicator);
     addMessageToChat('Something went wrong. Please try again.', 'assistant');
-    inputWrapper.style.opacity = '1';
-    inputWrapper.style.pointerEvents = 'auto';
+    fadeInInput();
     isTyping = false;
   }
 }
 
+// =====================
+// MESSAGE RENDERING
+// =====================
 function addMessageToChat(message, sender) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message', sender);
   messageDiv.textContent = message;
   chatMessages.appendChild(messageDiv);
-  scrollToElement(messageDiv);
+  scrollToBottom();
 }
 
 async function addMessageToChatWithTyping(message, sender) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message', sender);
   chatMessages.appendChild(messageDiv);
-  scrollToElement(messageDiv);
+  scrollToBottom();
   await typeText(messageDiv, message);
 }
 
 function showTypingIndicator() {
   const typingDiv = document.createElement('div');
   typingDiv.classList.add('message', 'typing');
-  typingDiv.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+  typingDiv.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
   chatMessages.appendChild(typingDiv);
-  scrollToElement(typingDiv);
+  scrollToBottom();
 
-  // Sine wave opacity — same rhythm as triangle indicator preview
   const dots = typingDiv.querySelectorAll('span');
   const PERIOD = 1600;
   const OFFSET = 400;
@@ -227,7 +238,6 @@ async function displaySong(song, storyText) {
     song.spotify_url.includes('youtu.be')
   );
 
-  // Wrapper div clamps the iframe height — prevents Spotify from stretching
   const embedWrapper = document.createElement('div');
   embedWrapper.classList.add('song-embed-wrapper');
   if (isYouTube) embedWrapper.classList.add('youtube');
@@ -236,7 +246,6 @@ async function displaySong(song, storyText) {
   iframe.classList.add('song-embed');
   iframe.frameBorder = '0';
 
-  // Fade in the embed once loaded, remove skeleton shimmer
   iframe.addEventListener('load', () => {
     iframe.classList.add('loaded');
     embedWrapper.classList.add('loaded');
@@ -268,23 +277,19 @@ async function displaySong(song, storyText) {
       const link = document.createElement('a');
       link.href = song.tag_url;
       link.target = '_blank';
-      link.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-          <polyline points="15 3 21 3 21 9"></polyline>
-          <line x1="10" y1="14" x2="21" y2="3"></line>
-        </svg>
-        ${song.tag_title}
-      `;
+      link.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+        '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>' +
+        '<polyline points="15 3 21 3 21 9"></polyline>' +
+        '<line x1="10" y1="14" x2="21" y2="3"></line>' +
+        '</svg>' + song.tag_title;
       liveTag.appendChild(link);
     } else {
-      liveTag.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
-        ${song.tag_title}
-      `;
+      liveTag.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+        '<circle cx="12" cy="12" r="10"></circle>' +
+        '<polyline points="12 6 12 12 16 14"></polyline>' +
+        '</svg>' + song.tag_title;
     }
 
     songContainer.appendChild(liveTag);
@@ -296,7 +301,7 @@ async function displaySong(song, storyText) {
   songContainer.appendChild(storyDiv);
 
   chatMessages.appendChild(songContainer);
-  scrollToElement(songContainer);
+  scrollToBottom();
 
   if (storyText && storyText.trim() !== '') {
     await typeText(storyDiv, storyText);
@@ -305,73 +310,60 @@ async function displaySong(song, storyText) {
   }
 }
 
-function scrollToElement(element) {
+// =====================
+// SCROLL
+// =====================
+function scrollToBottom() {
   const container = document.getElementById('chat-container');
   setTimeout(() => {
-    const containerRect = container.getBoundingClientRect();
-    const elementRect = element.getBoundingClientRect();
-    if (elementRect.bottom > containerRect.bottom) {
-      container.scrollTop += (elementRect.bottom - containerRect.bottom) + 16;
-    }
+    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
   }, 50);
 }
 
 // =====================
 // INTERRUPT / BUTTON UI
+// No X dismiss button
+// Uses CSS classes for show/hide — no display:none layout jumps
 // =====================
 
 async function showInterrupt(interrupt) {
   const footer = document.getElementById('input-footer');
   const inputWrapper = document.getElementById('input-wrapper');
 
-  // Fade footer to slightly more opaque
-  footer.classList.add('interrupt-active');
-
-  // display:none removes it from layout entirely — no ghost space
-  inputWrapper.style.display = 'none';
+  // Collapse input via CSS class — smooth, no layout snap
+  inputWrapper.classList.add('hidden-for-interrupt');
 
   await new Promise(r => setTimeout(r, 200));
 
-  // Send interrupt question as assistant message
-  if (!interrupt.freeText) {
-    await addMessageToChatWithTyping(interrupt.message, 'assistant');
-  }
-
-  // Build interrupt UI
-  const interruptEl = document.createElement('div');
-  interruptEl.id = 'interrupt-bar';
-
-  const question = document.createElement('p');
-  question.id = 'interrupt-question';
-  question.textContent = interrupt.message;
-  interruptEl.appendChild(question);
-
-  const btnRow = document.createElement('div');
-  btnRow.id = 'interrupt-buttons';
-
+  // freeText mode: restore input in favorite-answer mode
   if (interrupt.freeText) {
-    // Favorite question — restore input but flag it as favorite mode
     pendingFavoriteInput = true;
     userInput.placeholder = 'Type a song or artist...';
-    interruptEl.remove();
-    footer.classList.remove('interrupt-active');
-    inputWrapper.style.display = '';
-
-    // Show question as assistant message instead
+    inputWrapper.classList.remove('hidden-for-interrupt');
+    inputWrapper.classList.add('visible-after-interrupt');
+    setTimeout(() => inputWrapper.classList.remove('visible-after-interrupt'), 500);
     await addMessageToChatWithTyping(interrupt.message, 'assistant');
     return;
   }
 
-  // Button options
+  // Send the question into chat first so it's readable
+  await addMessageToChatWithTyping(interrupt.message, 'assistant');
+
+  // Build button row
+  const interruptEl = document.createElement('div');
+  interruptEl.id = 'interrupt-bar';
+
+  const btnRow = document.createElement('div');
+  btnRow.id = 'interrupt-buttons';
+
   if (interrupt.options) {
     interrupt.options.forEach((label, i) => {
       const btn = document.createElement('button');
       btn.className = 'interrupt-btn';
       btn.textContent = label;
-      btn.style.animationDelay = `${i * 80}ms`;
+      btn.style.animationDelay = `${i * 70}ms`;
       btn.addEventListener('click', () => {
         dismissInterrupt();
-        // Send choice as a message
         userInput.value = label;
         sendMessage();
       });
@@ -379,42 +371,38 @@ async function showInterrupt(interrupt) {
     });
   }
 
-  // Dismiss X
-  const dismissBtn = document.createElement('button');
-  dismissBtn.id = 'interrupt-dismiss';
-  dismissBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-  dismissBtn.title = 'Dismiss';
-  dismissBtn.addEventListener('click', dismissInterrupt);
-  interruptEl.appendChild(dismissBtn);
-
   interruptEl.appendChild(btnRow);
   footer.insertBefore(interruptEl, inputWrapper);
 
-  // Trigger entrance
+  // Double rAF ensures the element is in DOM before we add the class
   requestAnimationFrame(() => {
-    interruptEl.classList.add('visible');
+    requestAnimationFrame(() => {
+      interruptEl.classList.add('visible');
+    });
   });
 }
 
 function dismissInterrupt() {
-  const footer = document.getElementById('input-footer');
   const inputWrapper = document.getElementById('input-wrapper');
   const interruptEl = document.getElementById('interrupt-bar');
 
   if (interruptEl) {
     interruptEl.classList.remove('visible');
-    setTimeout(() => interruptEl.remove(), 300);
+    setTimeout(() => interruptEl.remove(), 350);
   }
 
-  footer.classList.remove('interrupt-active');
   userInput.placeholder = "Let's find a groove...";
   pendingFavoriteInput = false;
 
+  // Fade input back in after interrupt bar has collapsed
   setTimeout(() => {
-    inputWrapper.style.display = '';
-    inputWrapper.style.opacity = '1';
-    inputWrapper.style.pointerEvents = 'auto';
-  }, 150);
+    inputWrapper.classList.remove('hidden-for-interrupt');
+    inputWrapper.classList.add('visible-after-interrupt');
+    setTimeout(() => {
+      inputWrapper.classList.remove('visible-after-interrupt');
+      setTimeout(() => userInput.classList.remove('hide-placeholder'), 200);
+    }, 500);
+  }, 200);
 }
 
 sendButton.addEventListener('click', sendMessage);
