@@ -282,19 +282,24 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
   }
 
   const r = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514', max_tokens: 120,
-    messages: [{ role: 'user', content: `You are Efrain — music obsessive, ex-record store. Warm, specific, never pretentious. Short sentences.
+    model: 'claude-sonnet-4-20250514', max_tokens: 200,
+    messages: [{ role: 'user', content: `You are Efrain, a music curator — ex-record store employee, deep eclectic taste spanning outsider music, vintage jazz, proto-punk, experimental, and international sounds. Knowledgeable but never pretentious. Speak naturally in first person.
 
 The visitor's favorite is: "${userInput}"
 ${matchContext}
 
-Write 1-2 SHORT sentences. Sound like a real person reacting, not a music critic. No facts-dump, no "this track", no wikipedia. Plain text only.` }]
+Respond in 2-3 sentences. Be warm and specific. Plain text only, no markdown.` }]
   });
   return r.content[0].text;
 }
 
 function isAffirmation(msg) {
-  return /^(that'?s?\s*(awesome|amazing|cool|great|nice|sick|dope|perfect|incredible|wild|crazy|so good)|love it|love this|wow|yes!|yep|yeah|haha|lol|ha|nice|great|good one|so good|damn|whoa|oh wow|oh nice|hell yeah|no way)[\s!.]*$/i.test(msg.trim());
+  const t = msg.trim();
+  // Short pure reactions
+  if (/^(wow|damn|whoa|yes!?|yep|yeah|haha|lol|ha|nice|great|dope|sick|fire|banger|bop|slaps|perfect|incredible|wild|crazy|hell yeah|no way|omg|oh wow|oh nice|love it|love this|so good|good one|that's?\s*(great|awesome|amazing|cool|nice|sick|dope|perfect|wild|crazy|so good|a banger|fire))[\s!.]*$/i.test(t)) return true;
+  // Longer affirmations clearly reactions not requests
+  if (/^(nice\s+i\s+(like|love)\s+(it|this)|i\s+(like|love)\s+(it|this(\s+one)?)|this\s+is\s+(great|amazing|awesome|cool|a\s+good\s+one|so\s+good|perfect)|that\s+(was|is)\s+(great|amazing|awesome|cool|so\s+good|perfect|a\s+good\s+one)|i\s+agree(\s+they\s+rule)?|they\s+rule|so\s+good|really\s+good|really\s+like\s+(it|this))[\s!.]*$/i.test(t)) return true;
+  return false;
 }
 
 function isConversational(msg) {
@@ -372,29 +377,8 @@ app.post('/api/chat', async (req, res) => {
 
     const msgLower = message.toLowerCase().trim();
 
-    // "Your favorite" / "Efrain's favorite" — redirect gracefully rather than breaking character
-    if (/\b(your|efrain'?s?)\s+(favorite|favourite|fave|best|top|pick|picks)\b/i.test(message)) {
-      const redirects = [
-        "Honestly, they're all favorites in different ways. Is there a genre, mood, or era you want to explore?",
-        "That's a trap — I can't pick just one. What are you feeling right now?",
-        "Hard to say. What kind of mood are you in and I'll find you something good.",
-        "Too many. Give me a vibe or a genre and I'll point you somewhere real.",
-      ];
-      return res.json({ response: redirects[Math.floor(Math.random() * redirects.length)], song: null });
-    }
-
-    // Affirmations — respond warmly and reference the last song if we have one
+    // Affirmations — respond warmly, invite next request
     if (isAffirmation(message)) {
-      if (session.lastSong) {
-        const song = session.lastSong;
-        const replies = [
-          `Yeah, ${song.title} is a good one. What are you in the mood for next?`,
-          `Right? ${song.artist} doesn't miss. What do you want to hear next?`,
-          `Glad that one landed. Keep going — what else?`,
-          `${song.title} holds up every time. What are you feeling next?`,
-        ];
-        return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
-      }
       const replies = [
         "Right? Keep going — what else are you in the mood for?",
         "Good stuff. What do you want to hear next?",
@@ -475,18 +459,37 @@ app.post('/api/chat', async (req, res) => {
     const bridge = conversational ? "Okay, let me find something else." : null;
     const isGeneric = /\b(another|random|something|anything|surprise|different|else)\b/i.test(message) || keywords.length === 0;
 
-    const specificSong = songsData.songs.find(s =>
-      keywords.some(k => {
-        const normTitle = normalize(s.title);
-        const normK = normalize(k);
-        // Match if keyword equals title, or title contains keyword as a word
-        if (normTitle === normK) return true;
-        const escaped = normK.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return new RegExp('\\b' + escaped + '\\b').test(normTitle);
-      })
-    );
+    // Words too generic to use as song title signals — avoid false matches like "body" -> "My Body's a Zombie"
+    const TITLE_MATCH_STOPWORDS = new Set([
+      'song', 'music', 'track', 'tune', 'play', 'hear', 'listen',
+      'like', 'love', 'good', 'great', 'nice', 'best', 'cool', 'bad',
+      'new', 'old', 'another', 'more', 'that', 'this', 'some', 'any',
+      'just', 'want', 'need', 'give', 'find', 'know', 'feel',
+      'pop', 'body', 'rock', 'soul', 'mind', 'life', 'time', 'day',
+      'girl', 'girls', 'boy', 'boys', 'man', 'woman', 'baby', 'home',
+      'fire', 'rain', 'sun', 'moon', 'star', 'night', 'dark', 'light',
+      'ride', 'walk', 'run', 'come', 'gone', 'lost', 'back', 'down',
+      'feel', 'heart', 'eyes', 'hand', 'face', 'head', 'world', 'away',
+    ]);
+
+    // Find specific song by title keyword — skip stopwords and single-char words, try unplayed first
+    const titleMatchKeywords = keywords.filter(k => k.length >= 4 && !TITLE_MATCH_STOPWORDS.has(normalize(k)));
+    let specificSong = null;
+    if (titleMatchKeywords.length > 0) {
+      // Prefer unplayed match first
+      specificSong = songsData.songs.find(s =>
+        !session.playedSongs.includes(s.title) &&
+        titleMatchKeywords.some(k => {
+          const normTitle = normalize(s.title);
+          const normK = normalize(k);
+          if (normTitle === normK) return true;
+          const escaped = normK.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          return new RegExp('\\b' + escaped + '\\b').test(normTitle);
+        })
+      );
+      // If only played songs match, fall through silently to scored search
+    }
     if (specificSong) {
-      if (session.playedSongs.includes(specificSong.title)) return res.json({ response: `I already shared ${specificSong.title} with you earlier! Want to explore something else?`, song: null });
       return res.json(buildSongResponse(specificSong, session));
     }
 
