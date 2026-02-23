@@ -24,15 +24,26 @@ async function typeText(element, text, speed = 20) {
   return new Promise((resolve) => {
     let index = 0;
     element.textContent = '';
-    scrollToElement(element);
+    const container = document.getElementById('chat-container');
+
+    // Lock user scrolling during typing
+    container.style.overflow = 'hidden';
 
     const interval = setInterval(() => {
       if (index < text.length) {
         element.textContent += text[index];
         index++;
+        // Track element bottom as text grows
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        if (elementRect.bottom > containerRect.bottom) {
+          container.scrollTop += (elementRect.bottom - containerRect.bottom) + 8;
+        }
       } else {
         clearInterval(interval);
-        scrollToElement(element);
+        // Snap to bottom then restore scrolling
+        container.scrollTop = container.scrollHeight;
+        container.style.overflow = '';
         resolve();
       }
     }, speed);
@@ -95,6 +106,13 @@ async function sendMessage() {
   userInput.style.height = 'auto';
   sessionStats.messagesExchanged++;
 
+  // Slide input down and out of view
+  const inputWrapper = document.getElementById('input-wrapper');
+  inputWrapper.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
+  inputWrapper.style.transform = 'translateY(120%)';
+  inputWrapper.style.opacity = '0';
+  inputWrapper.style.pointerEvents = 'none';
+
   await new Promise(r => setTimeout(r, 250));
   const typingIndicator = showTypingIndicator();
   isTyping = true;
@@ -131,6 +149,12 @@ async function sendMessage() {
     // Handle interrupt if present — delay 4s after song loads
     if (data.interrupt) {
       setTimeout(() => { showInterrupt(data.interrupt); }, 4000);
+    } else {
+      // Slide input back up into view
+      inputWrapper.style.transform = 'translateY(0)';
+      inputWrapper.style.opacity = '1';
+      inputWrapper.style.pointerEvents = 'auto';
+      setTimeout(() => { userInput.focus(); }, 350);
     }
 
     isTyping = false;
@@ -139,6 +163,9 @@ async function sendMessage() {
     console.error('Error:', error);
     removeTypingIndicator(typingIndicator);
     addMessageToChat('Something went wrong. Please try again.', 'assistant');
+    inputWrapper.style.transform = 'translateY(0)';
+    inputWrapper.style.opacity = '1';
+    inputWrapper.style.pointerEvents = 'auto';
     isTyping = false;
   }
 }

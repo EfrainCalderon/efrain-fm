@@ -459,6 +459,28 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
     }
 
+    // Playback / Spotify explanation — whole song, 30 seconds, preview, etc.
+    if (/\b(whole\s+song|full\s+(song|track|version)|can'?t\s+(hear|play|listen)|only\s+(hear|get|playing)\s+(30|thirty)|30\s+seconds|thirty\s+seconds|why\s+(only|can'?t)|preview|just\s+a\s+clip|stream\s+full|listen\s+in\s+full|full\s+playback)\b/i.test(message)) {
+      return res.json({ response: "Spotify only lets me embed 30-second previews here — but if you're logged in you can save any track and hear it in full on Spotify. Apple Music support with full playback is something I'm working on adding.", song: null });
+    }
+
+    // Apple Music — exact phrase check before it hits keyword search
+    if (/\bapple\s+music\b/i.test(message)) {
+      return res.json({ response: "Apple Music support is something I'm working on — the plan is to let you switch players and hear full tracks without needing Spotify. Not live yet though.", song: null });
+    }
+
+    // YouTube format question — asking about WHY a YouTube video appeared, not requesting one
+    if (/\b(why\s+(did\s+you\s+use|is\s+this|a)\s+youtube|why\s+youtube|youtube\s+video\?|what'?s\s+with\s+the\s+youtube|youtube\s+instead)\b/i.test(message)) {
+      const ytContext = session.lastSong
+        ? `You just shared "${session.lastSong.title}" by ${session.lastSong.artist}.`
+        : '';
+      const reply = await generateConversationalResponse(
+        `Someone asked why you used a YouTube video. ${ytContext} Explain briefly — either the song isn't on streaming services, or you wanted to share a specific live performance or version. Keep it to 1-2 sentences.`,
+        session.lastSong
+      );
+      return res.json({ response: reply, song: null });
+    }
+
     // Off-script conversational messages
     if (isOffScript(message)) {
       const reply = await generateConversationalResponse(message, session.lastSong);
@@ -560,6 +582,8 @@ app.post('/api/chat', async (req, res) => {
       'ride', 'walk', 'run', 'come', 'gone', 'lost', 'back', 'down',
       'heart', 'eyes', 'hand', 'face', 'head', 'world', 'away',
       'favorite', 'favourite',
+      'can', 'vitamin', 'let', 'get', 'got', 'set', 'put', 'see', 'say',
+      'use', 'used', 'try', 'hit', 'big', 'low', 'high', 'hot', 'cold',
     ]);
     const titleMatchKeywords = keywords.filter(k => k.length >= 4 && !TITLE_MATCH_STOPWORDS.has(normalize(k)));
     let specificSong = null;
