@@ -158,9 +158,23 @@ function scoreSongs(songs, keywords, preferVideo = false) {
 }
 
 async function generateNoMatchResponse(userMessage) {
+  // Quick hardcoded replies for common no-match patterns — avoid Claude API latency
+  const quick = [
+    [/\bpolka\b/i, "No polka in here, sorry."],
+    [/\bbluegrass\b/i, "Nothing with a banjo unfortunately."],
+    [/\bcountry\b/i, "Not really my territory, honestly."],
+    [/\bchristmas\b/i, "No holiday music in this collection."],
+    [/\bclassical\b/i, "Not much classical in here — mostly contemporary stuff."],
+    [/\bnursery|children'?s|kids\b/i, "Nothing for kids in here."],
+    [/\bkaraoke\b/i, "This isn't a karaoke spot."],
+    [/\bnational\s*anthem\b/i, "Nope."],
+  ];
+  for (const [re, reply] of quick) {
+    if (re.test(userMessage)) return reply;
+  }
   const r = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514', max_tokens: 80,
-    messages: [{ role: 'user', content: `You are Efrain, a personal music curator with a curated collection. You don't have a match for this request. One short sentence, no filler, no offers to help find music elsewhere. Don't reference "my collection" or "database". Just be human and brief.\n\nUser asked: "${userMessage}"\n\nPlain text only, no markdown.` }]
+    messages: [{ role: 'user', content: `You are Efrain, a personal music curator. No match for this request. One short casual sentence. No filler phrases like "I'd love to help" or "I don't have that in my collection". Just be direct and human.\n\nUser asked: "${userMessage}"\n\nPlain text only.` }]
   });
   return r.content[0].text;
 }
@@ -283,23 +297,26 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
 
   const r = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514', max_tokens: 100,
-    messages: [{ role: 'user', content: `You are Efrain — music obsessive, ex-record store. Warm, specific, never pretentious. Short sentences. No wikipedia tone.
+    messages: [{ role: 'user', content: `You are Efrain — music obsessive, ex-record store. Warm, never pretentious.
 
 Visitor's favorite: "${userInput}"
 ${matchContext}
 
-1-2 sentences MAX. Real person reacting, not a critic. Plain text only.` }]
+1-2 sentences MAX. Real person reacting, not a critic. No wikipedia tone. Plain text only.` }]
   });
   return r.content[0].text;
 }
 
 function isAffirmation(msg) {
   const t = msg.trim();
-  // Short pure reactions
-  if (/^(wow|damn|whoa|yes!?|yep|yeah|haha|lol|ha|nice|great|dope|sick|fire|banger|bop|slaps|perfect|incredible|wild|crazy|hell yeah|no way|omg|oh wow|oh nice|love it|love this|loved it|so good|good one|that's?\s*(great|awesome|amazing|cool|nice|sick|dope|perfect|wild|crazy|so good|a banger|fire))[\s!.]*$/i.test(t)) return true;
-  // Longer phrases that are clearly reactions, not requests
-  if (/^(nice\s+i\s+(like|love)\s+(it|this)|i\s+(like|love)\s+(it|this(\s+one)?)|this\s+is\s+(great|amazing|awesome|cool|a\s+good\s+one|so\s+good|perfect|a\s+great\s+song)|that\s+(was|is)\s+(great|amazing|awesome|cool|so\s+good|perfect|a\s+good\s+one)|i\s+agree(\s+they\s+rule)?|they\s+rule|really\s+good|really\s+like\s+(it|this)|loved\s+(it|this|that))[\s!.]*$/i.test(t)) return true;
+  if (/^(wow|damn|whoa|yes!?|yep|yeah|haha|lol|ha|nice|great|dope|sick|banger|bop|slaps|perfect|incredible|wild|crazy|hell yeah|no way|omg|oh wow|oh nice|love it|love this|loved it|so good|good one|that's?\s*(great|awesome|amazing|cool|nice|sick|dope|perfect|wild|crazy|so good|a banger))[\s!.]*$/i.test(t)) return true;
+  if (/^(nice\s+i\s+(like|love)\s+(it|this)|i\s+(like|love)\s+(it|this(\s+one)?)|this\s+is\s+(great|amazing|awesome|cool|so\s+good|perfect|a\s+great\s+song)|that\s+(was|is)\s+(great|amazing|awesome|cool|so\s+good|perfect)|i\s+agree(\s+they\s+rule)?|they\s+rule|really\s+good|really\s+like\s+(it|this)|loved\s+(it|this|that))[\s!.]*$/i.test(t)) return true;
   return false;
+}
+
+function isNegativeReaction(msg) {
+  const t = msg.trim();
+  return /^(hated?\s+(it|this|that)|not\s+(for\s+me|my\s+thing|feeling\s+it|great|good)|this\s+isn'?t\s+(for\s+me|my\s+thing|great|good)|don'?t\s+(like|love)\s+(it|this|that)|not\s+into\s+(it|this)|meh|nah|nope|skip\s+(it|this)?|pass)[\s!.]*$/i.test(t);
 }
 
 function isConversational(msg) {
@@ -377,25 +394,44 @@ app.post('/api/chat', async (req, res) => {
 
     const msgLower = message.toLowerCase().trim();
 
-    // "Efrain's favorite" or "your favorite" — redirect gracefully, Efrain is the narrator
+    // Identity questions — who is Efrain, what is efrain.fm
+    if (/\b(who\s+is\s+efrain|what\s+is\s+efrain\.?fm|what'?s\s+efrain\.?fm|what\s+is\s+this\s+site|what\s+is\s+this\s+place|what\s+is\s+this)\b/i.test(message)) {
+      return res.json({ response: "I'm Efrain — this is my personal music collection. Ask me for a song and I'll find you something good.", song: null });
+    }
+
+    // "Efrain's favorite" or "your favorite" — redirect gracefully
     if (/\b(your|efrain'?s?)\s+(favorite|favourite|fave|best|top|pick|picks)\b/i.test(message)) {
       const redirects = [
         "Honestly, they're all favorites in different ways — is there a genre, mood, or era you want to explore?",
         "That's a trap, I can't pick just one. What are you feeling right now?",
-        "Hard to say. Give me a vibe or a genre and I'll find you something good.",
+        "Hard to say. Give me a vibe and I'll find you something good.",
         "Too many to count. What kind of mood are you in?",
       ];
       return res.json({ response: redirects[Math.floor(Math.random() * redirects.length)], song: null });
     }
 
-    // Affirmations — respond warmly and reference the last song if we have one
+    // Negative reactions — acknowledge and pivot
+    if (isNegativeReaction(message)) {
+      if (session.lastSong) {
+        const s = session.lastSong;
+        const replies = [
+          `Fair enough — ${s.artist} isn't for everyone. What are you in the mood for instead?`,
+          `No worries. What direction do you want to go?`,
+          `Got it. What would hit better right now?`,
+        ];
+        return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
+      }
+      return res.json({ response: "No worries. What are you in the mood for?", song: null });
+    }
+
+    // Affirmations — respond warmly and reference the last song
     if (isAffirmation(message)) {
       if (session.lastSong) {
         const s = session.lastSong;
         const replies = [
           `Yeah, ${s.title} is a good one. What are you in the mood for next?`,
           `Right? ${s.artist} doesn't miss. What do you want to hear next?`,
-          `Glad that one landed. Keep going — what else?`,
+          `Glad that one landed. What else are you feeling?`,
           `${s.title} holds up every time. What are you feeling next?`,
         ];
         return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
@@ -480,7 +516,6 @@ app.post('/api/chat', async (req, res) => {
     const bridge = conversational ? "Okay, let me find something else." : null;
     const isGeneric = /\b(another|random|something|anything|surprise|different|else)\b/i.test(message) || keywords.length === 0;
 
-    // Words too generic to use as song title signals
     const TITLE_MATCH_STOPWORDS = new Set([
       'song', 'music', 'track', 'tune', 'play', 'hear', 'listen',
       'like', 'love', 'good', 'great', 'nice', 'best', 'cool', 'bad',
@@ -493,11 +528,9 @@ app.post('/api/chat', async (req, res) => {
       'heart', 'eyes', 'hand', 'face', 'head', 'world', 'away',
       'favorite', 'favourite',
     ]);
-
     const titleMatchKeywords = keywords.filter(k => k.length >= 4 && !TITLE_MATCH_STOPWORDS.has(normalize(k)));
     let specificSong = null;
     if (titleMatchKeywords.length > 0) {
-      // Prefer unplayed match; if only played songs match, fall through silently to scored search
       specificSong = songsData.songs.find(s =>
         !session.playedSongs.includes(s.title) &&
         titleMatchKeywords.some(k => {
