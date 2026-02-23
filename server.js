@@ -157,15 +157,34 @@ function scoreSongs(songs, keywords, preferVideo = false) {
   });
 }
 
+const EFRAIN_CHARACTER = `You are Efrain — a product designer based in New Jersey. You built efrain.fm as a personal music discovery project and portfolio piece. You're not typing live; you've pre-shared real stories and experiences that visitors can explore.
+
+Background: You made music in your teens and 20s. You spent 8 years in health tech at NYC-area startups before pivoting into product design. Your design portfolio is at www.efrain.design. You love talking about music, sharing stories, and recommending songs to people.
+
+Personality: Warm, direct, a little dry. Deep music knowledge spanning outsider, lo-fi, experimental, jazz, proto-punk, international sounds. Never pretentious. You don't name-drop to impress — you share because you genuinely love it.
+
+Keep responses SHORT — 2-3 sentences max. You're a curator, not a chatbot. If someone asks something music-adjacent, steer back toward asking them what they want to hear. Plain text only, no markdown.`;
+
+async function generateConversationalResponse(userMessage, lastSong) {
+  const songContext = lastSong
+    ? `The last song you shared was "${lastSong.title}" by ${lastSong.artist}.`
+    : '';
+  const r = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514', max_tokens: 120,
+    system: EFRAIN_CHARACTER,
+    messages: [{ role: 'user', content: `${userMessage}${songContext ? '\n\n' + songContext : ''}` }]
+  });
+  return r.content[0].text;
+}
+
 async function generateNoMatchResponse(userMessage) {
-  // Quick hardcoded replies for common no-match patterns — avoid Claude API latency
+  // Instant replies for common dead ends — skip Claude API latency
   const quick = [
     [/\bpolka\b/i, "No polka in here, sorry."],
     [/\bbluegrass\b/i, "Nothing with a banjo unfortunately."],
-    [/\bcountry\b/i, "Not really my territory, honestly."],
-    [/\bchristmas\b/i, "No holiday music in this collection."],
-    [/\bclassical\b/i, "Not much classical in here — mostly contemporary stuff."],
-    [/\bnursery|children'?s|kids\b/i, "Nothing for kids in here."],
+    [/\bchristmas|holiday\b/i, "No holiday music in this collection."],
+    [/\bclassical|orchestra|symphony\b/i, "Not much classical in here — mostly contemporary stuff."],
+    [/\bnursery|children'?s|kids music\b/i, "Nothing for kids in here."],
     [/\bkaraoke\b/i, "This isn't a karaoke spot."],
     [/\bnational\s*anthem\b/i, "Nope."],
   ];
@@ -174,7 +193,8 @@ async function generateNoMatchResponse(userMessage) {
   }
   const r = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514', max_tokens: 80,
-    messages: [{ role: 'user', content: `You are Efrain, a personal music curator. No match for this request. One short casual sentence. No filler phrases like "I'd love to help" or "I don't have that in my collection". Just be direct and human.\n\nUser asked: "${userMessage}"\n\nPlain text only.` }]
+    system: EFRAIN_CHARACTER,
+    messages: [{ role: 'user', content: `No match for: "${userMessage}". One short sentence. Don't say "I'd love to help" or reference your collection. Just be direct.` }]
   });
   return r.content[0].text;
 }
@@ -297,12 +317,8 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
 
   const r = await anthropic.messages.create({
     model: 'claude-sonnet-4-20250514', max_tokens: 100,
-    messages: [{ role: 'user', content: `You are Efrain — music obsessive, ex-record store. Warm, never pretentious.
-
-Visitor's favorite: "${userInput}"
-${matchContext}
-
-1-2 sentences MAX. Real person reacting, not a critic. No wikipedia tone. Plain text only.` }]
+    system: EFRAIN_CHARACTER,
+    messages: [{ role: 'user', content: `Visitor's favorite: "${userInput}"\n${matchContext}\n\n1-2 sentences MAX. React like a person, not a critic.` }]
   });
   return r.content[0].text;
 }
@@ -317,6 +333,11 @@ function isAffirmation(msg) {
 function isNegativeReaction(msg) {
   const t = msg.trim();
   return /^(hated?\s+(it|this|that)|not\s+(for\s+me|my\s+thing|feeling\s+it|great|good)|this\s+isn'?t\s+(for\s+me|my\s+thing|great|good)|don'?t\s+(like|love)\s+(it|this|that)|not\s+into\s+(it|this)|meh|nah|nope|skip\s+(it|this)?|pass)[\s!.]*$/i.test(t);
+}
+
+function isOffScript(msg) {
+  // Conversational messages that aren't music requests — route to character fallback
+  return /\b(who\s+(are|is)\s+(you|efrain)|what\s+(are|is)\s+(you|this|efrain\.?fm|this\s+site|this\s+place)|tell\s+me\s+about\s+(yourself|you|efrain)|are\s+you\s+(a\s+)?(real|bot|ai|human|person|robot)|do\s+you\s+(have|make|play|listen)|what\s+do\s+you\s+do|where\s+are\s+you\s+from|what'?s\s+your\s+(deal|story|background)|how\s+(does\s+this\s+work|did\s+you|old\s+are)|did\s+you\s+(make|build|create)\s+this|is\s+this\s+your|what\s+kind\s+of\s+music\s+do\s+you|do\s+you\s+like\s+music|what'?s\s+efrain|why\s+did\s+you|what\s+inspired)\b/i.test(msg);
 }
 
 function isConversational(msg) {
@@ -394,12 +415,7 @@ app.post('/api/chat', async (req, res) => {
 
     const msgLower = message.toLowerCase().trim();
 
-    // Identity questions — who is Efrain, what is efrain.fm
-    if (/\b(who\s+is\s+efrain|what\s+is\s+efrain\.?fm|what'?s\s+efrain\.?fm|what\s+is\s+this\s+site|what\s+is\s+this\s+place|what\s+is\s+this)\b/i.test(message)) {
-      return res.json({ response: "I'm Efrain — this is my personal music collection. Ask me for a song and I'll find you something good.", song: null });
-    }
-
-    // "Efrain's favorite" or "your favorite" — redirect gracefully
+    // Identity + "your favorite" — hardcoded, zero latency
     if (/\b(your|efrain'?s?)\s+(favorite|favourite|fave|best|top|pick|picks)\b/i.test(message)) {
       const redirects = [
         "Honestly, they're all favorites in different ways — is there a genre, mood, or era you want to explore?",
@@ -443,6 +459,12 @@ app.post('/api/chat', async (req, res) => {
         "Glad it landed. What are you feeling next?",
       ];
       return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
+    }
+
+    // Off-script conversational messages — route to character fallback
+    if (isOffScript(message)) {
+      const reply = await generateConversationalResponse(message, session.lastSong);
+      return res.json({ response: reply, song: null });
     }
 
     // ---- Button choice handlers ----
