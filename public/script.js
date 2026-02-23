@@ -24,6 +24,7 @@ async function typeText(element, text, speed = 20) {
   return new Promise((resolve) => {
     let index = 0;
     element.textContent = '';
+    scrollToElement(element);
 
     const interval = setInterval(() => {
       if (index < text.length) {
@@ -31,6 +32,7 @@ async function typeText(element, text, speed = 20) {
         index++;
       } else {
         clearInterval(interval);
+        scrollToElement(element);
         resolve();
       }
     }, speed);

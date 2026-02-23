@@ -157,13 +157,15 @@ function scoreSongs(songs, keywords, preferVideo = false) {
   });
 }
 
-const EFRAIN_CHARACTER = `You are Efrain — a product designer based in New Jersey. You built efrain.fm as a personal music discovery project and portfolio piece. You're not typing live; you've pre-shared real stories and experiences that visitors can explore.
+const EFRAIN_CHARACTER = `You are Efrain — a product designer and music obsessive based in New Jersey. You built efrain.fm because you love sharing music and the stories behind it. It's a creative project that lets you do that with anyone who finds the site.
 
-Background: You made music in your teens and 20s. You spent 8 years in health tech at NYC-area startups before pivoting into product design. Your design portfolio is at www.efrain.design. You love talking about music, sharing stories, and recommending songs to people.
+Background: You made music in your teens and 20s. You've spent years in health tech and design. You love talking about music, sharing cool discoveries, and recommending songs to people. Your design work is at www.efrain.design if anyone's curious.
 
-Personality: Warm, direct, a little dry. Deep music knowledge spanning outsider, lo-fi, experimental, jazz, proto-punk, international sounds. Never pretentious. You don't name-drop to impress — you share because you genuinely love it.
+About the site: Songs play as 30-second Spotify previews by default — but if someone's logged into Spotify they can save tracks and hear them in full there. Apple Music support (full playback) is something you're working on adding. Occasionally you share YouTube videos instead of Spotify embeds — either because a song isn't on streaming services, or because there's a specific live performance or version you wanted to share.
 
-Keep responses SHORT — 2-3 sentences max. You're a curator, not a chatbot. If someone asks something music-adjacent, steer back toward asking them what they want to hear. Plain text only, no markdown.`;
+Personality: Warm, direct, a little dry. Deep music knowledge — outsider, lo-fi, experimental, jazz, proto-punk, international. Never pretentious. You share because you genuinely love it, not to impress anyone.
+
+Important: Don't mention this being a portfolio piece, case study, or that you're looking for work. It's just a project you made because you wanted to. Keep responses SHORT — 2-3 sentences max. Steer music-adjacent questions back toward asking what they want to hear. Plain text only, no markdown.`;
 
 async function generateConversationalResponse(userMessage, lastSong) {
   const songContext = lastSong ? `The last song you shared was "${lastSong.title}" by ${lastSong.artist}.` : '';
@@ -411,7 +413,7 @@ app.post('/api/chat', async (req, res) => {
 
     const msgLower = message.toLowerCase().trim();
 
-    // "Efrain/your favorite" — redirect gracefully
+    // "Efrain/your favorite" — redirect
     if (/\b(your|efrain'?s?)\s+(favorite|favourite|fave|best|top|pick|picks)\b/i.test(message)) {
       const redirects = [
         "Honestly, they're all favorites in different ways — is there a genre, mood, or era you want to explore?",
@@ -422,7 +424,7 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: redirects[Math.floor(Math.random() * redirects.length)], song: null });
     }
 
-    // Negative reactions — acknowledge and pivot
+    // Negative reactions
     if (isNegativeReaction(message)) {
       if (session.lastSong) {
         const s = session.lastSong;
@@ -436,7 +438,7 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: "No worries. What are you in the mood for?", song: null });
     }
 
-    // Affirmations — reference the last song
+    // Affirmations
     if (isAffirmation(message)) {
       if (session.lastSong) {
         const s = session.lastSong;
@@ -457,7 +459,7 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
     }
 
-    // Off-script conversational messages — route to character fallback
+    // Off-script conversational messages
     if (isOffScript(message)) {
       const reply = await generateConversationalResponse(message, session.lastSong);
       return res.json({ response: reply, song: null });
