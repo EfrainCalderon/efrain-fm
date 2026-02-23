@@ -112,10 +112,10 @@
 
     --card-shadow: 0 0 0 1px rgba(14, 16, 18, 0.06), 0 24px 64px rgba(0, 0, 0, 0.08);
     --card-border: rgba(14, 16, 18, 0.07);
-  }
     --bg-interrupt: rgba(14, 16, 18, 0.06);
-    --interrupt-btn-bg: rgba(240, 236, 230, 0.96);
-    --interrupt-btn-text: #13161a;
+    --interrupt-btn-bg: var(--bg-primary);
+    --interrupt-btn-text: var(--text-primary);
+  }
 }
 
 /* Force dark */
@@ -284,7 +284,7 @@ body::after {
   background-color: var(--bg-header-footer);
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
-  padding: 20px 24px 2px;
+  padding: 24px 12px 2px;
   z-index: 100;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border-color);
@@ -490,7 +490,7 @@ body::after {
   font-weight: 500;
   float: right;
   clear: both;
-  transition: background 0.15s ease;
+  transition: background-color 0.15s ease;
   cursor: pointer;
 }
 
@@ -731,7 +731,7 @@ body::after {
   }
 
   #header {
-    padding: 16px 16px 2px;
+    padding: 16px 12px 2px;
   }
 
   #input-footer {
