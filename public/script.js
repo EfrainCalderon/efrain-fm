@@ -29,7 +29,6 @@ async function typeText(element, text, speed = 20) {
       if (index < text.length) {
         element.textContent += text[index];
         index++;
-        scrollToElement(element);
       } else {
         clearInterval(interval);
         resolve();
