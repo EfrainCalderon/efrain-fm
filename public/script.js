@@ -21,7 +21,8 @@ userInput.addEventListener('input', function() {
 
 // =====================
 // TYPING ANIMATION
-// No scroll lock — smooth scroll to bottom when done
+// Locks scroll during typing — message bottom tracks to container bottom.
+// Restores scrolling when done.
 // =====================
 async function typeText(element, text, speed = 20) {
   return new Promise((resolve) => {
@@ -29,13 +30,24 @@ async function typeText(element, text, speed = 20) {
     element.textContent = '';
     const container = document.getElementById('chat-container');
 
+    // Lock scroll for duration of typing
+    container.style.overflowY = 'hidden';
+
     const interval = setInterval(() => {
       if (index < text.length) {
         element.textContent += text[index];
         index++;
+        // Keep the bottom of the growing message pinned to the container bottom
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        if (elementRect.bottom > containerRect.bottom) {
+          container.scrollTop += (elementRect.bottom - containerRect.bottom) + 8;
+        }
       } else {
         clearInterval(interval);
-        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        // Snap to true bottom, then unlock scrolling
+        container.scrollTop = container.scrollHeight;
+        container.style.overflowY = '';
         resolve();
       }
     }, speed);
@@ -80,10 +92,11 @@ function handleSecretCommand(command) {
 
 // =====================
 // INPUT FADE HELPERS
+// The footer height never changes — input and buttons swap in the same space
 // =====================
 function fadeOutInput() {
   const inputWrapper = document.getElementById('input-wrapper');
-  // Hide placeholder instantly on submit so it doesn't linger during fade
+  // Kill placeholder instantly so it doesn't linger during fade
   userInput.classList.add('hide-placeholder');
   inputWrapper.style.opacity = '0';
   inputWrapper.style.pointerEvents = 'none';
@@ -156,7 +169,7 @@ async function sendMessage() {
       await addMessageToChatWithTyping(data.response, 'assistant');
     }
 
-    // Handle interrupt if present — delay 4s after song loads
+    // Handle interrupt if present — delay 4s after song/response loads
     if (data.interrupt) {
       setTimeout(() => { showInterrupt(data.interrupt); }, 4000);
     } else {
@@ -322,34 +335,35 @@ function scrollToBottom() {
 
 // =====================
 // INTERRUPT / BUTTON UI
-// No X dismiss button
-// Uses CSS classes for show/hide — no display:none layout jumps
+//
+// The footer height never changes.
+// Input fades out exactly like after a send.
+// Buttons fade in over the now-empty space.
+// No → buttons fade out, input fades back in.
+// Yes → dismisses and sends the chosen option.
 // =====================
 
 async function showInterrupt(interrupt) {
   const footer = document.getElementById('input-footer');
   const inputWrapper = document.getElementById('input-wrapper');
 
-  // Collapse input via CSS class — smooth, no layout snap
-  inputWrapper.classList.add('hidden-for-interrupt');
+  // Input is already faded out from the last send — but ensure it stays hidden
+  inputWrapper.style.opacity = '0';
+  inputWrapper.style.pointerEvents = 'none';
 
-  await new Promise(r => setTimeout(r, 200));
-
-  // freeText mode: restore input in favorite-answer mode
+  // freeText mode: restore input in favorite-answer mode, no buttons
   if (interrupt.freeText) {
     pendingFavoriteInput = true;
     userInput.placeholder = 'Type a song or artist...';
-    inputWrapper.classList.remove('hidden-for-interrupt');
-    inputWrapper.classList.add('visible-after-interrupt');
-    setTimeout(() => inputWrapper.classList.remove('visible-after-interrupt'), 500);
     await addMessageToChatWithTyping(interrupt.message, 'assistant');
+    setTimeout(fadeInInput, 300);
     return;
   }
 
-  // Send the question into chat first so it's readable
+  // Type the question into chat
   await addMessageToChatWithTyping(interrupt.message, 'assistant');
 
-  // Build button row
+  // Build the button bar — it lives in the footer at the same height as the input
   const interruptEl = document.createElement('div');
   interruptEl.id = 'interrupt-bar';
 
@@ -363,18 +377,22 @@ async function showInterrupt(interrupt) {
       btn.textContent = label;
       btn.style.animationDelay = `${i * 70}ms`;
       btn.addEventListener('click', () => {
-        dismissInterrupt();
-        userInput.value = label;
-        sendMessage();
+        const chosen = label;
+        dismissInterrupt(() => {
+          // After dismiss animation, fire the chosen option as a message
+          userInput.value = chosen;
+          sendMessage();
+        });
       });
       btnRow.appendChild(btn);
     });
   }
 
   interruptEl.appendChild(btnRow);
+  // Insert before inputWrapper so it occupies the same visual zone
   footer.insertBefore(interruptEl, inputWrapper);
 
-  // Double rAF ensures the element is in DOM before we add the class
+  // Double rAF: element needs to be in DOM before transition class fires
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       interruptEl.classList.add('visible');
@@ -382,27 +400,30 @@ async function showInterrupt(interrupt) {
   });
 }
 
-function dismissInterrupt() {
+// onDismiss callback: optional fn to run after animation completes
+function dismissInterrupt(onDismiss) {
   const inputWrapper = document.getElementById('input-wrapper');
   const interruptEl = document.getElementById('interrupt-bar');
 
   if (interruptEl) {
     interruptEl.classList.remove('visible');
-    setTimeout(() => interruptEl.remove(), 350);
+    setTimeout(() => {
+      interruptEl.remove();
+      if (onDismiss) onDismiss();
+    }, 350);
+  } else {
+    if (onDismiss) onDismiss();
   }
 
   userInput.placeholder = "Let's find a groove...";
   pendingFavoriteInput = false;
 
-  // Fade input back in after interrupt bar has collapsed
-  setTimeout(() => {
-    inputWrapper.classList.remove('hidden-for-interrupt');
-    inputWrapper.classList.add('visible-after-interrupt');
-    setTimeout(() => {
-      inputWrapper.classList.remove('visible-after-interrupt');
-      setTimeout(() => userInput.classList.remove('hide-placeholder'), 200);
-    }, 500);
-  }, 200);
+  // If no callback (e.g. user hit No), fade input back in
+  if (!onDismiss) {
+    setTimeout(fadeInInput, 350);
+  }
+  // If there IS a callback (Yes path), sendMessage() will handle its own flow
+  // and fadeOutInput is already in effect — no double-fade needed
 }
 
 sendButton.addEventListener('click', sendMessage);

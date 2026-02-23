@@ -531,59 +531,39 @@ body::after {
    INTERRUPT / BUTTON BAR
    ===================== */
 
-/* Footer never changes background — interrupt lives inside it naturally */
-#input-footer {
-  /* no transition needed — bg stays the same */
-}
+/*
+  Key principle: the footer height NEVER changes.
+  The input wrapper and interrupt bar share the same space — they crossfade.
+  No max-height tricks, no layout shifts.
+*/
 
-/* Input wrapper fades out when interrupt is active */
+/* Input wrapper: opacity-only fade. Height stays constant. */
 #input-wrapper {
   transition: opacity 0.3s ease;
 }
 
-/* When interrupt is showing, collapse input wrapper height smoothly */
-#input-wrapper.hidden-for-interrupt {
-  opacity: 0;
-  pointer-events: none;
-  max-height: 0;
-  overflow: hidden;
-  transition: opacity 0.25s ease, max-height 0.3s ease;
+/* Placeholder: instant hide on submit, fades back in after input is visible */
+#user-input::placeholder {
+  transition: opacity 0.2s ease;
 }
-
-#input-wrapper.visible-after-interrupt {
-  opacity: 1;
-  max-height: 200px;
-  transition: opacity 0.35s ease-in 0.1s, max-height 0.3s ease;
-}
-
-/* Input field: placeholder hides during loading, returns after fade-in completes */
-#user-input {
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
 #user-input.hide-placeholder::placeholder {
   opacity: 0;
-  transition: opacity 0s; /* instant hide */
+  transition: opacity 0s;
 }
 
-/* Send button fades in slightly after input */
-#input-wrapper #send-button {
-  transition: opacity 0.3s ease-in 0.15s, color 0.2s ease, background 0.2s ease;
-}
-
+/*
+  Interrupt bar: absolutely positioned over the input wrapper zone,
+  same height as the input row. Pure opacity fade — no height change.
+*/
 #interrupt-bar {
-  padding: 0;
-  max-height: 0;
-  overflow: hidden;
   opacity: 0;
-  transition: opacity 0.3s ease, max-height 0.35s ease, padding 0.3s ease;
-  position: relative;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
 #interrupt-bar.visible {
   opacity: 1;
-  max-height: 200px;
-  padding: 4px 0 6px;
+  pointer-events: auto;
 }
 
 #interrupt-question {
@@ -593,9 +573,7 @@ body::after {
 #interrupt-buttons {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
   gap: 8px;
-  padding: 2px 0 0;
 }
 
 /* Buttons styled like user chat bubbles */
@@ -614,12 +592,12 @@ body::after {
   flex: 1 1 auto;
   min-width: 0;
   box-shadow: 0 1px 3px var(--user-bubble-shadow);
-  transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 @media (max-width: 768px) {
   .interrupt-btn {
-    flex: 1 1 calc(50% - 4px); /* side by side on mobile */
+    flex: 1 1 calc(50% - 4px);
     white-space: normal;
     text-align: center;
     min-height: 44px;
@@ -645,29 +623,8 @@ body::after {
 }
 
 @keyframes btnEntrance {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-#interrupt-dismiss {
-  position: absolute;
-  top: 4px;
-  right: 0;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease, background 0.2s ease;
-}
-
-#interrupt-dismiss:hover {
-  color: var(--text-primary);
-  background: var(--live-tag-bg);
 }
 
 /* =====================
@@ -678,10 +635,12 @@ body::after {
   background-color: var(--bg-header-footer);
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
-  padding: 12px 12px;
+  padding: 12px;
   z-index: 100;
   flex-shrink: 0;
   border-top: 1px solid var(--border-color);
+  /* relative so interrupt-bar can be positioned inside without height change */
+  position: relative;
 }
 
 #input-wrapper {
