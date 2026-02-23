@@ -324,14 +324,20 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
 
 function isAffirmation(msg) {
   const t = msg.trim();
+  // Short reactions
   if (/^(wow|damn|whoa|yes!?|yep|yeah|haha|lol|ha|nice|great|dope|sick|banger|bop|slaps|perfect|incredible|wild|crazy|hell yeah|no way|omg|oh wow|oh nice|love it|love this|loved it|so good|good one|that's?\s*(great|awesome|amazing|cool|nice|sick|dope|perfect|wild|crazy|so good|a banger))[\s!.]*$/i.test(t)) return true;
-  if (/^(nice\s+i\s+(like|love)\s+(it|this)|i\s+(like|love)\s+(it|this(\s+one)?)|this\s+is\s+(great|amazing|awesome|cool|so\s+good|perfect|a\s+great\s+song)|that\s+(was|is)\s+(great|amazing|awesome|cool|so\s+good|perfect)|i\s+agree(\s+they\s+rule)?|they\s+rule|really\s+good|really\s+like\s+(it|this)|loved\s+(it|this|that))[\s!.]*$/i.test(t)) return true;
+  // Sentence-form reactions — allow "that song", "this one", "it" at the end
+  if (/\b(i\s+(loved?|liked?|enjoyed|dug|vibed\s+with)\s+(that|this|it|that\s+song|this\s+song|that\s+one|this\s+one)|that\s+(song\s+)?(was|is)\s+(great|amazing|awesome|cool|so\s+good|perfect|really\s+good|fire)|this\s+(song\s+)?(is|was)\s+(great|amazing|awesome|cool|so\s+good|perfect|really\s+good|fire)|i\s+(like|love)\s+(this|that|it|this\s+song|that\s+song|this\s+one)|really\s+(good|like\s+(it|this|that))|loved\s+(it|this|that|that\s+song|this\s+song))\b/i.test(t)) return true;
   return false;
 }
 
 function isNegativeReaction(msg) {
   const t = msg.trim();
-  return /^(hated?\s+(it|this|that)|not\s+(for\s+me|my\s+thing|feeling\s+it|great|good)|this\s+isn'?t\s+(for\s+me|my\s+thing|great|good)|don'?t\s+(like|love)\s+(it|this|that)|not\s+into\s+(it|this)|meh|nah|nope|skip\s+(it|this)?|pass)[\s!.]*$/i.test(t);
+  // Short reactions
+  if (/^(meh|nah|nope|pass)[\s!.]*$/i.test(t)) return true;
+  // Sentence-form negative reactions
+  if (/\b(i\s+(hated?|disliked?|didn'?t\s+(like|enjoy)|wasn'?t\s+into)\s+(that|this|it|that\s+song|this\s+song|that\s+one|this\s+one)|not\s+(for\s+me|my\s+thing|feeling\s+it)|this\s+isn'?t\s+(for\s+me|my\s+thing)|don'?t\s+(like|love)\s+(it|this|that)|not\s+into\s+(it|this)|skip\s+(it|this)?)\b/i.test(t)) return true;
+  return false;
 }
 
 function isOffScript(msg) {

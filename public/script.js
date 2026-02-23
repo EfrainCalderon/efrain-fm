@@ -106,10 +106,7 @@ async function sendMessage() {
   userInput.style.height = 'auto';
   sessionStats.messagesExchanged++;
 
-  // Slide input down and out of view
   const inputWrapper = document.getElementById('input-wrapper');
-  inputWrapper.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
-  inputWrapper.style.transform = 'translateY(120%)';
   inputWrapper.style.opacity = '0';
   inputWrapper.style.pointerEvents = 'none';
 
@@ -150,11 +147,10 @@ async function sendMessage() {
     if (data.interrupt) {
       setTimeout(() => { showInterrupt(data.interrupt); }, 4000);
     } else {
-      // Slide input back up into view
-      inputWrapper.style.transform = 'translateY(0)';
-      inputWrapper.style.opacity = '1';
-      inputWrapper.style.pointerEvents = 'auto';
-      setTimeout(() => { userInput.focus(); }, 350);
+      setTimeout(() => {
+        inputWrapper.style.opacity = '1';
+        inputWrapper.style.pointerEvents = 'auto';
+      }, 600);
     }
 
     isTyping = false;
@@ -163,7 +159,6 @@ async function sendMessage() {
     console.error('Error:', error);
     removeTypingIndicator(typingIndicator);
     addMessageToChat('Something went wrong. Please try again.', 'assistant');
-    inputWrapper.style.transform = 'translateY(0)';
     inputWrapper.style.opacity = '1';
     inputWrapper.style.pointerEvents = 'auto';
     isTyping = false;
@@ -412,7 +407,7 @@ function dismissInterrupt() {
   }
 
   footer.classList.remove('interrupt-active');
-  userInput.placeholder = 'Ask me for a song recommendation...';
+  userInput.placeholder = "Let's find a groove...";
   pendingFavoriteInput = false;
 
   setTimeout(() => {
