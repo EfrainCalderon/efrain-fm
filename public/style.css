@@ -552,18 +552,29 @@ body::after {
 }
 
 /*
-  Interrupt bar: absolutely positioned over the input wrapper zone,
-  same height as the input row. Pure opacity fade — no height change.
+  Interrupt bar: fills the entire footer (inset: 0) and uses the same
+  padding as #input-footer so buttons land in exactly the same slot
+  the input wrapper occupies — pixel-perfect replacement of the same surface.
 */
 #interrupt-bar {
   position: absolute;
-  inset: 12px;
+  inset: 0;
+  padding: 12px;
   display: flex;
   align-items: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
   z-index: 10;
+}
+
+/* Match the mobile footer padding on mobile — safe area is below the buttons, not inside them */
+@media (max-width: 768px) {
+  #interrupt-bar {
+    padding: 10px 12px;
+    padding-bottom: max(10px, calc(10px + env(safe-area-inset-bottom)));
+    align-items: flex-start;
+  }
 }
 
 #interrupt-bar.visible {
@@ -642,6 +653,8 @@ body::after {
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
   padding: 12px;
+  /* Extend background into iOS home indicator zone so there's no color gap */
+  padding-bottom: max(12px, calc(12px + env(safe-area-inset-bottom)));
   z-index: 100;
   flex-shrink: 0;
   border-top: 1px solid var(--border-color);
@@ -735,6 +748,7 @@ body::after {
 
   #input-footer {
     padding: 10px 12px;
+    padding-bottom: max(10px, calc(10px + env(safe-area-inset-bottom)));
   }
 
   #chat-messages {
