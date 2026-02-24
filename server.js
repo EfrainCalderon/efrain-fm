@@ -131,23 +131,53 @@ const COMMENTARY_STOPWORDS = new Set([
   'year', 'years', 'day', 'days', 'life', 'world', 'back', 'little',
 ]);
 
+// Known genre/mood words — when a keyword matches one of these, we only want
+// to score it against the genre/mood/tags fields, not artist name or title.
+const GENRE_WORDS = new Set([
+  'jazz', 'electronic', 'folk', 'punk', 'soul', 'hip-hop', 'hip hop', 'rap',
+  'ambient', 'funk', 'country', 'reggae', 'classical', 'experimental', 'r&b',
+  'latin', 'afrobeat', 'blues', 'pop', 'noise', 'indie', 'dance', 'rock',
+  'metal', 'gospel', 'disco', 'techno', 'house', 'grunge', 'ska', 'dub',
+  'psychedelic', 'acoustic', 'orchestral', 'baroque', 'bossa nova', 'samba',
+  'cumbia', 'salsa', 'merengue', 'tropicalia', 'outsider', 'lo-fi',
+  'new wave', 'post-punk', 'synth', 'electro', 'downtempo', 'trip-hop',
+  'mellow', 'chill', 'upbeat', 'energetic', 'melancholy', 'dreamy',
+  'raw', 'smooth', 'sparse', 'minimal', 'intense', 'gentle', 'soft',
+  'proto-punk', 'art rock', 'garage', 'shoegaze', 'post-rock',
+  'krautrock', 'drone', 'abstract', 'avant-garde', 'weird', 'eccentric',
+]);
+
 function scoreSongs(songs, keywords, preferVideo = false) {
   return songs.map(song => {
     let score = 0;
     const tags = Array.isArray(song.tags) ? song.tags.join(' ') : (song.tags || '');
-    // Structured fields — all keywords match here
-    const structuredText = normalize(`${song.title} ${song.artist} ${song.genre} ${song.mood} ${song.year} ${tags}`);
-    // Commentary — only non-stopwords match here
+    // Tier 1: genre/mood/tags — highest priority
+    const genreText = normalize(`${song.genre} ${song.mood} ${tags}`);
+    // Tier 2: title + year
+    const titleText = normalize(`${song.title} ${song.year}`);
+    // Tier 3: artist (blocked for genre keywords)
+    const artistText = normalize(song.artist);
+    // Tier 4: commentary (blocked for genre keywords and stopwords)
     const commentaryText = normalize(song.commentary || '');
 
     keywords.forEach(keyword => {
       const normKw = normalize(keyword);
       const escaped = normKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const re = new RegExp('\\b' + escaped + '\\b', 'i');
-      if (re.test(structuredText)) {
-        score++;
-      } else if (!COMMENTARY_STOPWORDS.has(normKw) && re.test(commentaryText)) {
-        score++;
+      const isGenreWord = GENRE_WORDS.has(normKw);
+
+      if (re.test(genreText)) {
+        // Genre/mood/tags match — 2x weight for genre words so they dominate ranking
+        score += isGenreWord ? 2 : 1;
+      } else if (!isGenreWord && re.test(titleText)) {
+        // Title match — not for genre keywords
+        score += 1;
+      } else if (!isGenreWord && re.test(artistText)) {
+        // Artist match — blocked for genre words ("country" won't score "Country Joe")
+        score += 1;
+      } else if (!isGenreWord && !COMMENTARY_STOPWORDS.has(normKw) && re.test(commentaryText)) {
+        // Commentary — last resort, never for genre/mood words
+        score += 1;
       }
     });
 
@@ -590,6 +620,9 @@ app.post('/api/chat', async (req, res) => {
       'favorite', 'favourite',
       'can', 'vitamin', 'let', 'get', 'got', 'set', 'put', 'see', 'say',
       'use', 'used', 'try', 'hit', 'big', 'low', 'high', 'hot', 'cold',
+      // Generic words that appear in song titles but shouldn't trigger title-matching
+      'something', 'anything', 'everything', 'nothing', 'someone', 'anyone',
+      'somewhere', 'everywhere', 'somehow', 'sometime',
     ]);
     const titleMatchKeywords = keywords.filter(k => k.length >= 4 && !TITLE_MATCH_STOPWORDS.has(normalize(k)));
     let specificSong = null;
