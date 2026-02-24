@@ -129,8 +129,13 @@ function scoreSongs(songs, keywords, preferVideo = false) {
     const descriptiveTags = getDescriptiveTags(song);
     // Tier 1: genre, mood, and descriptive tags (not artist-name tags)
     const genreText = normalize(`${song.genre} ${song.mood} ${descriptiveTags.join(' ')}`);
-    // Tier 2: title + year (year is factual, not a genre signal)
-    const titleText = normalize(`${song.title} ${song.year || ''}`);
+    // Derive decade strings from year so "90s" and "1990s" match songs with year 1990-1999
+    const year = parseInt(song.year);
+    const decadeText = !isNaN(year)
+      ? `${Math.floor(year / 10) * 10 % 100}s ${Math.floor(year / 10) * 10}s`
+      : '';
+    // Tier 2: title + year + decade
+    const titleText = normalize(`${song.title} ${song.year || ''} ${decadeText}`);
     // Tier 3: artist only
     const artistText = normalize(song.artist);
     // Tier 4: commentary (non-stopwords only, never genre words)
@@ -224,7 +229,7 @@ const ARTIST_STOPWORDS = new Set([
 // =====================
 async function extractKeywords(userMessage) {
   const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001', max_tokens: 150,
+    model: 'claude-sonnet-4-5', max_tokens: 150,
     messages: [{ role: 'user', content: `Extract music search keywords from this request. Return ONLY a JSON array.
 
 Expand to related terms:
@@ -275,14 +280,14 @@ Important: Don't mention this being a portfolio piece, case study, or that you'r
 async function generateConversationalResponse(userMessage, lastSong) {
   const songContext = lastSong ? `The last song you shared was "${lastSong.title}" by ${lastSong.artist}.` : '';
   const r = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001', max_tokens: 120,
+    model: 'claude-sonnet-4-5', max_tokens: 120,
     system: EFRAIN_CHARACTER,
     messages: [{ role: 'user', content: `${userMessage}${songContext ? '\n\n' + songContext : ''}` }]
   });
   return r.content[0].text;
 }
 
-async function generateNoMatchResponse(userMessage) {
+function generateNoMatchResponse(userMessage) {
   const quick = [
     [/\bpolka\b/i, "No polka in here, sorry."],
     [/\bbluegrass\b/i, "Nothing with a banjo unfortunately."],
@@ -295,12 +300,14 @@ async function generateNoMatchResponse(userMessage) {
   for (const [re, reply] of quick) {
     if (re.test(userMessage)) return reply;
   }
-  const r = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001', max_tokens: 80,
-    system: EFRAIN_CHARACTER,
-    messages: [{ role: 'user', content: `No match for: "${userMessage}". One short warm sentence. Suggest they try a genre, mood, era, or artist name instead. NEVER say "that search isn't set up" or imply missing features. NEVER be dismissive. Just say you're not finding a great match and invite a different angle.` }]
-  });
-  return r.content[0].text;
+  const lines = [
+    "Can't think of anything like that.",
+    "I'm not remembering anything that fits.",
+    "Can't remember anything like that.",
+    "Nothing's coming to mind for that.",
+    "I don't remember having anything like that.",
+  ];
+  return lines[Math.floor(Math.random() * lines.length)];
 }
 
 // =====================
@@ -321,7 +328,7 @@ function findRelatedSong(lastSong, playedTitles) {
 
 const COLLECTION_GENRES = [
   'jazz', 'electronic', 'folk', 'punk', 'soul', 'hip-hop', 'ambient',
-  'funk', 'country', 'reggae', 'experimental', 'r&b',
+  'funk', 'country', 'reggae', 'experimental', 'R&B',
   'latin', 'afrobeat', 'blues', 'pop', 'noise', 'indie', 'dance',
 ];
 
@@ -411,7 +418,7 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
     matchContext = `You don't have that. Say "I'll check that out" or similar — warm, brief, one sentence.`;
   }
   const r = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001', max_tokens: 100,
+    model: 'claude-sonnet-4-5', max_tokens: 100,
     system: EFRAIN_CHARACTER,
     messages: [{ role: 'user', content: `Visitor's favorite: "${userInput}"\n${matchContext}\n\n1-2 sentences MAX. React like a person, not a critic.` }]
   });
@@ -535,6 +542,44 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: redirects[Math.floor(Math.random() * redirects.length)], song: null });
     }
 
+    // ---- Button choice handlers — MUST run before affirmation/reaction checks ----
+    // These are exact string matches from button clicks and must take priority.
+    const available = () => songsData.songs.filter(s => !session.playedSongs.includes(s.title));
+
+    const pickTopScoring = (pool) => {
+      if (!pool.length) return null;
+      const top = Math.max(...pool.map(s => s.score || 0));
+      const picks = pool.filter(s => (s.score || 0) === top);
+      return picks[Math.floor(Math.random() * picks.length)];
+    };
+
+    if (msgLower === 'keep this vibe' && session.lastSongTags) {
+      const scored = scoreSongs(available(), session.lastSongTags).filter(s => s.score > 0);
+      const diff = scored.filter(s => s.artist !== session.lastSongArtist);
+      const song = pickTopScoring(diff.length ? diff : scored);
+      if (song) return res.json(buildSongResponse(song, session));
+    }
+
+    if (msgLower === 'tell me more' && session._pendingRelatedSong) {
+      const related = songsData.songs.find(s => s.title === session._pendingRelatedSong);
+      session._pendingRelatedSong = null;
+      if (related && !session.playedSongs.includes(related.title)) return res.json(buildSongResponse(related, session));
+    }
+
+    if (msgLower === 'not right now') {
+      session._pendingRelatedSong = null;
+      return res.json({ response: "No problem — keep asking.", song: null });
+    }
+
+    if (msgLower === 'yes') {
+      return res.json({ response: null, song: null, interrupt: { type: 'favorite', message: "What's the song or artist?", freeText: true } });
+    }
+
+    if (msgLower === 'no' || msgLower === "i don't" || msgLower === 'not sure' || msgLower === 'idk') {
+      const replies = ["No worries — what do you want to hear next?", "All good. What are you in the mood for?", "That's fine. Keep asking."];
+      return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
+    }
+
     // Negative reactions
     if (isNegativeReaction(message)) {
       const s = session.lastSong;
@@ -577,43 +622,6 @@ app.post('/api/chat', async (req, res) => {
     if (isOffScript(message)) {
       const reply = await generateConversationalResponse(message, session.lastSong);
       return res.json({ response: reply, song: null });
-    }
-
-    // ---- Button choice handlers ----
-    const available = () => songsData.songs.filter(s => !session.playedSongs.includes(s.title));
-
-    const pickTopScoring = (pool) => {
-      if (!pool.length) return null;
-      const top = Math.max(...pool.map(s => s.score || 0));
-      const picks = pool.filter(s => (s.score || 0) === top);
-      return picks[Math.floor(Math.random() * picks.length)];
-    };
-
-    if (msgLower === 'keep this vibe' && session.lastSongTags) {
-      const scored = scoreSongs(available(), session.lastSongTags).filter(s => s.score > 0);
-      const diff = scored.filter(s => s.artist !== session.lastSongArtist);
-      const song = pickTopScoring(diff.length ? diff : scored);
-      if (song) return res.json(buildSongResponse(song, session));
-    }
-
-    if (msgLower === 'tell me more' && session._pendingRelatedSong) {
-      const related = songsData.songs.find(s => s.title === session._pendingRelatedSong);
-      session._pendingRelatedSong = null;
-      if (related && !session.playedSongs.includes(related.title)) return res.json(buildSongResponse(related, session));
-    }
-
-    if (msgLower === 'not right now') {
-      session._pendingRelatedSong = null;
-      return res.json({ response: "No problem — keep asking.", song: null });
-    }
-
-    if (msgLower === 'yes') {
-      return res.json({ response: null, song: null, interrupt: { type: 'favorite', message: "What's the song or artist?", freeText: true } });
-    }
-
-    if (msgLower === 'no' || msgLower === "i don't" || msgLower === 'not sure' || msgLower === 'idk') {
-      const replies = ["No worries — what do you want to hear next?", "All good. What are you in the mood for?", "That's fine. Keep asking."];
-      return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
     }
 
     if (msgLower === 'more of that energy' && session.lastSongTags) {
@@ -713,7 +721,12 @@ app.post('/api/chat', async (req, res) => {
     const hasAnyMatch = allScored.some(s => s.score >= 2);
 
     if (!hasAnyMatch) {
-      return res.json({ response: await generateNoMatchResponse(message), song: null });
+      const noMatchText = generateNoMatchResponse(message);
+      const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
+      const interrupt = genreOptions.length >= 2
+        ? { type: 'genre_suggest', message: `${noMatchText} Pick from some of these.`, options: genreOptions }
+        : null;
+      return res.json({ response: interrupt ? null : noMatchText, song: null, interrupt });
     }
 
     const avSongs = available();
@@ -721,7 +734,7 @@ app.post('/api/chat', async (req, res) => {
     const avMatches = avScored.filter(s => s.score >= 2);
 
     if (!avMatches.length) {
-      return res.json({ response: "Already played everything that fits that. Try a different angle?", song: null });
+      return res.json({ response: "Think I've played everything along those lines — is there another direction you want to go?", song: null });
     }
 
     const top = Math.max(...avMatches.map(s => s.score));

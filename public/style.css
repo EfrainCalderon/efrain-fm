@@ -678,11 +678,12 @@ body::after {
   font-size: 16px;
   font-family: 'Inter', sans-serif;
   resize: none;
-  overflow: hidden;
-  min-height: 44px;
+  overflow-y: auto;
+  height: 48px;
+  min-height: 48px;
   max-height: 120px;
   line-height: 1.5;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
 }
 
 #user-input::placeholder {
@@ -699,7 +700,6 @@ body::after {
 #user-input:focus {
   outline: none;
   border-color: var(--input-focus-border);
-  box-shadow: 0 0 0 2px rgba(245, 242, 238, 0.03);
 }
 
 #send-button {

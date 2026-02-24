@@ -15,7 +15,7 @@ let pendingFavoriteInput = false;
 
 // Auto-expand textarea
 userInput.addEventListener('input', function() {
-  this.style.height = 'auto';
+  this.style.height = '48px';
   this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
@@ -104,9 +104,9 @@ function fadeOutInput() {
 
 function fadeInInput() {
   const inputWrapper = document.getElementById('input-wrapper');
+  userInput.style.height = '48px';
   inputWrapper.style.opacity = '1';
   inputWrapper.style.pointerEvents = 'auto';
-  // Restore placeholder after input has faded back in
   setTimeout(() => {
     userInput.classList.remove('hide-placeholder');
   }, 200);
@@ -125,14 +125,14 @@ async function sendMessage() {
     const handled = handleSecretCommand(message);
     if (handled) {
       userInput.value = '';
-      userInput.style.height = 'auto';
+      userInput.style.height = '48px';
       return;
     }
   }
 
   addMessageToChat(message, 'user');
   userInput.value = '';
-  userInput.style.height = 'auto';
+  userInput.style.height = '48px';
   sessionStats.messagesExchanged++;
 
   fadeOutInput();
@@ -157,22 +157,29 @@ async function sendMessage() {
     });
 
     const data = await response.json();
-    removeTypingIndicator(typingIndicator);
     sessionStats.messagesExchanged++;
 
     if (data.song) {
+      removeTypingIndicator(typingIndicator);
       if (data.bridgingResponse) {
         await addMessageToChatWithTyping(data.bridgingResponse, 'assistant');
       }
       await displaySong(data.song, data.response);
       sessionStats.songsPlayed++;
     } else if (data.response) {
+      removeTypingIndicator(typingIndicator);
       await addMessageToChatWithTyping(data.response, 'assistant');
+    } else if (data.interrupt) {
+      // No response text — interrupt will render the message itself, keep indicator until then
+      removeTypingIndicator(typingIndicator);
+    } else {
+      removeTypingIndicator(typingIndicator);
     }
 
-    // Handle interrupt if present — delay 4s after song/response loads
+    // Handle interrupt if present
     if (data.interrupt) {
-      setTimeout(() => { showInterrupt(data.interrupt); }, 4000);
+      const delay = data.song ? 2000 : 0;
+      setTimeout(() => { showInterrupt(data.interrupt); }, delay);
     } else {
       // Reset placeholder if we just finished a favorite submission
       if (wasFavoriteInput) {
