@@ -235,6 +235,11 @@ Expand to related terms:
 - "brazil" → ["brazil", "brazilian", "bossa nova", "samba", "tropicalia"]
 - "80s" → ["80s", "1980s", "synth", "new wave", "post-punk"]
 - "electronic" → ["electronic", "synth", "electro", "techno", "dance"]
+- "good lyrics" or "great lyrics" or "lyrical" or "strong songwriting" or "well written" → ["lyrical", "singer-songwriter", "storytelling", "lyricism", "poetic", "folk", "indie"]
+- "catchy" or "hooks" or "sing along" → ["pop", "hook", "catchy", "melodic", "upbeat"]
+- "instrumental" or "no vocals" → ["instrumental", "ambient", "post-rock", "jazz", "electronic"]
+- "female vocalist" or "woman singer" → ["female vocalist", "singer-songwriter"]
+- "uplifting" or "feel good" or "happy" → ["uplifting", "upbeat", "joyful", "feel-good", "warm"]
 - Artist names and song titles → return as-is
 
 RULES:
@@ -265,7 +270,7 @@ About the site: Songs play as 30-second Spotify previews by default — but if s
 
 Personality: Warm, direct, a little dry. Deep music knowledge — outsider, lo-fi, experimental, jazz, proto-punk, international. Never pretentious. You share because you genuinely love it, not to impress anyone.
 
-Important: Don't mention this being a portfolio piece, case study, or that you're looking for work. It's just a project you made because you wanted to. Keep responses SHORT — 2-3 sentences max. Steer music-adjacent questions back toward asking what they want to hear. Plain text only, no markdown.`;
+Important: Don't mention this being a portfolio piece, case study, or that you're looking for work. It's just a project you made because you wanted to. Keep responses SHORT — 2-3 sentences max. Steer music-adjacent questions back toward asking what they want to hear. Plain text only, no markdown. NEVER invent or describe features that don't exist — if something doesn't work a certain way, just redirect to what you can do (play songs from your collection). NEVER say things like "that search isn't set up yet" or "that feature isn't available."`;
 
 async function generateConversationalResponse(userMessage, lastSong) {
   const songContext = lastSong ? `The last song you shared was "${lastSong.title}" by ${lastSong.artist}.` : '';
@@ -293,7 +298,7 @@ async function generateNoMatchResponse(userMessage) {
   const r = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001', max_tokens: 80,
     system: EFRAIN_CHARACTER,
-    messages: [{ role: 'user', content: `No match for: "${userMessage}". One short sentence. Don't say "I'd love to help" or reference your collection. Just be direct.` }]
+    messages: [{ role: 'user', content: `No match for: "${userMessage}". One short warm sentence. Suggest they try a genre, mood, era, or artist name instead. NEVER say "that search isn't set up" or imply missing features. NEVER be dismissive. Just say you're not finding a great match and invite a different angle.` }]
   });
   return r.content[0].text;
 }

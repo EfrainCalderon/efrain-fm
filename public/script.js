@@ -147,6 +147,7 @@ async function sendMessage() {
       ? { input: message, sessionId }
       : { message, sessionId };
 
+    const wasFavoriteInput = pendingFavoriteInput;
     pendingFavoriteInput = false;
 
     const response = await fetch(endpoint, {
@@ -165,7 +166,7 @@ async function sendMessage() {
       }
       await displaySong(data.song, data.response);
       sessionStats.songsPlayed++;
-    } else {
+    } else if (data.response) {
       await addMessageToChatWithTyping(data.response, 'assistant');
     }
 
@@ -173,6 +174,10 @@ async function sendMessage() {
     if (data.interrupt) {
       setTimeout(() => { showInterrupt(data.interrupt); }, 4000);
     } else {
+      // Reset placeholder if we just finished a favorite submission
+      if (wasFavoriteInput) {
+        userInput.placeholder = "Let's find a groove...";
+      }
       setTimeout(fadeInInput, 600);
     }
 
