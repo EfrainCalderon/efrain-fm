@@ -556,9 +556,14 @@ body::after {
   same height as the input row. Pure opacity fade — no height change.
 */
 #interrupt-bar {
+  position: absolute;
+  inset: 12px;
+  display: flex;
+  align-items: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  z-index: 10;
 }
 
 #interrupt-bar.visible {
@@ -574,6 +579,7 @@ body::after {
   display: flex;
   flex-direction: row;
   gap: 8px;
+  width: 100%;
 }
 
 /* Buttons styled like user chat bubbles */

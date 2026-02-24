@@ -354,6 +354,7 @@ async function showInterrupt(interrupt) {
   // freeText mode: restore input in favorite-answer mode, no buttons
   if (interrupt.freeText) {
     pendingFavoriteInput = true;
+    isTyping = false;
     userInput.placeholder = 'Type a song or artist...';
     await addMessageToChatWithTyping(interrupt.message, 'assistant');
     setTimeout(fadeInInput, 300);
@@ -389,8 +390,8 @@ async function showInterrupt(interrupt) {
   }
 
   interruptEl.appendChild(btnRow);
-  // Insert before inputWrapper so it occupies the same visual zone
-  footer.insertBefore(interruptEl, inputWrapper);
+  // Append to footer — CSS positions it as absolute overlay over input-wrapper
+  footer.appendChild(interruptEl);
 
   // Double rAF: element needs to be in DOM before transition class fires
   requestAnimationFrame(() => {
