@@ -25,6 +25,7 @@ app.use('/api/chat', limiter);
 // DATA LOADING
 // Normalize all tag fields to arrays at startup so we never branch on string vs array again.
 // =====================
+const bridgesData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'bridges.json'), 'utf8'));
 const rawSongsData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'songs.json'), 'utf8'));
 const songsData = {
   songs: rawSongsData.songs.map(song => ({
@@ -44,7 +45,7 @@ function getSession(sessionId) {
     sessions.set(sessionId, {
       playedSongs: [], lastSongTags: null, lastSongArtist: null, lastSong: null,
       songCount: 0, askedFavorite: false, askedMoreOf: false, lastInterruptSong: 0,
-      _pendingRelatedSong: null,
+      _pendingRelatedSong: null, _pendingBridge: null,
     });
   }
   return sessions.get(sessionId);
@@ -229,39 +230,62 @@ const ARTIST_STOPWORDS = new Set([
 // =====================
 async function extractKeywords(userMessage) {
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5', max_tokens: 150,
-    messages: [{ role: 'user', content: `Extract music search keywords from this request. Return ONLY a JSON array.
+    model: 'claude-sonnet-4-5', max_tokens: 200,
+    messages: [{ role: 'user', content: `You are a music search assistant. Convert any request — including moods, situations, metaphors, and feelings — into music genre/mood/tag keywords. Return ONLY a JSON array.
 
-Expand to related terms:
+EXPLICIT GENRE/MOOD MAPPINGS:
 - "rap" or "hip-hop" → ["rap", "hip-hop", "hip hop"]
+- "808" or "trap beats" → ["808", "trap", "hip hop", "rap", "bass-heavy"]
+- "nyc" or "new york" hip hop → ["new york", "nyc", "east coast", "boom bap", "hip hop", "rap"]
 - "outsider" → ["outsider", "lo-fi", "primitive", "raw", "weird", "eccentric"]
-- "sad" → ["sad", "melancholy", "heartbreak", "lonely"]
+- "sad" or "heartbreak" → ["sad", "melancholy", "heartbreak", "lonely", "slowcore"]
 - "chill" or "mellow" → ["chill", "mellow", "relaxed", "ambient", "downtempo"]
 - "brazil" → ["brazil", "brazilian", "bossa nova", "samba", "tropicalia"]
 - "80s" → ["80s", "1980s", "synth", "new wave", "post-punk"]
 - "electronic" → ["electronic", "synth", "electro", "techno", "dance"]
-- "good lyrics" or "great lyrics" or "lyrical" or "strong songwriting" or "well written" → ["lyrical", "singer-songwriter", "storytelling", "lyricism", "poetic", "folk", "indie"]
-- "catchy" or "hooks" or "sing along" → ["pop", "hook", "catchy", "melodic", "upbeat"]
+- "good lyrics" or "lyrical" or "songwriting" → ["singer-songwriter", "folk", "indie", "lyrical", "poetic"]
 - "instrumental" or "no vocals" → ["instrumental", "ambient", "post-rock", "jazz", "electronic"]
-- "female vocalist" or "woman singer" → ["female vocalist", "singer-songwriter"]
-- "uplifting" or "feel good" or "happy" → ["uplifting", "upbeat", "joyful", "feel-good", "warm"]
-- Artist names and song titles → return as-is
+- "female vocalist" → ["female vocalist", "singer-songwriter"]
+- "uplifting" or "feel good" → ["uplifting", "upbeat", "joyful", "warm"]
+- "weird" or "strange" or "unusual" → ["experimental", "outsider", "avant-garde", "lo-fi", "weird"]
+- "dark" or "brooding" → ["dark", "brooding", "gothic", "post-punk", "industrial", "noir"]
+- "political" or "protest" → ["political", "protest", "punk", "rap", "folk"]
+
+SITUATIONAL/CONTEXTUAL MAPPINGS (translate the feeling, not the words):
+- "late night", "2am", "city at night", "driving at night" → ["atmospheric", "nocturnal", "ambient", "electronic", "downtempo", "dark"]
+- "working", "focus", "concentration" → ["instrumental", "ambient", "post-rock", "electronic", "downtempo"]
+- "recorded in a basement", "lo-fi feeling", "raw recording", "imperfect" → ["lo-fi", "outsider", "raw", "primitive", "garage", "DIY"]
+- "dad in the 70s", "parents music", "classic rock era" → ["70s", "1970s", "rock", "folk rock", "soul", "funk"]
+- "dinner party", "sophisticated", "background music" → ["jazz", "soul", "bossa nova", "ambient", "downtempo", "elegant"]
+- "feels old", "from another era", "timeless", "vintage" → ["60s", "70s", "soul", "jazz", "folk", "vintage"]
+- "changed how I think about music", "influential", "important" → ["experimental", "avant-garde", "influential", "art rock", "post-punk"]
+- "just got out of relationship", "breakup", "heartbroken" → ["sad", "melancholy", "heartbreak", "slowcore", "folk", "indie"]
+- "nostalgic for time I never lived", "wistful", "bittersweet" → ["nostalgic", "dreamy", "shoegaze", "dream pop", "psychedelic", "vintage"]
+- "genuinely strange", "weird but love it", "acquired taste" → ["outsider", "experimental", "avant-garde", "lo-fi", "weird", "eccentric"]
+- "punk but melodic", "aggressive but catchy" → ["punk", "post-punk", "new wave", "power pop", "melodic"]
+- "hip hop but experimental", "not mainstream rap" → ["experimental", "hip hop", "abstract", "noise rap", "avant-garde", "underground"]
+- "soul but weirder" → ["soul", "psychedelic soul", "funk", "experimental", "outsider"]
+- "between jazz and electronic" → ["jazz", "electronic", "ambient", "downtempo", "IDM", "fusion"]
 
 RULES:
-- Always include the literal words from the request
-- Never return partial words or substrings ("rape" must not come from "rap")
-- Do not expand "outsider" to "alternative" or "indie"
+- Always translate situation/feeling into musical descriptors — never return narrative words like "basement", "night", "driving", "dinner"
+- Never return partial words or substrings
+- Artist names and song titles → return as-is
 - Do not use vague terms like "classic" or "popular"
+- Return 4–10 keywords minimum for longer requests
 
 Request: "${userMessage}"
-Return format: ["keyword1", "keyword2"]
-Return ONLY the JSON array.` }]
+Return ONLY the JSON array, no explanation.` }]
   });
   try {
-    const raw = JSON.parse(response.content[0].text).map(k => k.toLowerCase());
+    const text = response.content[0].text.trim();
+    console.log('Raw keyword response:', text);
+    const match = text.match(/\[[\s\S]*\]/);
+    if (!match) { console.log('No JSON array found'); return []; }
+    const raw = JSON.parse(match[0]).map(k => k.toLowerCase());
     const inputWords = userMessage.toLowerCase().split(/\s+/);
     return raw.filter(k => k.length >= 3 || inputWords.includes(k));
-  } catch (e) { return []; }
+  } catch (e) { console.log('Keyword parse error:', e.message); return []; }
 }
 
 // =====================
@@ -308,6 +332,23 @@ function generateNoMatchResponse(userMessage) {
     "I don't remember having anything like that.",
   ];
   return lines[Math.floor(Math.random() * lines.length)];
+}
+
+// =====================
+// BRIDGE LOOKUP
+// Checks if there is a curated bridge between the last song and the next song.
+// =====================
+function findBridge(fromSong, toSong) {
+  if (!fromSong) return null;
+  // If toSong provided, check exact pair. Otherwise find any bridge FROM this song.
+  return bridgesData.find(b => {
+    const fromMatch = normalize(b.from) === normalize(fromSong.title) &&
+      normalize(b.fromArtist) === normalize(fromSong.artist);
+    if (!fromMatch) return false;
+    if (!toSong) return true; // just checking if a bridge exists from this song
+    return normalize(b.to) === normalize(toSong.title) &&
+      normalize(b.toArtist) === normalize(toSong.artist);
+  }) || null;
 }
 
 // =====================
@@ -363,11 +404,17 @@ function decideInterrupt(session, justPlayedSong) {
   }
 
   if (count >= 5 && sinceLastInterrupt >= 4) {
+    // Check for a curated bridge first — these take priority over generic related songs
     const related = findRelatedSong(justPlayedSong, session.playedSongs);
     if (related) {
+      const bridge = findBridge(justPlayedSong, related);
       session.lastInterruptSong = count;
       session._pendingRelatedSong = related.title;
-      return { type: 'related', message: "This makes me think of something else. Want to hear it?", options: ['Tell me more', 'Not right now'] };
+      session._pendingBridge = bridge ? bridge.bridge : null;
+      const msg = bridge
+        ? "This reminds me of something I always play after this — want to hear it?"
+        : "Oh that reminds me of another song actually...";
+      return { type: 'related', message: msg, options: ['Tell me more', 'Not right now'] };
     }
   }
 
@@ -462,12 +509,43 @@ function isConversational(msg) {
 // SONG RESPONSE BUILDER
 // =====================
 function buildSongResponse(song, session, interrupt = null, bridge = null) {
+  const prevSong = session.lastSong;
   session.playedSongs.push(song.title);
   session.lastSong = song;
   session.lastSongTags = song.tags; // already normalized arrays at load time
   session.lastSongArtist = song.artist;
   session.songCount++;
-  const int = interrupt || decideInterrupt(session, song);
+
+  // Bridge check runs BEFORE decideInterrupt timing gates —
+  // curated pairs always fire regardless of interrupt cooldown.
+  let int = interrupt;
+  if (!int) {
+    const bridgeMatch = findBridge(song, null); // find any bridge FROM this song
+    if (bridgeMatch) {
+      // Look up the destination song in the collection
+      const bridgeDest = songsData.songs.find(s =>
+        normalize(s.title) === normalize(bridgeMatch.to) &&
+        normalize(s.artist) === normalize(bridgeMatch.toArtist) &&
+        !session.playedSongs.includes(s.title)
+      );
+      if (bridgeDest) {
+        session._pendingBridge = bridgeMatch.bridge;
+        session._pendingRelatedSong = bridgeDest.title;
+        session.lastInterruptSong = session.songCount;
+        int = {
+          type: 'related',
+          message: "This reminds me of something I always play after this — want to hear it?",
+          options: ['Play it', 'Maybe later'],
+          isBridge: true,
+        };
+      } else {
+        int = decideInterrupt(session, song);
+      }
+    } else {
+      int = decideInterrupt(session, song);
+    }
+  }
+
   return {
     response: song.commentary,
     bridgingResponse: bridge,
@@ -560,13 +638,17 @@ app.post('/api/chat', async (req, res) => {
       if (song) return res.json(buildSongResponse(song, session));
     }
 
-    if (msgLower === 'tell me more' && session._pendingRelatedSong) {
+    if ((msgLower === 'tell me more' || msgLower === 'play it') && session._pendingRelatedSong) {
       const related = songsData.songs.find(s => s.title === session._pendingRelatedSong);
+      const bridgeText = session._pendingBridge || null;
       session._pendingRelatedSong = null;
-      if (related && !session.playedSongs.includes(related.title)) return res.json(buildSongResponse(related, session));
+      session._pendingBridge = null;
+      if (related && !session.playedSongs.includes(related.title)) {
+        return res.json(buildSongResponse(related, session, null, bridgeText));
+      }
     }
 
-    if (msgLower === 'not right now') {
+    if (msgLower === 'not right now' || msgLower === 'maybe later') {
       session._pendingRelatedSong = null;
       return res.json({ response: "No problem — keep asking.", song: null });
     }
@@ -648,6 +730,18 @@ app.post('/api/chat', async (req, res) => {
       const diff = scored.filter(s => s.artist !== session.lastSongArtist);
       const song = pickTopScoring(diff.length ? diff : scored);
       if (song) return res.json(buildSongResponse(song, session));
+    }
+
+    // ---- Direct title request — "play me [title]" or "play [title] by [artist]" ----
+    // Runs before artist lookup to handle specific song requests correctly.
+    const playMeMatch = message.match(/^play(?:\s+me)?\s+(.+?)(?:\s+by\s+.+)?$/i);
+    if (playMeMatch) {
+      const requestedTitle = normalize(playMeMatch[1].trim());
+      const exactSong = songsData.songs.find(s =>
+        !session.playedSongs.includes(s.title) &&
+        normalize(s.title) === requestedTitle
+      );
+      if (exactSong) return res.json(buildSongResponse(exactSong, session));
     }
 
     // Artist lookup — runs before keyword extraction so no API call needed for artist queries
