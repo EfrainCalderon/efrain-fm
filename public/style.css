@@ -762,3 +762,18 @@ body::after {
     padding: 8px 16px;
   }
 }
+
+/* =====================
+   RINGS — MOBILE VISIBILITY
+   ===================== */
+
+@media (max-width: 768px) {
+  #bg-rings {
+    /* The rings center at cy=900 (bottom of the SVG viewBox).
+       On mobile, this means the inner rings are below the fold.
+       Pulling the SVG up exposes more rings to the visible area. */
+    top: auto;
+    bottom: -15%;
+    height: 115%;
+  }
+}
