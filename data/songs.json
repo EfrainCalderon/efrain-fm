@@ -145,7 +145,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "I heard Andy was having trouble sleeping when he wrote this album. I can feel it in the music. I would listen taking late night walks for cigarettes back when I smoked, blasting it in my headphones and walking down through the three graveyards that surrounded my block.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -545,7 +545,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Having first discovered Beach House when they debuted with Devotion and kind of falling off a bit after 3 albums, it was cool to hear how epic they could sound now.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -1995,7 +1995,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "So cinematic, this one.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -3635,7 +3635,7 @@
       "traits": {
         "char:nostalgic": 0.9,
         "mood:joyful": 0.9,
-        "era:50s": 1.0,
+        "era:50s": 1,
         "genre:jazz": 0.8,
         "texture:warm": 0.8
       },
@@ -4794,7 +4794,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Formerly a YouTuber named Filthy Frank who was like a worse Eric Andre, what a flip to this tender song-maker.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -5394,7 +5394,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "A strange one that's still accessible.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -5669,7 +5669,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "I have such a crush on Hope Sandoval. Apparently she had real stage fright. Her performance here is gorgeous. To be able to feel so intimate in such a large venue is impressive. I always hear this song when I'm taking off on planes.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -5719,7 +5719,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "The charming vocals and production are great and this bass line is sick.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -6144,7 +6144,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "This feels like the climax of In The Aeroplane Over the Sea. Jeff Mangum mentioned the inspiration from Anne Frank and near the end we get lyrics — \"I know they buried her body with others, her sister and mother and five hundred families. And will she remember me fifty years later? I wished I could save her in some sort of time machine.\"",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -6169,7 +6169,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "This one has vivid pictures of a dysfunctional family and two people who fall in love among it. It reminds me of the way memory worked in my childhood home. Some walls with great and awful memories like these layers projected over them. The line \"This is the room one afternoon I knew I could love you and from above you how I sank into your soul...\" is one of my favorite NMH lyrics.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -7082,7 +7082,7 @@
       "cluster": "C2",
       "cluster_secondary": "C8",
       "traits": {
-        "char:late-night": 1.0,
+        "char:late-night": 1,
         "mood:melancholic": 0.8,
         "char:beautiful": 0.9,
         "char:nostalgic": 0.8,
@@ -11245,7 +11245,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Teenage Efrain was a big Marilyn Manson fan. The employees at Sam Goody would reluctantly sell me his CDs but warned me, \"This is going to get you in trouble, kid.\"",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -11345,7 +11345,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "This was the first OK GO song I found, I loved the music video actually. Little did I know how I'd be sort of intertwined with them.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -11370,7 +11370,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Pure sugary pop. This would play alongside Nine Inch Nails and Marilyn Manson and Phish during one of my weirder phases in high school.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -11395,7 +11395,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Teenage Efrain was playing this on his Walkman after downloading the album from Napster - which would take 8 hours. If you didn't grow up then, you should stop and really think about that. The speed at which we get things now is astounding.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -11470,7 +11470,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "I would cover this song at the coffee shop when I was first performing live, too. A bit sentimental but, sweet.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -11495,7 +11495,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "I used to cover this song when I would first play music live at a local coffee shop. It taught me about dynamics since the song starts low and relaxes before a booming crescendo. It was one of the first moments I felt confident in my singing and it was a crowd pleaser I could reliably bust out.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -11545,7 +11545,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "What a lovely duet. It's mainstream, it's...maybe sneaking into Easy Listening but, it's nice. I love her voice.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -11670,7 +11670,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "At a certain point exploring downtempo House I realized I could get a lot of the similar feelings that I'd get from classic psych rock. The vocal sample on this one is fun.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -11795,7 +11795,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "This scratches a lot of itches for me. It sounds lo-fi adjacent like bedroom made, has this world music feel with the instruments and the steady pulse of hypnotic electronic I like — steady with subtle variations and morphing like post-rock or krautrock.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -12120,7 +12120,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "First found this as a bed of music for a Rick Owens show and it probably spoke a little to Teenage Efrain. But after I looked up the lyrics it's a pretty sweet song wrapped up in spookiness. He's touring the world and leaning into being a \"genre-hopper...vicious like Sid\" and admitting \"Fans think I'm the man but really I'm just a sad band member with bands.\" and complaining how he hasn't seen his mother since February. That's what makes him want to \"kill somethin'.\" He misses his mother. Who among us? Am I right?",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -12195,7 +12195,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Beyond this just being a banger, I'm tangentially connected to both these artists. Raye was produced by the brother of one of my previous co-workers, and 070 Shake is from my hometown and represents the zipcode in the first three digits of her name (also had a collective of artists from nearby towns using it as a tag since all the local zips began with 070). Respect on her for breaking out and doing cool shit and calling out our local high school as not really supporting her much at all — yep that tracks.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": ""
@@ -12457,7 +12457,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "A go-to for wandering late at night and thinking about it all.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -12507,7 +12507,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "An unexpected find thanks to the algorithm, if I'm being honest. I love how delicate it is and it works well with Bruno Major or Joji on a playlist.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -12532,7 +12532,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Orion Sun is New Jersey's Own, Tiffany Majette. This one feels at home with so much in my collection. I just wish it was longer. Its guitar lines remind me of Cartola.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -12582,7 +12582,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Seventh chords, heavenly, with a nice snare tone and restrained guitar licks.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -12705,7 +12705,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "What a fun way to open a record. If you like the vibes, go listen to this entire record. efrain.fm will still be here when you're done.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -12729,7 +12729,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "My favorite Men I Trust song. I need to see them live someday. The choice to have that lead guitar with a touch of tremolo follow the main melody line... that was the right choice.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -12998,7 +12998,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "When I can enjoy modern music in Spanish because I'm bi-lingual, it feels like a special power. For the non-speakers, it's a song about longing, and wishing one could make love telepathically. Sensual.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -13023,7 +13023,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "This was my second encounter with Kali Uchis. I liked her collab with Tyler, The Creator, but this song was so good. The Spanish line is great — \"I see a doll when I look in the mirror — kiss kiss.\" Catchy and sultry.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -13846,7 +13846,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Rachel's was a band I discovered when I was hanging out with Domenic who was into post-rock and also shared Godspeed You! Black Emperor with me. We were in an untitled post-rock band for a while, it was fun.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -13946,7 +13946,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "If I see a jukebox - this is always a front runner.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -13971,7 +13971,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Certified barbecue music.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -14421,7 +14421,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "This song makes me think of Scott Pilgrim vs. The World. It does a good job of capturing teenage angst.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -14446,7 +14446,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "I was doing floating sessions for a while — you know, sensory deprivation tanks? Anyway, it was hard to just return to the world after an hour of floating without triggering your senses. So, this was what would play on repeat as I sat for a bit in the lobby drinking tea and then driving home. I was always the best, most forgiving driver on those trips home.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -14646,7 +14646,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Maladroit was not loved by all Weezer fans and I can't say I return to the album in full often, but I love this one and wish it was longer.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15021,7 +15021,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Saw this group open for Jungle in Brooklyn. Their set was great but this song in particular stuck with me.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15246,7 +15246,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "I love this piece and wish it were longer. It's so delicate and feels like that short space between dusk and dawn. The melody swirls and dances and builds up and builds up until it all tumbles in a shimmering and satisfying fall.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15362,31 +15362,6 @@
       }
     },
     {
-      "id": "0616",
-      "title": "Hellrap",
-      "artist": "Ghostemane",
-      "year": "2017",
-      "streaming": {
-        "spotify": "https://open.spotify.com/embed/track/3I14hFH0LjBQ3fF4oA9OMK",
-        "apple_music": "",
-        "youtube": ""
-      },
-      "commentary": "",
-      "tag_title": "",
-      "tag_url": "",
-      "audio_story": "",
-      "cluster": "C3",
-      "cluster_secondary": "",
-      "traits": {
-        "genre:hip-hop": 0.7,
-        "genre:noise": 0.7,
-        "energy:high": 1,
-        "mood:dark": 0.9,
-        "energy:chaotic": 0.8,
-        "mood:defiant": 0.8
-      }
-    },
-    {
       "id": "0617",
       "title": "Folsom Prison Blues",
       "artist": "Johnny Cash",
@@ -15396,7 +15371,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "I think this song is very punk rock. Such good storytelling and the part I always loved was, \"When I was just a baby my mama told me 'Son, always be a good boy, don't ever play with guns.' But I shot a man in Reno just to watch him die.\"",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15421,7 +15396,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "This song hits different live in prison. The ambiance of this live album with the occasional administrative messages is perfect.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15521,7 +15496,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "I always loved this classic, but now I think about it every New Years. Why? Because I rang in 2009 with My Morning Jacket. To open the show they fixed drinks at a bar on stage while \"What Are You Doing New Year's Eve?\" played in the background before exploding into a cover of this one. It set the tone for the night and was one of the best concerts I ever attended.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15546,7 +15521,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Do we cheer or villainize the Pusherman? It's from the Blaxploitation classic Super Fly, but it's one of the best soundtracks period, like overall.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15721,7 +15696,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "I love its commentary on TV as a distraction during the civil rights movement. There's a lot to unpack about that relationship between what was broadcast television and Black America at this time.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15746,7 +15721,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Here Gil Juxtaposes the expenses of the space race and America's ability to do the impossible and put a man on the moon while he struggles with basic living conditions and rising prices. Where's he going to send those bills? You'll see.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15771,7 +15746,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "This one in my opinion is more scathing and brutal than \"The Revolution Will Not Be Televised\" and by a lot! He realizes the horrors of slavery and grapples with his anger knowing his ancestors were mistreated and recognizing the way that has shaped his experience growing up. The final lines are so sharp.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15796,7 +15771,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Gil telling his own story. There's a notable sample here — Kanye's Flashing Lights. It was Gil's response to West sampling him without credit. He decided to do the same.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -15846,7 +15821,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Gil telling his own story. There's a notable sample here — Kanye's Flashing Lights. It was Gil's response to West sampling him without credit. He decided to do the same.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -16370,7 +16345,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Add it to your gym playlist rotation and watch your personal records break, baby. Pharrell produced banger.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -16395,7 +16370,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Hell Hath No Fury was my introduction to Clipse and this one in particular I liked. The choir-like pads, the repeating rough loop, it's great.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -16445,7 +16420,7 @@
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "One of my favorite discoveries. It's deep without needing to be loud. It's yearning... it's beautiful.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",

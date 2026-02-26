@@ -71,6 +71,9 @@ const GENRE_WORDS = new Set([
   'raw', 'smooth', 'sparse', 'minimal', 'intense', 'gentle', 'soft',
   'dark', 'atmospheric', 'haunting', 'brooding', 'romantic', 'tender',
   'heavy', 'loud', 'quiet', 'slow', 'fast', 'aggressive', 'peaceful',
+  // Common words that are also band/artist names — blocked from raw keyword matching
+  // so "love", "pop", "can", "wire", "yes" never match Love, Iggy Pop, CAN, Wire, Yes
+  'love', 'pop', 'can', 'wire', 'yes',
 ]);
 
 // =====================
@@ -115,6 +118,13 @@ const TRAIT_ALIASES = {
   'ambient': 'genre:ambient', 'dance': 'genre:dance', 'disco': 'genre:dance',
   'psychedelic': 'genre:psychedelic', 'art rock': 'genre:art-rock', 'afrobeat': 'genre:afrobeat',
   'r&b': 'genre:r&b', 'jazz': 'genre:jazz', 'country': 'genre:country', 'latin': 'genre:latin',
+  // Pop — maps to danceable/joyful rather than a genre:pop trait we don't have.
+  // This prevents raw keyword fallback from matching "Iggy Pop", "Pop Levi", k-pop artists by text.
+  'pop': 'mood:joyful', 'mainstream pop': 'mood:joyful', 'mainstream': 'mood:joyful',
+  'pop music': 'mood:joyful', 'popular': 'mood:joyful',
+  // Western — in most contexts means country. "Eastern/Western music" is a rarely used framing;
+  // safer to treat 'western' as a country alias for this audience.
+  'western': 'genre:country', 'country western': 'genre:country',
 
   // Era
   '50s': 'era:50s', '1950s': 'era:50s',
@@ -262,6 +272,15 @@ function findSongsByArtist(message) {
 
   for (const artist of artists) {
     const artistNorm = normalize(artist);
+    // Guard: single-word artist names under 5 chars are too ambiguous (e.g. "Love", "CAN", "Wire")
+    // They need an additional signal to match — either 'by', 'from', or the artist name is in title case
+    // in the original message. This prevents "something my mother would love" → Love (band).
+    const isSingleShortWord = !artistNorm.includes(' ') && artistNorm.length < 5;
+    if (isSingleShortWord) {
+      // Only match if message contains "by <artist>" or "<artist> song/music/track"
+      const hasExplicitArtistSignal = new RegExp(`\\bby\\s+${artistNorm}\\b|\\b${artistNorm}\\s+(song|music|track|band|album)\\b`, 'i').test(message);
+      if (!hasExplicitArtistSignal) continue;
+    }
     if (msgNorm.includes(artistNorm) || (isMultiWord && artistNorm.includes(msgNorm))) {
       return songsData.songs.filter(s => normalize(s.artist) === artistNorm);
     }
@@ -326,6 +345,71 @@ Request: "${userMessage}"` }]
     const raw = JSON.parse(match[0]).map(k => k.toLowerCase().trim());
     return raw.filter(k => k.length >= 2);
   } catch (e) { console.log('Keyword parse error:', e.message); return []; }
+}
+
+// =====================
+// ARTIST SIMILARITY — "like Nico", "something like Portishead"
+// Detects "like [artist]" patterns and extracts that artist's sonic traits
+// rather than doing a name lookup. Works for any artist Haiku knows about,
+// not just ones in the collection.
+// =====================
+function detectLikeArtist(message) {
+  // Match: "like Nico", "something like early radiohead", "in the style of chet baker",
+  //        "reminds me of portishead", "sounds like the velvet underground"
+  // Also detects negation: "nothing like nico", "not like portishead", "anything but radiohead"
+  // Case-insensitive — people don't always capitalize artist names in chat
+  const patterns = [
+    /\blike\s+(?:early\s+|late\s+|classic\s+)?([a-z][^\.,!?]{1,40}?)(?:\s*$|[,!?.]|\s+but\b|\s+only\b|\s+except\b)/i,
+    /\bin\s+the\s+style\s+of\s+([a-z][^\.,!?]{1,40}?)(?:\s*$|[,!?.])/i,
+    /\breminds?\s+me\s+of\s+([a-z][^\.,!?]{1,40}?)(?:\s*$|[,!?.])/i,
+    /\bsounds?\s+like\s+([a-z][^\.,!?]{1,40}?)(?:\s*$|[,!?.])/i,
+    /\bvibes?\s+(?:like|of)\s+([a-z][^\.,!?]{1,40}?)(?:\s*$|[,!?.])/i,
+  ];
+  // Negation words that can precede "like" — "not like X", "nothing like X", "anything but X"
+  const NEGATION_RE = /\b(not|nothing|never|no|opposite\s+of|anything\s+but|far\s+from)\s+(?:like\s+|sounds?\s+like\s+|reminds?\s+me\s+of\s+)?/i;
+
+  for (const re of patterns) {
+    const m = message.match(re);
+    if (m) {
+      const name = m[1].trim();
+      // Check if negation appears before the match position
+      const beforeMatch = message.slice(0, m.index);
+      const negated = NEGATION_RE.test(beforeMatch) || NEGATION_RE.test(message.slice(0, (m.index || 0) + 10));
+      // Capitalize each word so Haiku gets "Portishead" not "portishead"
+      const artistName = name.replace(/\b\w/g, c => c.toUpperCase());
+      return { artist: artistName, negated };
+    }
+  }
+  return null;
+}
+
+async function extractArtistTraits(artistName) {
+  const response = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001', max_tokens: 200,
+    messages: [{ role: 'user', content: `You are a music search assistant. Describe the sonic characteristics of the artist "${artistName}" using ONLY trait vocabulary terms from this list. Return ONLY a JSON array of 4–7 traits.
+
+Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
+Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual"
+Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin"
+Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
+Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic"
+
+Examples:
+- "Nico" → ["texture:sparse", "mood:melancholic", "mood:dark", "genre:art-rock", "era:60s", "char:intimate"]
+- "Portishead" → ["genre:electronic", "mood:melancholic", "mood:tense", "texture:cold", "char:late-night", "energy:low"]
+- "Chet Baker" → ["genre:jazz", "mood:tender", "texture:sparse", "energy:low", "char:intimate", "char:late-night"]
+- "Fela Kuti" → ["genre:afrobeat", "energy:high", "char:political", "mood:defiant", "texture:lush"]
+
+If you don't recognize the artist, return an empty array [].
+Return ONLY the JSON array.` }]
+  });
+  try {
+    const text = response.content[0].text.trim();
+    const match = text.match(/\[[\s\S]*\]/);
+    if (!match) return [];
+    return JSON.parse(match[0]).map(k => k.toLowerCase().trim()).filter(k => k.length >= 2);
+  } catch (e) { console.log('Artist trait parse error:', e.message); return []; }
 }
 
 // =====================
@@ -794,6 +878,48 @@ app.post('/api/chat', async (req, res) => {
       if (exactSong) return res.json(buildSongResponse(exactSong, session));
     }
 
+    // "Like [artist]" detection — runs before artist lookup and keyword extraction.
+    // "something like Nico", "vibes like Portishead", "sounds like Chet Baker"
+    // Instead of looking up that artist in our collection, we extract their sonic traits
+    // and use those to score across the full collection. Works for any artist Haiku knows.
+    const likeArtistResult = detectLikeArtist(message);
+    if (likeArtistResult) {
+      const { artist: likeArtistName, negated } = likeArtistResult;
+      console.log('Like-artist detected:', likeArtistName, negated ? '(negated)' : '');
+      const artistKeywords = await extractArtistTraits(likeArtistName);
+      console.log('Artist traits:', artistKeywords);
+      if (artistKeywords.length > 0) {
+        // Exclude the reference artist from results — "like Portishead" should never return Portishead
+        const likeArtistNorm = normalize(likeArtistName);
+        const avSongs = available().filter(s => normalize(s.artist) !== likeArtistNorm);
+
+        if (negated) {
+          // "nothing like Nico" — score normally, then INVERT: lowest scorers win.
+          // This finds songs that share the fewest traits with the reference artist.
+          const avScored = scoreSongs(avSongs, artistKeywords, false, null);
+          const maxScore = Math.max(0, ...avScored.map(s => s.score));
+          // Invert scores and pick from the bottom — songs that scored 0 are most "unlike"
+          const inverted = avScored
+            .map(s => ({ ...s, score: maxScore - s.score }))
+            .filter(s => s.score >= 0); // all songs qualify, just reordered
+          inverted.sort((a, b) => b.score - a.score);
+          // Take a random pick from the top 20% most-unlike songs for variety
+          const topN = Math.max(5, Math.floor(inverted.length * 0.2));
+          const pool = inverted.slice(0, topN);
+          return res.json(buildSongResponse(pool[Math.floor(Math.random() * pool.length)], session));
+        } else {
+          const avScored = scoreSongs(avSongs, artistKeywords, false, null);
+          const avMatches = avScored.filter(s => s.score >= 0.4);
+          if (avMatches.length) {
+            const top = Math.max(...avMatches.map(s => s.score));
+            const topPicks = avMatches.filter(s => s.score >= top * 0.85);
+            return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session));
+          }
+        }
+      }
+      // Haiku didn't recognize the artist or nothing scored — fall through to regular flow
+    }
+
     // Artist lookup
     const artistSongs = findSongsByArtist(message);
     if (artistSongs) {
@@ -871,6 +997,9 @@ app.post('/api/chat', async (req, res) => {
       'favorite', 'favourite',
       'can', 'let', 'get', 'got', 'set', 'put', 'see', 'say', 'use',
       'try', 'hit', 'big', 'low', 'high', 'hot', 'cold',
+      // Common words that are also artist/band names — never match these via raw keyword
+      // "love" → Love (band), "can" → CAN, "pop" → Iggy Pop / Pop Levi
+      'love', 'pop',
     ]);
 
     const titleKeywords = keywords.filter(k => {
