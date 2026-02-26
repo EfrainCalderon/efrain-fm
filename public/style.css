@@ -60,6 +60,7 @@
   --interrupt-btn-text: #f0ece6;
   /* Ring line colors */
   --ring-color: rgba(245, 242, 238, 0.13);
+  --star-color: 245, 242, 238;  /* RGB only — used in rgba() in JS */
   /* Skeleton loader */
   --skeleton-base: rgba(245, 242, 238, 0.06);
   --skeleton-shine: rgba(245, 242, 238, 0.1);
@@ -76,6 +77,7 @@
     --grad-5: hsla(34, 8%, 80%, 1);
     --grad-6: hsla(42, 9%, 86%, 1);
     --ring-color: rgba(14, 16, 18, 0.14);
+    --star-color: 14, 16, 18;
     --skeleton-base: rgba(14, 16, 18, 0.06);
     --skeleton-shine: rgba(14, 16, 18, 0.1);
 
@@ -157,6 +159,7 @@
   --interrupt-btn-bg: rgba(18, 20, 24, 0.95);
   --interrupt-btn-text: #f0ece6;
   --ring-color: rgba(245, 242, 238, 0.12);
+  --star-color: 245, 242, 238;
   --skeleton-base: rgba(245, 242, 238, 0.06);
   --skeleton-shine: rgba(245, 242, 238, 0.1);
 }
@@ -197,6 +200,7 @@
   --card-shadow: 0 0 0 1px rgba(14, 16, 18, 0.06), 0 24px 64px rgba(0, 0, 0, 0.08);
   --card-border: rgba(14, 16, 18, 0.07);
   --ring-color: rgba(14, 16, 18, 0.14);
+  --star-color: 14, 16, 18;
     --bg-interrupt: rgba(14, 16, 18, 0.06);
     --interrupt-btn-bg: rgba(240, 236, 230, 0.96);
     --interrupt-btn-text: #13161a;
@@ -234,7 +238,7 @@ body::after {
   z-index: 0;
 }
 
-/* Background rings SVG layer */
+/* Background canvas — rings + star field, full viewport */
 #bg-rings {
   position: fixed;
   inset: 0;
@@ -242,13 +246,6 @@ body::after {
   height: 100%;
   z-index: 0;
   pointer-events: none;
-  overflow: visible;
-}
-
-#bg-rings circle {
-  fill: none;
-  stroke: var(--ring-color);
-  stroke-width: 0.75;
 }
 
 /* =====================
@@ -763,17 +760,4 @@ body::after {
   }
 }
 
-/* =====================
-   RINGS — MOBILE VISIBILITY
-   ===================== */
-
-@media (max-width: 768px) {
-  #bg-rings {
-    /* The rings center at cy=960 (bottom of the SVG viewBox).
-       On mobile, pull the SVG up so the innermost rings peek just
-       above the footer, and all 9 arcs are visible. */
-    top: auto;
-    bottom: -8%;
-    height: 108%;
-  }
-}
+/* Ring/star positioning handled by JS */
