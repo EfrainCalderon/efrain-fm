@@ -678,7 +678,7 @@ body::after {
   font-size: 16px;
   font-family: 'Inter', sans-serif;
   resize: none;
-  overflow-y: auto;
+  overflow-y: hidden;
   height: 48px;
   min-height: 48px;
   max-height: 120px;
@@ -769,11 +769,11 @@ body::after {
 
 @media (max-width: 768px) {
   #bg-rings {
-    /* The rings center at cy=900 (bottom of the SVG viewBox).
-       On mobile, this means the inner rings are below the fold.
-       Pulling the SVG up exposes more rings to the visible area. */
+    /* The rings center at cy=960 (bottom of the SVG viewBox).
+       On mobile, pull the SVG up so the innermost rings peek just
+       above the footer, and all 9 arcs are visible. */
     top: auto;
-    bottom: -15%;
-    height: 115%;
+    bottom: -8%;
+    height: 108%;
   }
 }
