@@ -16,26 +16,17 @@ app.use(express.static('public'));
 
 const limiter = rateLimit({
   windowMs: 60 * 1000, max: 10,
-  message: { response: "You're moving fast! Take a breath and try again in a minute.", song: null },
+  message: { response: "Slow down a little — you've hit the request limit. Try again in a minute.", song: null },
   standardHeaders: true, legacyHeaders: false,
 });
 app.use('/api/chat', limiter);
 
 // =====================
 // DATA LOADING
-// Normalize all tag fields to arrays at startup so we never branch on string vs array again.
+// New schema: songs have traits object with weights, streaming object with spotify/apple_music/youtube.
+// No more flat genre/mood/tags strings to normalize.
 // =====================
-const bridgesData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'bridges.json'), 'utf8'));
-const rawSongsData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'songs.json'), 'utf8'));
-const songsData = {
-  songs: rawSongsData.songs.map(song => ({
-    ...song,
-    // Always an array — split strings, dedupe, trim
-    tags: Array.isArray(song.tags)
-      ? song.tags.map(t => t.trim().toLowerCase()).filter(Boolean)
-      : (song.tags || '').split(',').map(t => t.trim().toLowerCase()).filter(Boolean),
-  }))
-};
+const songsData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'songs.json'), 'utf8'));
 const favoritesPath = path.join(__dirname, 'data', 'favorites.json');
 
 const sessions = new Map();
@@ -43,8 +34,8 @@ const sessions = new Map();
 function getSession(sessionId) {
   if (!sessions.has(sessionId)) {
     sessions.set(sessionId, {
-      playedSongs: [], lastSongTags: null, lastSongArtist: null, lastSong: null,
-      songCount: 0, askedFavorite: false, askedMoreOf: false, lastInterruptSong: 0,
+      playedSongs: [], lastSongTraits: null, lastSongArtist: null, lastSong: null,
+      songCount: 0, askedMoreOf: false, lastInterruptSong: 0,
       _pendingRelatedSong: null, _pendingBridge: null,
     });
   }
@@ -57,7 +48,7 @@ function normalize(str) {
 
 // =====================
 // GENRE WORD LIST
-// Words that should ONLY match genre/mood/tags — never artist names or song titles.
+// Words that should ONLY match trait keys — never artist names or song titles.
 // This prevents "country" → Country Joe, "house" → Beach House, "rap" → Tractor Rape Chain.
 // =====================
 const GENRE_WORDS = new Set([
@@ -75,7 +66,7 @@ const GENRE_WORDS = new Set([
   'slowcore', 'emo', 'hardcore', 'thrash', 'death metal', 'black metal',
   'bossa nova', 'samba', 'tropicalia', 'cumbia', 'salsa', 'merengue',
   'east coast rap', 'west coast rap', 'southern rap', 'trap',
-  // Moods — also genre-like in that they should hit mood/tag fields, not titles
+  // Moods — also genre-like in that they should hit trait fields, not titles
   'mellow', 'chill', 'upbeat', 'energetic', 'melancholy', 'dreamy',
   'raw', 'smooth', 'sparse', 'minimal', 'intense', 'gentle', 'soft',
   'dark', 'atmospheric', 'haunting', 'brooding', 'romantic', 'tender',
@@ -83,37 +74,163 @@ const GENRE_WORDS = new Set([
 ]);
 
 // =====================
-// TAG HELPERS
-// Tags often include the artist name (e.g. "velvet underground" tag on a VU song).
-// These are useful for search-by-artist but pollute genre/mood scoring.
-// getDescriptiveTags strips those out so they don't score when you're searching by mood/genre.
+// TRAIT VOCABULARY
+// Maps user-facing words to trait IDs in our controlled vocabulary.
+// This is how we bridge between what users type and what's in the traits object.
 // =====================
-function getDescriptiveTags(song) {
-  const artistNorm = normalize(song.artist);
-  const artistWords = new Set(artistNorm.split(/\s+/));
-  return song.tags.filter(t => {
-    const tNorm = normalize(t);
-    // Exclude if it IS the artist name
-    if (tNorm === artistNorm) return false;
-    // Exclude if all its words are contained in the artist name
-    const tagWords = tNorm.split(/\s+/);
-    if (tagWords.length > 0 && tagWords.every(w => artistWords.has(w))) return false;
-    return true;
-  });
-}
+const TRAIT_ALIASES = {
+  // Energy
+  'high energy': 'energy:high', 'energetic': 'energy:high', 'loud': 'energy:high', 'fast': 'energy:high',
+  'low energy': 'energy:low', 'slow': 'energy:low', 'quiet': 'energy:low', 'soft': 'energy:low', 'mellow': 'energy:low',
+  'hypnotic': 'energy:hypnotic', 'repetitive': 'energy:hypnotic', 'trance': 'energy:hypnotic',
+  'chaotic': 'energy:chaotic', 'frantic': 'energy:chaotic', 'hectic': 'energy:chaotic',
+
+  // Mood
+  'sad': 'mood:melancholic', 'melancholy': 'mood:melancholic', 'melancholic': 'mood:melancholic', 'wistful': 'mood:melancholic',
+  'dark': 'mood:dark', 'heavy': 'mood:dark', 'bleak': 'mood:dark', 'brooding': 'mood:dark',
+  'happy': 'mood:joyful', 'joyful': 'mood:joyful', 'upbeat': 'mood:joyful', 'uplifting': 'mood:joyful', 'feel good': 'mood:joyful',
+  'tense': 'mood:tense', 'anxious': 'mood:tense', 'nervous': 'mood:tense',
+  'tender': 'mood:tender', 'gentle': 'mood:tender', 'soft': 'mood:tender', 'sweet': 'mood:tender',
+  'angry': 'mood:defiant', 'defiant': 'mood:defiant', 'aggressive': 'mood:defiant', 'confrontational': 'mood:defiant', 'political': 'mood:defiant',
+  'dreamy': 'mood:dreamlike', 'hazy': 'mood:dreamlike', 'surreal': 'mood:dreamlike', 'dreamlike': 'mood:dreamlike',
+  'weird': 'mood:playful', 'playful': 'mood:playful', 'funny': 'mood:playful', 'quirky': 'mood:playful',
+  'sexy': 'mood:erotic', 'erotic': 'mood:erotic', 'sensual': 'mood:erotic',
+  'spiritual': 'mood:spiritual', 'transcendent': 'mood:spiritual', 'devotional': 'mood:spiritual',
+
+  // Texture
+  'lo-fi': 'texture:lo-fi', 'lofi': 'texture:lo-fi', 'raw': 'texture:lo-fi', 'rough': 'texture:lo-fi', 'tape': 'texture:lo-fi',
+  'lush': 'texture:lush', 'orchestral': 'texture:lush', 'layered': 'texture:lush', 'dense': 'texture:lush', 'produced': 'texture:lush',
+  'sparse': 'texture:sparse', 'minimal': 'texture:sparse', 'stripped': 'texture:sparse', 'bare': 'texture:sparse',
+  'noisy': 'texture:noisy', 'distorted': 'texture:noisy', 'abrasive': 'texture:noisy', 'feedback': 'texture:noisy',
+  'warm': 'texture:warm', 'analog': 'texture:warm', 'cozy': 'texture:warm',
+  'cold': 'texture:cold', 'clinical': 'texture:cold', 'digital': 'texture:cold', 'icy': 'texture:cold',
+  'psychedelic': 'texture:psychedelic', 'trippy': 'texture:psychedelic', 'warped': 'texture:psychedelic',
+  'cinematic': 'texture:cinematic', 'dramatic': 'texture:cinematic', 'score': 'texture:cinematic',
+
+  // Genre → trait IDs
+  'punk': 'genre:punk', 'post-punk': 'genre:post-punk', 'garage': 'genre:garage', 'krautrock': 'genre:krautrock',
+  'electronic': 'genre:electronic', 'synth': 'genre:electronic', 'hip-hop': 'genre:hip-hop', 'rap': 'genre:hip-hop',
+  'hip hop': 'genre:hip-hop', 'soul': 'genre:soul', 'funk': 'genre:funk', 'folk': 'genre:folk',
+  'experimental': 'genre:experimental', 'avant-garde': 'genre:experimental', 'noise': 'genre:noise',
+  'ambient': 'genre:ambient', 'dance': 'genre:dance', 'disco': 'genre:dance',
+  'psychedelic': 'genre:psychedelic', 'art rock': 'genre:art-rock', 'afrobeat': 'genre:afrobeat',
+  'r&b': 'genre:r&b', 'jazz': 'genre:jazz', 'country': 'genre:country', 'latin': 'genre:latin',
+
+  // Era
+  '50s': 'era:50s', '1950s': 'era:50s',
+  '60s': 'era:60s', '1960s': 'era:60s',
+  '70s': 'era:70s', '1970s': 'era:70s',
+  '80s': 'era:80s', '1980s': 'era:80s',
+  '90s': 'era:90s', '1990s': 'era:90s',
+  '00s': 'era:00s', '2000s': 'era:00s', 'aughts': 'era:00s',
+  'modern': 'era:modern', 'contemporary': 'era:modern', 'recent': 'era:modern',
+
+  // Character
+  'outsider': 'char:outsider', 'homemade': 'char:outsider', 'diy': 'char:outsider', 'bedroom': 'char:outsider',
+  'political': 'char:political', 'protest': 'char:political',
+  'intimate': 'char:intimate', 'personal': 'char:intimate', 'close': 'char:intimate',
+  'beautiful': 'char:beautiful', 'gorgeous': 'char:beautiful',
+  'late night': 'char:late-night', 'night': 'char:late-night', 'midnight': 'char:late-night', '2am': 'char:late-night',
+  'danceable': 'char:danceable', 'dance': 'char:danceable',
+  'nostalgic': 'char:nostalgic', 'nostalgia': 'char:nostalgic', 'vintage': 'char:nostalgic', 'retro': 'char:nostalgic',
+};
 
 // =====================
 // SCORING
-//
-// Tiered approach with three separate text fields:
-//   Tier 1 (genre/mood/descriptive tags): 2pts for genre words, 1pt for others
-//   Tier 2 (title): 1pt, blocked for genre words
-//   Tier 3 (artist): 1pt, blocked for genre words
-//
-// Genre words are ONLY allowed to score in Tier 1.
-// This means "country" only matches songs where country appears in genre/mood/tags —
-// not in artist names or song titles.
+// New approach: sum trait weights instead of counting tag matches.
+// Each keyword is mapped to a trait ID via TRAIT_ALIASES.
+// The song's score = sum of trait weights for all matched traits.
+// This means a song with energy:high 1.0 beats one with energy:high 0.5.
 // =====================
+function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = null) {
+  // First, map keywords to trait IDs
+  const traitTargets = new Map(); // traitId → query weight (how strongly user asked for it)
+  const rawKeywords = []; // keywords we couldn't map to traits — fall through to text search
+
+  for (const kw of keywords) {
+    const kwLower = kw.toLowerCase().trim();
+    if (TRAIT_ALIASES[kwLower]) {
+      const traitId = TRAIT_ALIASES[kwLower];
+      // If multiple keywords map to same trait, take the max weight (1.0)
+      traitTargets.set(traitId, Math.max(traitTargets.get(traitId) || 0, 1.0));
+    } else {
+      // Try partial match against trait aliases
+      let matched = false;
+      for (const [alias, traitId] of Object.entries(TRAIT_ALIASES)) {
+        if (alias.includes(kwLower) || kwLower.includes(alias)) {
+          traitTargets.set(traitId, Math.max(traitTargets.get(traitId) || 0, 0.7));
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) rawKeywords.push(kwLower);
+    }
+  }
+
+  // Apply but-modifier: reduce query weight for traits matching the "before but" clause
+  if (butWeightOverrides) {
+    for (const [traitId, _] of traitTargets) {
+      const traitLabel = traitId.split(':')[1] || traitId;
+      if (butWeightOverrides.reduce && (butWeightOverrides.reduce.includes(traitLabel) || traitLabel.includes(butWeightOverrides.reduce))) {
+        traitTargets.set(traitId, traitTargets.get(traitId) * 0.3); // heavily reduce
+      }
+      if (butWeightOverrides.boost && (butWeightOverrides.boost.includes(traitLabel) || traitLabel.includes(butWeightOverrides.boost))) {
+        traitTargets.set(traitId, Math.min(traitTargets.get(traitId) * 1.5, 1.5)); // boost
+      }
+    }
+  }
+
+  return songs.map(song => {
+    const traits = song.traits || {};
+    let score = 0;
+
+    // Primary scoring: sum weighted trait matches
+    for (const [traitId, queryWeight] of traitTargets) {
+      if (traits[traitId] !== undefined) {
+        // Score = song's trait weight × query weight
+        // A song with energy:high 1.0 scores higher than energy:high 0.5
+        score += traits[traitId] * queryWeight;
+      }
+    }
+
+    // Secondary scoring: raw keyword fallback against title and artist
+    // Only for keywords that didn't map to a trait (usually proper names)
+    // Require minimum 4 chars to prevent partial substring false positives (e.g. "ive" in "aggressive" matching IVE)
+    if (rawKeywords.length > 0) {
+      const titleText = normalize(song.title);
+      const artistText = normalize(song.artist);
+      const commentaryText = normalize(song.commentary || '');
+
+      for (const kw of rawKeywords) {
+        if (GENRE_WORDS.has(kw)) continue; // never match genre words against title/artist
+        if (kw.length < 4) continue; // too short — substring false positive risk
+        const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp('\\b' + escaped + '\\b', 'i');
+        if (re.test(titleText)) score += 0.8;
+        else if (re.test(artistText)) score += 0.8;
+        else if (!COMMENTARY_STOPWORDS.has(kw) && re.test(commentaryText)) score += 0.3;
+      }
+    }
+
+    // Year/decade matching — derive era trait from year field
+    const year = parseInt(song.year);
+    if (!isNaN(year)) {
+      const decade = Math.floor(year / 10) * 10;
+      const eraId = `era:${decade % 100 || decade}s`.replace('era:0s', 'era:00s');
+      if (traitTargets.has(eraId) && !traits[eraId]) {
+        // Song year matches requested era but era trait wasn't explicitly set
+        // Give it partial credit
+        score += 0.5;
+      }
+    }
+
+    const isYT = song.streaming && song.streaming.youtube;
+    if (preferVideo && isYT) score += 5;
+
+    return { ...song, score };
+  });
+}
+
 const COMMENTARY_STOPWORDS = new Set([
   'love', 'like', 'really', 'great', 'good', 'best', 'favorite', 'favourite',
   'amazing', 'beautiful', 'perfect', 'incredible', 'awesome', 'fantastic',
@@ -125,98 +242,9 @@ const COMMENTARY_STOPWORDS = new Set([
   'year', 'years', 'day', 'days', 'life', 'world', 'back', 'little',
 ]);
 
-function scoreSongs(songs, keywords, preferVideo = false) {
-  return songs.map(song => {
-    const descriptiveTags = getDescriptiveTags(song);
-    // Tier 1: genre, mood, and descriptive tags (not artist-name tags)
-    const genreText = normalize(`${song.genre} ${song.mood} ${descriptiveTags.join(' ')}`);
-    // Derive decade strings from year so "90s" and "1990s" match songs with year 1990-1999
-    const year = parseInt(song.year);
-    const decadeText = !isNaN(year)
-      ? `${Math.floor(year / 10) * 10 % 100}s ${Math.floor(year / 10) * 10}s`
-      : '';
-    // Tier 2: title + year + decade
-    const titleText = normalize(`${song.title} ${song.year || ''} ${decadeText}`);
-    // Tier 3: artist only
-    const artistText = normalize(song.artist);
-    // Tier 4: commentary (non-stopwords only, never genre words)
-    const commentaryText = normalize(song.commentary || '');
-
-    let score = 0;
-    keywords.forEach(keyword => {
-      const normKw = normalize(keyword);
-      const escaped = normKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const re = new RegExp('\\b' + escaped + '\\b', 'i');
-      const isGenreWord = GENRE_WORDS.has(normKw);
-
-      if (re.test(genreText)) {
-        // Genre/mood/tags match — 2x for genre words so they outrank fuzzy matches
-        score += isGenreWord ? 2 : 1;
-      } else if (!isGenreWord && re.test(titleText)) {
-        score += 1;
-      } else if (!isGenreWord && re.test(artistText)) {
-        score += 1;
-      } else if (!isGenreWord && !COMMENTARY_STOPWORDS.has(normKw) && re.test(commentaryText)) {
-        score += 1;
-      }
-    });
-
-    const isYT = song.spotify_url && (song.spotify_url.includes('youtube.com') || song.spotify_url.includes('youtu.be'));
-    if (preferVideo && isYT) score += 5;
-    return { ...song, score };
-  });
-}
-
 // =====================
 // ARTIST LOOKUP
-// Separated cleanly from genre scoring. Only runs when message looks like an artist name query.
-// Genre words like "house", "country", "dance" are excluded from partial matching.
 // =====================
-function findSongsByArtist(message) {
-  const msgNorm = normalize(message);
-  const msgWords = new Set(msgNorm.split(/\s+/));
-  const isMultiWord = msgWords.size >= 2;
-  const artists = [...new Set(songsData.songs.map(s => s.artist))];
-  // Sort longest-first so "LCD Soundsystem" matches before a partial like "System"
-  artists.sort((a, b) => b.length - a.length);
-
-  // Pass 1: full-name match — bidirectional
-  // "the velvet underground" in "velvet underground"? No. But "velvet underground" in "the velvet underground"? Yes.
-  // "country joe" in "country joe and the fish"? Yes.
-  // Both directions covered.
-  for (const artist of artists) {
-    const artistNorm = normalize(artist);
-    if (msgNorm.includes(artistNorm) || (isMultiWord && artistNorm.includes(msgNorm))) {
-      return songsData.songs.filter(s => normalize(s.artist) === artistNorm);
-    }
-  }
-
-  // Pass 2: meaningful-word match
-  // Single-word query (e.g. "radiohead", "burial", "milton"):
-  //   → any single meaningful word match is enough
-  // Multi-word query (e.g. "lcd soundsystem", "velvet underground"):
-  //   → ALL meaningful words must appear (prevents partial false positives)
-  for (const artist of artists) {
-    const artistNorm = normalize(artist);
-    const meaningfulArtistWords = artistNorm.split(/\s+/).filter(w =>
-      w.length >= 5 &&
-      !GENRE_WORDS.has(w) &&
-      !ARTIST_STOPWORDS.has(w)
-    );
-    if (meaningfulArtistWords.length === 0) continue;
-
-    const matched = isMultiWord
-      ? meaningfulArtistWords.every(aw => msgWords.has(aw))
-      : meaningfulArtistWords.some(aw => msgWords.has(aw));
-
-    if (matched) {
-      return songsData.songs.filter(s => normalize(s.artist) === artistNorm);
-    }
-  }
-  return null;
-}
-
-// Words too generic to use as partial artist name signals
 const ARTIST_STOPWORDS = new Set([
   'music', 'band', 'sound', 'sounds', 'group', 'club', 'party',
   'world', 'street', 'city', 'boys', 'girls', 'kids', 'men', 'women',
@@ -225,66 +253,78 @@ const ARTIST_STOPWORDS = new Set([
   'tapes', 'records', 'collective', 'project', 'unit',
 ]);
 
+function findSongsByArtist(message) {
+  const msgNorm = normalize(message);
+  const msgWords = new Set(msgNorm.split(/\s+/));
+  const isMultiWord = msgWords.size >= 2;
+  const artists = [...new Set(songsData.songs.map(s => s.artist))];
+  artists.sort((a, b) => b.length - a.length);
+
+  for (const artist of artists) {
+    const artistNorm = normalize(artist);
+    if (msgNorm.includes(artistNorm) || (isMultiWord && artistNorm.includes(msgNorm))) {
+      return songsData.songs.filter(s => normalize(s.artist) === artistNorm);
+    }
+  }
+
+  for (const artist of artists) {
+    const artistNorm = normalize(artist);
+    const meaningfulArtistWords = artistNorm.split(/\s+/).filter(w =>
+      w.length >= 5 && !GENRE_WORDS.has(w) && !ARTIST_STOPWORDS.has(w)
+    );
+    if (meaningfulArtistWords.length === 0) continue;
+    const matched = isMultiWord
+      ? meaningfulArtistWords.every(aw => msgWords.has(aw))
+      : meaningfulArtistWords.some(aw => msgWords.has(aw));
+    if (matched) return songsData.songs.filter(s => normalize(s.artist) === artistNorm);
+  }
+  return null;
+}
+
 // =====================
 // KEYWORD EXTRACTION
 // =====================
 async function extractKeywords(userMessage) {
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5', max_tokens: 200,
-    messages: [{ role: 'user', content: `You are a music search assistant. Convert any request — including moods, situations, metaphors, and feelings — into music genre/mood/tag keywords. Return ONLY a JSON array.
+    model: 'claude-haiku-4-5-20251001', max_tokens: 200,
+    messages: [{ role: 'user', content: `You are a music search assistant. Convert any request — including moods, situations, metaphors, and feelings — into music trait keywords. Return ONLY a JSON array.
 
-EXPLICIT GENRE/MOOD MAPPINGS:
-- "rap" or "hip-hop" → ["rap", "hip-hop", "hip hop"]
-- "808" or "trap beats" → ["808", "trap", "hip hop", "rap", "bass-heavy"]
-- "nyc" or "new york" hip hop → ["new york", "nyc", "east coast", "boom bap", "hip hop", "rap"]
-- "outsider" → ["outsider", "lo-fi", "primitive", "raw", "weird", "eccentric"]
-- "sad" or "heartbreak" → ["sad", "melancholy", "heartbreak", "lonely", "slowcore"]
-- "chill" or "mellow" → ["chill", "mellow", "relaxed", "ambient", "downtempo"]
-- "brazil" → ["brazil", "brazilian", "bossa nova", "samba", "tropicalia"]
-- "80s" → ["80s", "1980s", "synth", "new wave", "post-punk"]
-- "electronic" → ["electronic", "synth", "electro", "techno", "dance"]
-- "good lyrics" or "lyrical" or "songwriting" → ["singer-songwriter", "folk", "indie", "lyrical", "poetic"]
-- "instrumental" or "no vocals" → ["instrumental", "ambient", "post-rock", "jazz", "electronic"]
-- "female vocalist" → ["female vocalist", "singer-songwriter"]
-- "uplifting" or "feel good" → ["uplifting", "upbeat", "joyful", "warm"]
-- "weird" or "strange" or "unusual" → ["experimental", "outsider", "avant-garde", "lo-fi", "weird"]
-- "dark" or "brooding" → ["dark", "brooding", "gothic", "post-punk", "industrial", "noir"]
-- "political" or "protest" → ["political", "protest", "punk", "rap", "folk"]
+MAP TO THESE TRAIT VOCABULARY TERMS WHERE POSSIBLE:
+Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
+Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual"
+Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin"
+Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
+Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic"
 
-SITUATIONAL/CONTEXTUAL MAPPINGS (translate the feeling, not the words):
-- "late night", "2am", "city at night", "driving at night" → ["atmospheric", "nocturnal", "ambient", "electronic", "downtempo", "dark"]
-- "working", "focus", "concentration" → ["instrumental", "ambient", "post-rock", "electronic", "downtempo"]
-- "recorded in a basement", "lo-fi feeling", "raw recording", "imperfect" → ["lo-fi", "outsider", "raw", "primitive", "garage", "DIY"]
-- "dad in the 70s", "parents music", "classic rock era" → ["70s", "1970s", "rock", "folk rock", "soul", "funk"]
-- "dinner party", "sophisticated", "background music" → ["jazz", "soul", "bossa nova", "ambient", "downtempo", "elegant"]
-- "feels old", "from another era", "timeless", "vintage" → ["60s", "70s", "soul", "jazz", "folk", "vintage"]
-- "changed how I think about music", "influential", "important" → ["experimental", "avant-garde", "influential", "art rock", "post-punk"]
-- "just got out of relationship", "breakup", "heartbroken" → ["sad", "melancholy", "heartbreak", "slowcore", "folk", "indie"]
-- "nostalgic for time I never lived", "wistful", "bittersweet" → ["nostalgic", "dreamy", "shoegaze", "dream pop", "psychedelic", "vintage"]
-- "genuinely strange", "weird but love it", "acquired taste" → ["outsider", "experimental", "avant-garde", "lo-fi", "weird", "eccentric"]
-- "punk but melodic", "aggressive but catchy" → ["punk", "post-punk", "new wave", "power pop", "melodic"]
-- "hip hop but experimental", "not mainstream rap" → ["experimental", "hip hop", "abstract", "noise rap", "avant-garde", "underground"]
-- "soul but weirder" → ["soul", "psychedelic soul", "funk", "experimental", "outsider"]
-- "between jazz and electronic" → ["jazz", "electronic", "ambient", "downtempo", "IDM", "fusion"]
+SITUATIONAL MAPPINGS:
+- "late night", "2am", "driving at night" → ["char:late-night", "mood:dreamlike", "energy:low"]
+- "feel good", "happy" → ["mood:joyful", "char:danceable"]
+- "sad", "heartbreak", "breakup" → ["mood:melancholic", "char:intimate"]
+- "weird", "strange", "outsider" → ["char:outsider", "mood:playful", "texture:lo-fi"]
+- "political", "protest" → ["char:political", "mood:defiant"]
+- "dance", "club" → ["char:danceable", "genre:dance", "energy:high"]
+- "chill", "relax" → ["energy:low", "texture:warm", "mood:dreamlike"]
+- "aggressive", "angry", "loud" → ["mood:defiant", "energy:high", "texture:noisy"]
+- "nostalgic", "old feeling", "retro" → ["char:nostalgic"]
+- "beautiful", "gorgeous", "stunning" → ["char:beautiful"]
+- "intimate", "personal", "quiet" → ["char:intimate", "texture:sparse"]
+- "cosmic", "space", "otherworldly" → ["genre:experimental", "mood:dreamlike", "char:weird"]
 
 RULES:
-- Always translate situation/feeling into musical descriptors — never return narrative words like "basement", "night", "driving", "dinner"
-- Never return partial words or substrings
-- Artist names and song titles → return as-is
-- Do not use vague terms like "classic" or "popular"
-- Return 4–10 keywords minimum for longer requests
+- Prefer trait vocabulary terms over raw words whenever possible
+- For artist names or song titles, return them as plain strings
+- Return 3–8 items
+- Return ONLY the JSON array
 
-Request: "${userMessage}"
-Return ONLY the JSON array, no explanation.` }]
+Request: "${userMessage}"` }]
   });
   try {
     const text = response.content[0].text.trim();
-    console.log('Raw keyword response:', text);
     const match = text.match(/\[[\s\S]*\]/);
-    if (!match) { console.log('No JSON array found'); return []; }
-    const raw = JSON.parse(match[0]).map(k => k.toLowerCase());
-    const inputWords = userMessage.toLowerCase().split(/\s+/);
-    return raw.filter(k => k.length >= 3 || inputWords.includes(k));
+    if (!match) return [];
+    const raw = JSON.parse(match[0]).map(k => k.toLowerCase().trim());
+    return raw.filter(k => k.length >= 2);
   } catch (e) { console.log('Keyword parse error:', e.message); return []; }
 }
 
@@ -304,7 +344,7 @@ Important: Don't mention this being a portfolio piece, case study, or that you'r
 async function generateConversationalResponse(userMessage, lastSong) {
   const songContext = lastSong ? `The last song you shared was "${lastSong.title}" by ${lastSong.artist}.` : '';
   const r = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5', max_tokens: 120,
+    model: 'claude-haiku-4-5-20251001', max_tokens: 120,
     system: EFRAIN_CHARACTER,
     messages: [{ role: 'user', content: `${userMessage}${songContext ? '\n\n' + songContext : ''}` }]
   });
@@ -335,61 +375,79 @@ function generateNoMatchResponse(userMessage) {
 }
 
 // =====================
-// BRIDGE LOOKUP
-// Checks if there is a curated bridge between the last song and the next song.
+// BRIDGE LOOKUP — disabled, manual bridges.json removed
+// Future: curated bridges will live in songs.json using song IDs
+// For now, findRelatedSong handles organic related-song suggestions
 // =====================
-function findBridge(fromSong, toSong) {
-  if (!fromSong) return null;
-  // If toSong provided, check exact pair. Otherwise find any bridge FROM this song.
-  return bridgesData.find(b => {
-    const fromMatch = normalize(b.from) === normalize(fromSong.title) &&
-      normalize(b.fromArtist) === normalize(fromSong.artist);
-    if (!fromMatch) return false;
-    if (!toSong) return true; // just checking if a bridge exists from this song
-    return normalize(b.to) === normalize(toSong.title) &&
-      normalize(b.toArtist) === normalize(toSong.artist);
-  }) || null;
-}
+function findBridge() { return null; }
 
 // =====================
-// RELATED SONG + INTERRUPT LOGIC
+// RELATED SONG — now uses trait overlap instead of tag overlap
 // =====================
 function findRelatedSong(lastSong, playedTitles) {
   if (!lastSong) return null;
-  const lastTags = getDescriptiveTags(lastSong);
+  const lastTraits = lastSong.traits || {};
+  const lastTraitKeys = Object.keys(lastTraits);
+
+  // Traits that are too generic to drive a meaningful "related song" suggestion
+  const WEAK_RELATION_TRAITS = new Set(['char:nostalgic', 'char:beautiful', 'texture:warm', 'era:60s', 'era:70s', 'era:80s', 'era:90s', 'era:00s', 'era:50s', 'era:modern']);
+
   let best = null, bestOverlap = 0;
   for (const song of songsData.songs) {
-    if (playedTitles.includes(song.title) || song.artist === lastSong.artist) continue;
-    const sTags = getDescriptiveTags(song);
-    const overlap = lastTags.filter(t => sTags.includes(t)).length;
-    if (overlap >= 3 && overlap > bestOverlap) { bestOverlap = overlap; best = song; }
+    if (playedTitles.includes(song.title)) continue;
+    if (normalize(song.artist) === normalize(lastSong.artist)) continue; // never suggest same artist
+    const sTrait = song.traits || {};
+    // Only count overlap on meaningful traits, not generic crossover traits
+    const meaningfulOverlap = lastTraitKeys
+      .filter(key => !WEAK_RELATION_TRAITS.has(key))
+      .reduce((sum, key) => {
+        if (sTrait[key] !== undefined) return sum + (lastTraits[key] * sTrait[key]);
+        return sum;
+      }, 0);
+    if (meaningfulOverlap >= 1.2 && meaningfulOverlap > bestOverlap) { bestOverlap = meaningfulOverlap; best = song; }
   }
   return best;
 }
 
-const COLLECTION_GENRES = [
-  'jazz', 'electronic', 'folk', 'punk', 'soul', 'hip-hop', 'ambient',
-  'funk', 'country', 'reggae', 'experimental', 'R&B',
-  'latin', 'afrobeat', 'blues', 'pop', 'noise', 'indie', 'dance',
+// =====================
+// DYNAMIC OPTIONS — uses traits instead of genre/mood strings
+// =====================
+const COLLECTION_TRAIT_OPTIONS = [
+  { label: 'Jazz', trait: 'genre:jazz' },
+  { label: 'Electronic', trait: 'genre:electronic' },
+  { label: 'Folk', trait: 'genre:folk' },
+  { label: 'Punk', trait: 'genre:punk' },
+  { label: 'Soul', trait: 'genre:soul' },
+  { label: 'Hip-Hop', trait: 'genre:hip-hop' },
+  { label: 'Ambient', trait: 'genre:ambient' },
+  { label: 'Funk', trait: 'genre:funk' },
+  { label: 'Experimental', trait: 'genre:experimental' },
+  { label: 'Latin', trait: 'genre:latin' },
+  { label: 'Afrobeat', trait: 'genre:afrobeat' },
+  { label: 'Dance', trait: 'genre:dance' },
+  { label: 'Late Night', trait: 'char:late-night' },
+  { label: 'Outsider', trait: 'char:outsider' },
+  { label: 'Melancholic', trait: 'mood:melancholic' },
+  { label: 'Joyful', trait: 'mood:joyful' },
 ];
 
 function getDynamicOptions(justPlayedSong, playedTitles = []) {
-  const songTagText = normalize(`${justPlayedSong.genre} ${justPlayedSong.mood} ${getDescriptiveTags(justPlayedSong).join(' ')}`);
+  const songTraits = justPlayedSong.traits || {};
 
-  const contrasting = COLLECTION_GENRES.filter(g => {
-    if (new RegExp('\\b' + g + '\\b').test(songTagText)) return false;
-    const re = new RegExp('\\b' + g.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+  const contrasting = COLLECTION_TRAIT_OPTIONS.filter(opt => {
+    // Skip if the last song already has this trait strongly
+    if (songTraits[opt.trait] >= 0.7) return false;
+    // Check if archive has enough unplayed songs with this trait
     const matchCount = songsData.songs.filter(s => {
       if (playedTitles.includes(s.title)) return false;
-      const structured = normalize(`${s.genre} ${s.mood} ${getDescriptiveTags(s).join(' ')}`);
-      return re.test(structured);
+      return (s.traits || {})[opt.trait] >= 0.5;
     }).length;
     return matchCount >= 2;
   });
 
   return contrasting.sort(() => Math.random() - 0.5)
     .slice(0, 3)
-    .map(g => g.charAt(0).toUpperCase() + g.slice(1));
+    .map(opt => opt.label);
 }
 
 function decideInterrupt(session, justPlayedSong) {
@@ -397,14 +455,7 @@ function decideInterrupt(session, justPlayedSong) {
   const sinceLastInterrupt = count - session.lastInterruptSong;
   if (sinceLastInterrupt < 3) return null;
 
-  if (count === 6 && !session.askedFavorite) {
-    session.askedFavorite = true;
-    session.lastInterruptSong = count;
-    return { type: 'favorite_prompt', message: "I've been doing a lot of recommending — do you have any song recommendations for me?", options: ['Yes', 'No'] };
-  }
-
   if (count >= 5 && sinceLastInterrupt >= 4) {
-    // Check for a curated bridge first — these take priority over generic related songs
     const related = findRelatedSong(justPlayedSong, session.playedSongs);
     if (related) {
       const bridge = findBridge(justPlayedSong, related);
@@ -412,9 +463,9 @@ function decideInterrupt(session, justPlayedSong) {
       session._pendingRelatedSong = related.title;
       session._pendingBridge = bridge ? bridge.bridge : null;
       const msg = bridge
-        ? "This reminds me of something I always play after this — want to hear it?"
-        : "Oh that reminds me of another song actually...";
-      return { type: 'related', message: msg, options: ['Tell me more', 'Not right now'] };
+        ? "This reminds me of another song — want to hear it?"
+        : "Oh, this reminds me of another song — want to hear it?";
+      return { type: 'related', message: msg, options: ['Okay', 'No thank you'] };
     }
   }
 
@@ -465,7 +516,7 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
     matchContext = `You don't have that. Say "I'll check that out" or similar — warm, brief, one sentence.`;
   }
   const r = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5', max_tokens: 100,
+    model: 'claude-haiku-4-5-20251001', max_tokens: 100,
     system: EFRAIN_CHARACTER,
     messages: [{ role: 'user', content: `Visitor's favorite: "${userInput}"\n${matchContext}\n\n1-2 sentences MAX. React like a person, not a critic.` }]
   });
@@ -506,23 +557,27 @@ function isConversational(msg) {
 }
 
 // =====================
+// HELPER: get spotify_url for frontend (handles new streaming object)
+// =====================
+function getSongUrl(song) {
+  if (!song.streaming) return '';
+  return song.streaming.spotify || song.streaming.youtube || song.streaming.apple_music || '';
+}
+
+// =====================
 // SONG RESPONSE BUILDER
 // =====================
 function buildSongResponse(song, session, interrupt = null, bridge = null) {
-  const prevSong = session.lastSong;
   session.playedSongs.push(song.title);
   session.lastSong = song;
-  session.lastSongTags = song.tags; // already normalized arrays at load time
+  session.lastSongTraits = song.traits || {};
   session.lastSongArtist = song.artist;
   session.songCount++;
 
-  // Bridge check runs BEFORE decideInterrupt timing gates —
-  // curated pairs always fire regardless of interrupt cooldown.
   let int = interrupt;
   if (!int) {
-    const bridgeMatch = findBridge(song, null); // find any bridge FROM this song
+    const bridgeMatch = findBridge(song, null);
     if (bridgeMatch) {
-      // Look up the destination song in the collection
       const bridgeDest = songsData.songs.find(s =>
         normalize(s.title) === normalize(bridgeMatch.to) &&
         normalize(s.artist) === normalize(bridgeMatch.toArtist) &&
@@ -534,8 +589,8 @@ function buildSongResponse(song, session, interrupt = null, bridge = null) {
         session.lastInterruptSong = session.songCount;
         int = {
           type: 'related',
-          message: "This reminds me of something I always play after this — want to hear it?",
-          options: ['Play it', 'Maybe later'],
+          message: "This reminds me of another song — want to hear it?",
+          options: ['Okay', 'No thank you'],
           isBridge: true,
         };
       } else {
@@ -549,7 +604,13 @@ function buildSongResponse(song, session, interrupt = null, bridge = null) {
   return {
     response: song.commentary,
     bridgingResponse: bridge,
-    song: { title: song.title, artist: song.artist, spotify_url: song.spotify_url, tag_title: song.tag_title || '', tag_url: song.tag_url || '' },
+    song: {
+      title: song.title,
+      artist: song.artist,
+      spotify_url: getSongUrl(song), // frontend still expects spotify_url key
+      tag_title: song.tag_title || '',
+      tag_url: song.tag_url || '',
+    },
     interrupt: int,
   };
 }
@@ -579,10 +640,10 @@ app.post('/api/favorite', async (req, res) => {
       const s = collectionMatch.match;
       session.playedSongs.push(s.title);
       session.lastSong = s;
-      session.lastSongTags = s.tags;
+      session.lastSongTraits = s.traits || {};
       session.lastSongArtist = s.artist;
       session.songCount++;
-      song = { title: s.title, artist: s.artist, spotify_url: s.spotify_url, tag_title: s.tag_title || '', tag_url: s.tag_url || '' };
+      song = { title: s.title, artist: s.artist, spotify_url: getSongUrl(s), tag_title: s.tag_title || '', tag_url: s.tag_url || '' };
     }
     res.json({ response: responseText, song });
   } catch (e) {
@@ -609,7 +670,6 @@ app.post('/api/chat', async (req, res) => {
 
     // ---- Fast-path: no API call needed ----
 
-    // "Efrain/your favorite" redirect
     if (/\b(your|efrain'?s?)\s+(favorite|favourite|fave|best|top|pick|picks)\b/i.test(message)) {
       const redirects = [
         "Honestly, they're all favorites in different ways — is there a genre, mood, or era you want to explore?",
@@ -620,8 +680,6 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: redirects[Math.floor(Math.random() * redirects.length)], song: null });
     }
 
-    // ---- Button choice handlers — MUST run before affirmation/reaction checks ----
-    // These are exact string matches from button clicks and must take priority.
     const available = () => songsData.songs.filter(s => !session.playedSongs.includes(s.title));
 
     const pickTopScoring = (pool) => {
@@ -631,14 +689,16 @@ app.post('/api/chat', async (req, res) => {
       return picks[Math.floor(Math.random() * picks.length)];
     };
 
-    if (msgLower === 'keep this vibe' && session.lastSongTags) {
-      const scored = scoreSongs(available(), session.lastSongTags).filter(s => s.score > 0);
+    if (msgLower === 'keep this vibe' && session.lastSongTraits) {
+      // Convert traits back to keyword-like format for scoring
+      const traitKeywords = Object.keys(session.lastSongTraits);
+      const scored = scoreSongs(available(), traitKeywords).filter(s => s.score > 0);
       const diff = scored.filter(s => s.artist !== session.lastSongArtist);
       const song = pickTopScoring(diff.length ? diff : scored);
       if (song) return res.json(buildSongResponse(song, session));
     }
 
-    if ((msgLower === 'tell me more' || msgLower === 'play it') && session._pendingRelatedSong) {
+    if ((msgLower === 'okay' || msgLower === 'tell me more' || msgLower === 'play it') && session._pendingRelatedSong) {
       const related = songsData.songs.find(s => s.title === session._pendingRelatedSong);
       const bridgeText = session._pendingBridge || null;
       session._pendingRelatedSong = null;
@@ -648,13 +708,9 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    if (msgLower === 'not right now' || msgLower === 'maybe later') {
+    if (msgLower === 'no thank you' || msgLower === 'not right now' || msgLower === 'maybe later') {
       session._pendingRelatedSong = null;
-      return res.json({ response: "No problem — keep asking.", song: null });
-    }
-
-    if (msgLower === 'yes') {
-      return res.json({ response: null, song: null, interrupt: { type: 'favorite', message: "What's the song or artist?", freeText: true } });
+      return res.json({ response: "No problem — keep exploring.", song: null });
     }
 
     if (msgLower === 'no' || msgLower === "i don't" || msgLower === 'not sure' || msgLower === 'idk') {
@@ -662,7 +718,6 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
     }
 
-    // Negative reactions
     if (isNegativeReaction(message)) {
       const s = session.lastSong;
       const replies = s
@@ -671,7 +726,6 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
     }
 
-    // Affirmations
     if (isAffirmation(message)) {
       const s = session.lastSong;
       const replies = s
@@ -680,17 +734,14 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
     }
 
-    // Playback / Spotify question
     if (/\b(whole\s+song|full\s+(song|track|version)|can'?t\s+(hear|play|listen)|only\s+(hear|get|playing)\s+(30|thirty)|30\s+seconds|thirty\s+seconds|why\s+(only|can'?t)|preview|just\s+a\s+clip|stream\s+full|listen\s+in\s+full|full\s+playback)\b/i.test(message)) {
       return res.json({ response: "Spotify only lets me embed 30-second previews here — but if you're logged in you can save any track and hear it in full on Spotify. Apple Music support with full playback is something I'm working on adding.", song: null });
     }
 
-    // Apple Music
     if (/\bapple\s+music\b/i.test(message)) {
       return res.json({ response: "Apple Music support is something I'm working on — the plan is to let you switch players and hear full tracks without needing Spotify. Not live yet though.", song: null });
     }
 
-    // YouTube format question
     if (/\b(why\s+(did\s+you\s+use|is\s+this|a)\s+youtube|why\s+youtube|youtube\s+video\?|what'?s\s+with\s+the\s+youtube|youtube\s+instead)\b/i.test(message)) {
       const ytContext = session.lastSong ? `You just shared "${session.lastSong.title}" by ${session.lastSong.artist}.` : '';
       const reply = await generateConversationalResponse(
@@ -700,40 +751,39 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: reply, song: null });
     }
 
-    // Off-script conversational
     if (isOffScript(message)) {
       const reply = await generateConversationalResponse(message, session.lastSong);
       return res.json({ response: reply, song: null });
     }
 
-    if (msgLower === 'more of that energy' && session.lastSongTags) {
-      const scored = scoreSongs(available(), session.lastSongTags).filter(s => s.score > 0);
+    if (msgLower === 'more of that energy' && session.lastSongTraits) {
+      const traitKeywords = Object.keys(session.lastSongTraits);
+      const scored = scoreSongs(available(), traitKeywords).filter(s => s.score > 0);
       const song = pickTopScoring(scored);
       if (song) return res.json(buildSongResponse(song, session));
     }
 
     if (msgLower === 'something slower') {
-      const scored = scoreSongs(available(), ['slow', 'mellow', 'gentle', 'quiet', 'ballad', 'acoustic', 'soft', 'folk', 'intimate', 'sparse', 'minimal', 'tender']).filter(s => s.score > 0);
+      const scored = scoreSongs(available(), ['energy:low', 'texture:sparse', 'mood:melancholic', 'char:intimate']).filter(s => s.score > 0);
       if (scored.length) return res.json(buildSongResponse(scored[Math.floor(Math.random() * scored.length)], session));
     }
 
     if (msgLower === 'something weirder') {
-      const scored = scoreSongs(available(), ['outsider', 'weird', 'experimental', 'strange', 'lo-fi', 'eccentric', 'raw']).filter(s => s.score > 0);
+      const scored = scoreSongs(available(), ['char:outsider', 'char:weird', 'genre:experimental', 'texture:lo-fi']).filter(s => s.score > 0);
       if (scored.length) return res.json(buildSongResponse(scored[Math.floor(Math.random() * scored.length)], session));
     }
 
     // ---- Normal flow ----
 
-    // "More like this" — use last song's tags as keywords
-    if (isMoreRequest(message) && session.lastSongTags) {
-      const scored = scoreSongs(available(), session.lastSongTags).filter(s => s.score > 0);
+    if (isMoreRequest(message) && session.lastSongTraits) {
+      const traitKeywords = Object.keys(session.lastSongTraits);
+      const scored = scoreSongs(available(), traitKeywords).filter(s => s.score > 0);
       const diff = scored.filter(s => s.artist !== session.lastSongArtist);
       const song = pickTopScoring(diff.length ? diff : scored);
       if (song) return res.json(buildSongResponse(song, session));
     }
 
-    // ---- Direct title request — "play me [title]" or "play [title] by [artist]" ----
-    // Runs before artist lookup to handle specific song requests correctly.
+    // Direct title request
     const playMeMatch = message.match(/^play(?:\s+me)?\s+(.+?)(?:\s+by\s+.+)?$/i);
     if (playMeMatch) {
       const requestedTitle = normalize(playMeMatch[1].trim());
@@ -744,22 +794,32 @@ app.post('/api/chat', async (req, res) => {
       if (exactSong) return res.json(buildSongResponse(exactSong, session));
     }
 
-    // Artist lookup — runs before keyword extraction so no API call needed for artist queries
+    // Artist lookup
     const artistSongs = findSongsByArtist(message);
     if (artistSongs) {
       const av = artistSongs.filter(s => !session.playedSongs.includes(s.title));
       if (av.length) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
-      // All played — fall through to keyword search
     }
 
+    // Strip common filler prefixes before keyword extraction
+    // "something melancholic" → "melancholic", "give me something dark" → "dark"
+    const strippedMessage = message
+      .replace(/^(give\s+me\s+)?(something|anything|a\s+song|some\s+music|play\s+me\s+something)\s+(that'?s?\s+)?(kind\s+of\s+)?/i, '')
+      .replace(/^(i\s+want\s+)(something|a\s+song)\s+/i, '')
+      .trim() || message;
+
     // Keyword extraction (API call)
-    const keywords = await extractKeywords(message);
+    const keywords = await extractKeywords(strippedMessage);
     console.log('Keywords:', keywords);
 
     const preferVideo = isVideoRequest(message);
     const conversational = isConversational(message);
     const bridge = conversational ? "Okay, let me find something else." : null;
-    const isGeneric = /\b(another|random|something|anything|surprise|different|else)\b/i.test(message) || keywords.length === 0;
+
+    // Generic request — bare random/surprise requests only
+    // "something" alone is generic but "something melancholic" is NOT — strippedMessage handles that
+    const bareGeneric = /^(another|random|surprise me|something different|something else|anything)$/i.test(msgLower);
+    const isGeneric = bareGeneric || keywords.length === 0;
 
     if (isGeneric) {
       const avSongs = available();
@@ -767,18 +827,40 @@ app.post('/api/chat', async (req, res) => {
       return res.json(buildSongResponse(avSongs[Math.floor(Math.random() * avSongs.length)], session, null, bridge));
     }
 
-    // ---- Specific title lookup ----
-    // Only runs for keywords that look like song/album titles, not genre/mood words.
-    // This prevents "mellow" from matching "Say Something" or "country" from matching
-    // any song with those words in the title.
+    // "but" modifier — "soul but weirder", "punk but melodic"
+    // Detect before/after and pass weight overrides to scoreSongs
+    let butWeightOverrides = null;
+    const butMatch = strippedMessage.match(/^(.+?)\s+but\s+(.+)$/i);
+    if (butMatch) {
+      butWeightOverrides = { reduce: butMatch[1].trim().toLowerCase(), boost: butMatch[2].trim().toLowerCase() };
+      console.log('But-modifier:', butWeightOverrides);
+    }
+
+    // Hardcoded genre no-match guards — genres we genuinely don't have
+    const HARD_NO_MATCH = [
+      [/\b(bluegrass|banjo|appalachian)\b/i, "No bluegrass in here — closest I have is some folk and country."],
+      [/\b(christmas|holiday|xmas|festive)\b/i, "No holiday music in this collection."],
+      [/\b(polka)\b/i, "No polka in here, sorry."],
+      [/\b(classical|orchestra|symphony|concerto|sonata)\b/i, "Not much classical in here — mostly contemporary stuff."],
+      [/\b(nursery|children's|kids\s+music|lullaby)\b/i, "Nothing for kids in here."],
+      [/\b(karaoke)\b/i, "This isn't a karaoke spot."],
+    ];
+    for (const [re, reply] of HARD_NO_MATCH) {
+      if (re.test(message)) {
+        const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
+        const interrupt = genreOptions.length >= 2
+          ? { type: 'genre_suggest', message: `${reply} Try one of these instead.`, options: genreOptions }
+          : null;
+        return res.json({ response: interrupt ? null : reply, song: null, interrupt });
+      }
+    }
+
+    // Title keyword lookup (unchanged — proper names still useful)
     const TITLE_MATCH_STOPWORDS = new Set([
-      // UI/request words
       'song', 'music', 'track', 'tune', 'play', 'hear', 'listen', 'find',
       'give', 'want', 'need', 'show', 'another', 'more', 'that', 'this',
-      // Descriptors too vague to be title signals
       'like', 'love', 'good', 'great', 'nice', 'best', 'cool', 'bad',
       'new', 'old', 'some', 'any', 'just', 'know', 'feel',
-      // Common title words that create false positives
       'something', 'anything', 'everything', 'nothing', 'someone', 'anyone',
       'somewhere', 'sometime', 'somehow', 'somebody', 'nobody',
       'pop', 'body', 'rock', 'soul', 'mind', 'life', 'time', 'day',
@@ -793,7 +875,7 @@ app.post('/api/chat', async (req, res) => {
 
     const titleKeywords = keywords.filter(k => {
       const n = normalize(k);
-      return k.length >= 4 && !TITLE_MATCH_STOPWORDS.has(n) && !GENRE_WORDS.has(n);
+      return k.length >= 4 && !TITLE_MATCH_STOPWORDS.has(n) && !GENRE_WORDS.has(n) && !n.includes(':');
     });
 
     if (titleKeywords.length > 0) {
@@ -810,29 +892,49 @@ app.post('/api/chat', async (req, res) => {
       if (specificSong) return res.json(buildSongResponse(specificSong, session));
     }
 
-    // ---- Scored matching ----
-    const allScored = scoreSongs(songsData.songs, keywords, preferVideo);
-    const hasAnyMatch = allScored.some(s => s.score >= 2);
+    // Scored matching — confidence-gated
+    // MIN_SCORE: minimum to serve a song at all
+    // CONFIDENCE_FLOOR: below this, don't serve — offer genre buttons instead
+    const MIN_SCORE = 0.4;
+    const CONFIDENCE_FLOOR = 0.6; // below this score feels like a guess, not a match
+
+    const allScored = scoreSongs(songsData.songs, keywords, preferVideo, butWeightOverrides);
+    const bestScore = Math.max(0, ...allScored.map(s => s.score));
+    const hasAnyMatch = bestScore >= MIN_SCORE;
 
     if (!hasAnyMatch) {
       const noMatchText = generateNoMatchResponse(message);
       const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
       const interrupt = genreOptions.length >= 2
-        ? { type: 'genre_suggest', message: `${noMatchText} Pick from some of these.`, options: genreOptions }
+        ? { type: 'genre_suggest', message: `${noMatchText} Try one of these directions instead.`, options: genreOptions }
         : null;
       return res.json({ response: interrupt ? null : noMatchText, song: null, interrupt });
     }
 
+    // Low confidence — best match exists but score is weak
+    // Better to offer choices than serve a song that won't land
+    if (bestScore < CONFIDENCE_FLOOR) {
+      const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
+      if (genreOptions.length >= 2) {
+        return res.json({
+          response: null,
+          song: null,
+          interrupt: { type: 'genre_suggest', message: "I'm not sure I have anything like that in my collection. What would you like to explore?", options: genreOptions }
+        });
+      }
+      // Not enough options — fall through and serve best available
+    }
+
     const avSongs = available();
-    const avScored = scoreSongs(avSongs, keywords, preferVideo);
-    const avMatches = avScored.filter(s => s.score >= 2);
+    const avScored = scoreSongs(avSongs, keywords, preferVideo, butWeightOverrides);
+    const avMatches = avScored.filter(s => s.score >= MIN_SCORE);
 
     if (!avMatches.length) {
       return res.json({ response: "Think I've played everything along those lines — is there another direction you want to go?", song: null });
     }
 
     const top = Math.max(...avMatches.map(s => s.score));
-    const topPicks = avMatches.filter(s => s.score === top);
+    const topPicks = avMatches.filter(s => s.score >= top * 0.85); // top 15% range, not just exact top
     return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session, null, bridge));
 
   } catch (error) {
