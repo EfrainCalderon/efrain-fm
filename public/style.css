@@ -754,6 +754,18 @@ body::after {
   #chat-messages {
     padding: 0 16px;
   }
+
+  /* Match body background to header/footer so Safari chrome blends in */
+  body { background-color: #2C2D2D; }
+}
+
+@media (max-width: 768px) and (prefers-color-scheme: light) {
+  body { background-color: #CECECA; }
+}
+
+@media (max-width: 768px) {
+  :root[data-theme="light"] body { background-color: #CECECA; }
+  :root[data-theme="dark"] body { background-color: #2C2D2D; }
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
