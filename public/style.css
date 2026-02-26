@@ -763,15 +763,3 @@ body::after {
   }
 }
 
-/* =====================
-   RINGS — MOBILE VISIBILITY
-   ===================== */
-
-@media (max-width: 768px) {
-  #bg-rings {
-    top: auto;
-    bottom: -15%;
-    height: 115%;
-  }
-}
-
