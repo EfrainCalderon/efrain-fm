@@ -159,7 +159,10 @@ function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = n
 
   for (const kw of keywords) {
     const kwLower = kw.toLowerCase().trim();
-    if (TRAIT_ALIASES[kwLower]) {
+    // Haiku may return fully-formed trait IDs (e.g. "genre:jazz") — add directly
+    if (kwLower.includes(':') && !kwLower.startsWith('http')) {
+      traitTargets.set(kwLower, Math.max(traitTargets.get(kwLower) || 0, 1.0));
+    } else if (TRAIT_ALIASES[kwLower]) {
       const traitId = TRAIT_ALIASES[kwLower];
       // If multiple keywords map to same trait, take the max weight (1.0)
       traitTargets.set(traitId, Math.max(traitTargets.get(traitId) || 0, 1.0));
@@ -335,6 +338,7 @@ RULES:
 - For artist names or song titles, return them as plain strings
 - Return 3–8 items
 - Return ONLY the JSON array
+- If the input is gibberish, a random string of characters, or clearly not a word in any language, return []. Do NOT return [] for real words, genre names, mood words, artist names, or any legitimate request — even if it is very short or vague
 
 Request: "${userMessage}"` }]
   });
@@ -952,11 +956,11 @@ app.post('/api/chat', async (req, res) => {
       return res.json(buildSongResponse(avSongs[Math.floor(Math.random() * avSongs.length)], session, null, bridge));
     }
 
-    // No keywords extracted — input was unrecognizable (gibberish, typo, unclear)
-    // Don't serve a random song — redirect instead
+    // No keywords extracted — input was gibberish, typo, or unrecognizable
+    // Haiku is instructed to return [] for nonsense; this is the safety net for anything that slips through
     if (keywords.length === 0) {
       const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
-      const trimmed = message.trim().slice(0, 40); // cap length for display
+      const trimmed = message.trim().slice(0, 40);
       const interrupt = genreOptions.length >= 2
         ? { type: 'genre_suggest', message: `I don't think I have anything related to "${trimmed}". Try one of these instead.`, options: genreOptions }
         : null;
