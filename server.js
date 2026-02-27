@@ -945,12 +945,26 @@ app.post('/api/chat', async (req, res) => {
     // Generic request — bare random/surprise requests only
     // "something" alone is generic but "something melancholic" is NOT — strippedMessage handles that
     const bareGeneric = /^(another|random|surprise me|something different|something else|anything)$/i.test(msgLower);
-    const isGeneric = bareGeneric || keywords.length === 0;
 
-    if (isGeneric) {
+    if (bareGeneric) {
       const avSongs = available();
       if (!avSongs.length) return res.json({ response: "I've shared my entire collection with you! That's all I have for now.", song: null });
       return res.json(buildSongResponse(avSongs[Math.floor(Math.random() * avSongs.length)], session, null, bridge));
+    }
+
+    // No keywords extracted — input was unrecognizable (gibberish, typo, unclear)
+    // Don't serve a random song — redirect instead
+    if (keywords.length === 0) {
+      const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
+      const trimmed = message.trim().slice(0, 40); // cap length for display
+      const interrupt = genreOptions.length >= 2
+        ? { type: 'genre_suggest', message: `I don't think I have anything related to "${trimmed}". Try one of these instead.`, options: genreOptions }
+        : null;
+      return res.json({
+        response: interrupt ? null : `I don't think I have anything related to "${trimmed}". What are you in the mood for?`,
+        song: null,
+        interrupt
+      });
     }
 
     // "but" modifier — "soul but weirder", "punk but melodic"
