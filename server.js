@@ -74,6 +74,15 @@ const GENRE_WORDS = new Set([
   // Common words that are also band/artist names — blocked from raw keyword matching
   // so "love", "pop", "can", "wire", "yes" never match Love, Iggy Pop, CAN, Wire, Yes
   'love', 'pop', 'can', 'wire', 'yes',
+  // Words that should hit trait fields, not song titles
+  'groove', 'instrumental', 'noir', 'narrative',
+  // Countries / regions — never match against artist/title text
+  'american', 'british', 'french', 'german', 'swedish', 'japanese', 'korean',
+  'brazilian', 'nigerian', 'african', 'latin american', 'canadian', 'australian',
+  'norwegian', 'icelandic', 'spanish', 'colombian', 'jamaican',
+  'canada', 'america', 'france', 'germany', 'sweden', 'japan', 'korea',
+  'brazil', 'nigeria', 'australia', 'norway', 'iceland', 'spain', 'colombia',
+  'jamaica', 'uk', 'england', 'scotland', 'ireland', 'mexico', 'peru', 'chile',
 ]);
 
 // =====================
@@ -143,6 +152,36 @@ const TRAIT_ALIASES = {
   'late night': 'char:late-night', 'night': 'char:late-night', 'midnight': 'char:late-night', '2am': 'char:late-night',
   'danceable': 'char:danceable', 'dance': 'char:danceable',
   'nostalgic': 'char:nostalgic', 'nostalgia': 'char:nostalgic', 'vintage': 'char:nostalgic', 'retro': 'char:nostalgic',
+
+  // Differentiating character traits — added for buried songs
+  'instrumental': 'char:instrumental', 'no vocals': 'char:instrumental', 'no singing': 'char:instrumental',
+  'rare groove': 'char:rare-groove', 'rare-groove': 'char:rare-groove', 'groove': 'char:rare-groove',
+  'film noir': 'char:film-noir', 'noir': 'char:film-noir',
+  'narrative': 'char:narrative', 'storytelling': 'char:narrative',
+  'bittersweet': 'char:bittersweet',
+  'japanese': 'char:japanese', 'japan': 'char:japanese',
+  'deadpan': 'char:deadpan',
+  'chamber pop': 'char:chamber-pop', 'chamber-pop': 'char:chamber-pop',
+
+  // Origin / Country — maps to origin: traits in songs.json
+  'american': 'origin:us', 'us': 'origin:us', 'usa': 'origin:us',
+  'british': 'origin:uk', 'uk': 'origin:uk', 'english': 'origin:uk',
+  'french': 'origin:france', 'france': 'origin:france',
+  'german': 'origin:germany', 'germany': 'origin:germany', 'kraut': 'origin:germany',
+  'swedish': 'origin:sweden', 'sweden': 'origin:sweden', 'scandinavian': 'origin:sweden',
+  'japanese': 'origin:japan', 'japan': 'origin:japan',
+  'korean': 'origin:korea', 'korea': 'origin:korea', 'k-pop': 'origin:korea', 'kpop': 'origin:korea',
+  'brazilian': 'origin:brazil', 'brazil': 'origin:brazil', 'tropicália': 'origin:brazil',
+  'nigerian': 'origin:nigeria', 'nigeria': 'origin:nigeria',
+  'african': 'genre:afrobeat',  // "African music" → afrobeat is our best match
+  'canadian': 'origin:canada', 'canada': 'origin:canada',
+  'australian': 'origin:australia', 'australia': 'origin:australia',
+  'norwegian': 'origin:norway', 'norway': 'origin:norway',
+  'icelandic': 'origin:iceland', 'iceland': 'origin:iceland',
+  'spanish': 'origin:spain', 'spain': 'origin:spain',
+  'colombian': 'origin:colombia', 'colombian': 'origin:colombia',
+  'jamaican': 'origin:jamaica', 'jamaica': 'origin:jamaica',
+  'latino': 'genre:latin', 'latina': 'genre:latin', 'latin american': 'genre:latin',
 };
 
 // =====================
@@ -193,9 +232,26 @@ function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = n
     }
   }
 
+  // Identify "required" genre and origin targets — traits the user explicitly asked for.
+  // If a song doesn't have ANY of the required genre/origin traits, it gets zeroed out.
+  // This prevents "danceable hip-hop" from returning a danceable song with no hip-hop at all.
+  const requiredGenreTargets = [...traitTargets.keys()].filter(t =>
+    t.startsWith('genre:') || t.startsWith('origin:')
+  );
+
   return songs.map(song => {
     const traits = song.traits || {};
     let score = 0;
+
+    // Genre/origin hard gate: if user asked for specific genres/origins, the song
+    // must have ALL of them — not just one. "Experimental hip-hop" requires both,
+    // not just whichever one the song happens to have.
+    // Exception: origin traits don't gate against genre traits and vice versa —
+    // "Brazilian jazz" requires origin:brazil AND genre:jazz on the same song.
+    if (requiredGenreTargets.length > 0) {
+      const hasAllRequired = requiredGenreTargets.every(t => traits[t] !== undefined && traits[t] >= 0.5);
+      if (!hasAllRequired) return { ...song, score: 0 };
+    }
 
     // Primary scoring: sum weighted trait matches
     for (const [traitId, queryWeight] of traitTargets) {
@@ -242,6 +298,42 @@ function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = n
 
     return { ...song, score };
   });
+}
+
+// Given a set of keywords, return the genre/origin traits they contain (if any).
+// Used to check if a genre was requested but nothing in the collection matches.
+function extractRequiredGenres(keywords) {
+  const required = [];
+  for (const kw of keywords) {
+    const kwLower = kw.toLowerCase().trim();
+    if (kwLower.startsWith('genre:') || kwLower.startsWith('origin:')) {
+      required.push(kwLower);
+    } else if (TRAIT_ALIASES[kwLower]) {
+      const t = TRAIT_ALIASES[kwLower];
+      if (t.startsWith('genre:') || t.startsWith('origin:')) required.push(t);
+    }
+  }
+  return [...new Set(required)];
+}
+
+// Human-readable label for a genre/origin trait, for use in "I don't have X" messages.
+function genreLabel(traitId) {
+  const map = {
+    'genre:hip-hop': 'hip-hop', 'genre:jazz': 'jazz', 'genre:electronic': 'electronic',
+    'genre:folk': 'folk', 'genre:punk': 'punk', 'genre:soul': 'soul',
+    'genre:funk': 'funk', 'genre:experimental': 'experimental', 'genre:ambient': 'ambient',
+    'genre:dance': 'dance', 'genre:noise': 'noise', 'genre:r&b': 'R&B',
+    'genre:afrobeat': 'afrobeat', 'genre:latin': 'latin', 'genre:country': 'country',
+    'genre:psychedelic': 'psychedelic', 'genre:art-rock': 'art rock', 'genre:garage': 'garage',
+    'genre:post-punk': 'post-punk', 'genre:krautrock': 'krautrock',
+    'origin:us': 'American', 'origin:uk': 'British', 'origin:france': 'French',
+    'origin:germany': 'German', 'origin:sweden': 'Swedish', 'origin:japan': 'Japanese',
+    'origin:korea': 'Korean', 'origin:brazil': 'Brazilian', 'origin:nigeria': 'Nigerian',
+    'origin:canada': 'Canadian', 'origin:australia': 'Australian',
+    'origin:norway': 'Norwegian', 'origin:iceland': 'Icelandic',
+    'origin:spain': 'Spanish', 'origin:colombia': 'Colombian', 'origin:jamaica': 'Jamaican',
+  };
+  return map[traitId] || traitId.replace(/^(genre|origin):/, '');
 }
 
 const COMMENTARY_STOPWORDS = new Set([
@@ -318,6 +410,7 @@ Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "te
 Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
 Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic"
+Origin (use when user specifies a country or region): "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland", "origin:spain", "origin:colombia", "origin:jamaica"
 
 SITUATIONAL MAPPINGS:
 - "late night", "2am", "driving at night" → ["char:late-night", "mood:dreamlike", "energy:low"]
@@ -398,6 +491,7 @@ Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "te
 Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
 Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic"
+Origin: "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria"
 
 Examples:
 - "Nico" → ["texture:sparse", "mood:melancholic", "mood:dark", "genre:art-rock", "era:60s", "char:intimate"]
@@ -517,6 +611,13 @@ const COLLECTION_TRAIT_OPTIONS = [
   { label: 'Outsider', trait: 'char:outsider' },
   { label: 'Melancholic', trait: 'mood:melancholic' },
   { label: 'Joyful', trait: 'mood:joyful' },
+  { label: 'British', trait: 'origin:uk' },
+  { label: 'Brazilian', trait: 'origin:brazil' },
+  { label: 'Japanese', trait: 'origin:japan' },
+  { label: 'Swedish', trait: 'origin:sweden' },
+  { label: 'German', trait: 'origin:germany' },
+  { label: 'French', trait: 'origin:france' },
+  { label: 'Korean', trait: 'origin:korea' },
 ];
 
 function getDynamicOptions(justPlayedSong, playedTitles = []) {
@@ -946,13 +1047,42 @@ app.post('/api/chat', async (req, res) => {
     const conversational = isConversational(message);
     const bridge = conversational ? "Okay, let me find something else." : null;
 
-    // Generic request — bare random/surprise requests only
-    // "something" alone is generic but "something melancholic" is NOT — strippedMessage handles that
-    const bareGeneric = /^(another|random|surprise me|something different|something else|anything)$/i.test(msgLower);
+    // Generic continuation request — "another", "more of this", "keep going", etc.
+    // If a song was just played, use its traits to find something similar.
+    // Only truly random if nothing has been played yet.
+    const bareGeneric = /^(another|random|surprise me|something different|something else|anything|more|more like this|more of this|keep going|keep it going|next|next one|yes|yeah|sure|okay|ok|sounds good|love it|i like this|similar|something similar|same vibe|same energy)$/i.test(msgLower.trim());
 
     if (bareGeneric) {
       const avSongs = available();
       if (!avSongs.length) return res.json({ response: "I've shared my entire collection with you! That's all I have for now.", song: null });
+
+      // If we have a last song, use its traits to find something in the same vein.
+      // Genre and origin traits get boosted — they should anchor the result,
+      // not get outvoted by a cluster of mood/texture matches.
+      if (session.lastSong) {
+        const lastTraits = session.lastSong.traits || {};
+        const traitKeywords = [];
+        for (const [trait, weight] of Object.entries(lastTraits)) {
+          if (weight < 0.7) continue;
+          // Push genre and origin twice so they count double in scoring
+          if (trait.startsWith('genre:') || trait.startsWith('origin:')) {
+            traitKeywords.push(trait, trait);
+          } else {
+            traitKeywords.push(trait);
+          }
+        }
+        if (traitKeywords.length > 0) {
+          const scored = scoreSongs(avSongs, traitKeywords, false, null);
+          const viable = scored.filter(s => s.score > 0);
+          if (viable.length > 0) {
+            const top = Math.max(...viable.map(s => s.score));
+            const topPicks = viable.filter(s => s.score >= top * 0.85);
+            return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session, null, bridge));
+          }
+        }
+      }
+
+      // No last song (or no traits matched) — fall back to random
       return res.json(buildSongResponse(avSongs[Math.floor(Math.random() * avSongs.length)], session, null, bridge));
     }
 
@@ -1044,6 +1174,43 @@ app.post('/api/chat', async (req, res) => {
     // CONFIDENCE_FLOOR: below this, don't serve — offer genre buttons instead
     const MIN_SCORE = 0.4;
     const CONFIDENCE_FLOOR = 0.6; // below this score feels like a guess, not a match
+
+    // Genre/origin miss detection — if the user asked for a specific genre or country
+    // and NOTHING in the collection has it, be honest and offer alternatives.
+    // This runs before full scoring so we don't waste time and give the user a clear answer.
+    const requestedGenres = extractRequiredGenres(keywords);
+    if (requestedGenres.length > 0) {
+      const collectionHasAny = songsData.songs.some(s => {
+        const traits = s.traits || {};
+        return requestedGenres.some(t => traits[t] !== undefined && traits[t] >= 0.5);
+      });
+      if (!collectionHasAny) {
+        const labels = requestedGenres.map(genreLabel).join(' / ');
+        const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
+        const interrupt = genreOptions.length >= 2
+          ? { type: 'genre_suggest', message: `I don't really have ${labels} in here. Try one of these instead.`, options: genreOptions }
+          : null;
+        return res.json({
+          response: interrupt ? null : `I don't really have ${labels} in here. What else are you looking for?`,
+          song: null, interrupt
+        });
+      }
+      // Collection has the genre but may not match the full combo (e.g. "danceable hip-hop").
+      // Score with genre gate active — if best score is still 0, the combo doesn't exist.
+      const comboScored = scoreSongs(songsData.songs, keywords, preferVideo, butWeightOverrides);
+      const comboBest = Math.max(0, ...comboScored.map(s => s.score));
+      if (comboBest === 0) {
+        const labels = requestedGenres.map(genreLabel).join(' + ');
+        const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
+        const interrupt = genreOptions.length >= 2
+          ? { type: 'genre_suggest', message: `I don't think I have anything that's ${labels} and everything else you're after. Try one of these instead.`, options: genreOptions }
+          : null;
+        return res.json({
+          response: interrupt ? null : `Can't think of anything that fits all of that. What would you like to try?`,
+          song: null, interrupt
+        });
+      }
+    }
 
     const allScored = scoreSongs(songsData.songs, keywords, preferVideo, butWeightOverrides);
     const bestScore = Math.max(0, ...allScored.map(s => s.score));

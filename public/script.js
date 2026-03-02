@@ -30,14 +30,10 @@ async function typeText(element, text, speed = 20) {
     element.textContent = '';
     const container = document.getElementById('chat-container');
 
-    // Lock scroll for duration of typing
-    container.style.overflowY = 'hidden';
-
     const interval = setInterval(() => {
       if (index < text.length) {
         element.textContent += text[index];
         index++;
-        // Keep the bottom of the growing message pinned to the container bottom
         const containerRect = container.getBoundingClientRect();
         const elementRect = element.getBoundingClientRect();
         if (elementRect.bottom > containerRect.bottom) {
@@ -45,9 +41,7 @@ async function typeText(element, text, speed = 20) {
         }
       } else {
         clearInterval(interval);
-        // Snap to true bottom, then unlock scrolling
         container.scrollTop = container.scrollHeight;
-        container.style.overflowY = '';
         resolve();
       }
     }, speed);
