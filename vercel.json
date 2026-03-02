@@ -1,7 +1,0 @@
-cat > vercel.json << 'EOF'
-{
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/server" },
-    { "source": "/(.*)", "destination": "/public/$1" }
-  ]
-}
