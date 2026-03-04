@@ -796,8 +796,7 @@ function buildSongResponse(song, session, interrupt = null, bridge = null) {
     song: {
       title: song.title,
       artist: song.artist,
-      spotify_url: song.streaming ? (song.streaming.spotify || '') : '',
-      youtube_url: song.streaming ? (song.streaming.youtube || '') : '',
+      spotify_url: getSongUrl(song), // frontend still expects spotify_url key
       tag_title: song.tag_title || '',
       tag_url: song.tag_url || '',
     },
@@ -833,7 +832,7 @@ app.post('/api/favorite', async (req, res) => {
       session.lastSongTraits = s.traits || {};
       session.lastSongArtist = s.artist;
       session.songCount++;
-      song = { title: s.title, artist: s.artist, spotify_url: s.streaming ? (s.streaming.spotify || '') : '', youtube_url: s.streaming ? (s.streaming.youtube || '') : '', tag_title: s.tag_title || '', tag_url: s.tag_url || '' };
+      song = { title: s.title, artist: s.artist, spotify_url: getSongUrl(s), tag_title: s.tag_title || '', tag_url: s.tag_url || '' };
     }
     res.json({ response: responseText, song });
   } catch (e) {
@@ -1254,7 +1253,12 @@ app.post('/api/chat', async (req, res) => {
 
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ error: 'Something went wrong', details: error.message });
+    const isOverloaded = error?.status === 529 || error?.message?.includes('overloaded');
+    if (isOverloaded) {
+      res.status(529).json({ error: 'overloaded' });
+    } else {
+      res.status(500).json({ error: 'Something went wrong', details: error.message });
+    }
   }
 });
 

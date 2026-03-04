@@ -150,6 +150,12 @@ async function sendMessage() {
       body: JSON.stringify(body),
     });
 
+    if (response.status === 529) {
+      throw { status: 529, message: 'overloaded' };
+    }
+    if (!response.ok) {
+      throw { status: response.status, message: 'server error' };
+    }
     const data = await response.json();
     sessionStats.messagesExchanged++;
 
@@ -257,46 +263,41 @@ async function displaySong(song, storyText) {
   const songContainer = document.createElement('div');
   songContainer.classList.add('message', 'song');
 
-  // Spotify embed
-  if (song.spotify_url && song.spotify_url.trim()) {
-    const embedWrapper = document.createElement('div');
-    embedWrapper.classList.add('song-embed-wrapper');
-    const iframe = document.createElement('iframe');
-    iframe.classList.add('song-embed');
-    iframe.frameBorder = '0';
-    iframe.src = song.spotify_url;
-    iframe.allow = 'encrypted-media';
-    iframe.addEventListener('load', () => {
-      iframe.classList.add('loaded');
-      embedWrapper.classList.add('loaded');
-    });
-    embedWrapper.appendChild(iframe);
-    songContainer.appendChild(embedWrapper);
-  }
+  const isYouTube = song.spotify_url && (
+    song.spotify_url.includes('youtube.com') ||
+    song.spotify_url.includes('youtu.be')
+  );
 
-  // YouTube embed (supplemental, or primary if no Spotify)
-  if (song.youtube_url && song.youtube_url.trim()) {
-    const ytWrapper = document.createElement('div');
-    ytWrapper.classList.add('song-embed-wrapper', 'youtube');
-    const ytIframe = document.createElement('iframe');
-    ytIframe.classList.add('song-embed');
-    ytIframe.frameBorder = '0';
-    let embedUrl = song.youtube_url;
+  const embedWrapper = document.createElement('div');
+  embedWrapper.classList.add('song-embed-wrapper');
+  if (isYouTube) embedWrapper.classList.add('youtube');
+
+  const iframe = document.createElement('iframe');
+  iframe.classList.add('song-embed');
+  iframe.frameBorder = '0';
+
+  iframe.addEventListener('load', () => {
+    iframe.classList.add('loaded');
+    embedWrapper.classList.add('loaded');
+  });
+
+  if (isYouTube) {
+    let embedUrl = song.spotify_url;
     if (embedUrl.includes('watch?v=')) {
       embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
     } else if (embedUrl.includes('youtu.be/')) {
       embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
     }
-    ytIframe.src = embedUrl;
-    ytIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-    ytIframe.allowFullscreen = true;
-    ytIframe.addEventListener('load', () => {
-      ytIframe.classList.add('loaded');
-      ytWrapper.classList.add('loaded');
-    });
-    ytWrapper.appendChild(ytIframe);
-    songContainer.appendChild(ytWrapper);
+    iframe.src = embedUrl;
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    iframe.allowFullscreen = true;
+  } else {
+    iframe.src = song.spotify_url;
+    iframe.allow = 'encrypted-media';
   }
+
+  embedWrapper.appendChild(iframe);
+  songContainer.appendChild(embedWrapper);
 
   if (song.tag_title && song.tag_title.trim() !== '') {
     const liveTag = document.createElement('div');
@@ -478,7 +479,7 @@ function showToast(message, linkUrl) {
 
   toast.appendChild(text);
   toast.appendChild(dismiss);
-  document.getElementById('app-card').appendChild(toast);
+  document.body.appendChild(toast);
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => toast.classList.add('visible'));
