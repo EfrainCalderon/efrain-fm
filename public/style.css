@@ -743,3 +743,64 @@ body::after {
 }
 
 /* Ring/star positioning handled by JS */
+
+/* =====================
+   TOAST
+   ===================== */
+#status-toast {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #0e1012;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: 12px 12px 0 0;
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+}
+
+#status-toast.visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.toast-message {
+  flex: 1;
+}
+
+.toast-link {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+.toast-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.toast-dismiss {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0 0 8px;
+  flex-shrink: 0;
+}
+
+.toast-dismiss:hover {
+  color: rgba(255, 255, 255, 0.9);
+}

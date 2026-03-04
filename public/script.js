@@ -187,7 +187,12 @@ async function sendMessage() {
   } catch (error) {
     console.error('Error:', error);
     removeTypingIndicator(typingIndicator);
-    addMessageToChat('Something went wrong. Please try again.', 'assistant');
+    const isOverloaded = error?.status === 529 || (error?.message && error.message.includes('overloaded'));
+    if (isOverloaded) {
+      showToast("Anthropic's servers are a little overwhelmed right now — not your fault. Try again in a moment.", 'https://status.anthropic.com');
+    } else {
+      addMessageToChat('Something went wrong. Please try again.', 'assistant');
+    }
     fadeInInput();
     isTyping = false;
   }
@@ -431,6 +436,49 @@ function dismissInterrupt(onDismiss) {
   }
   // If there IS a callback (Yes path), sendMessage() will handle its own flow
   // and fadeOutInput is already in effect — no double-fade needed
+}
+
+// =====================
+// TOAST NOTIFICATION
+// =====================
+function showToast(message, linkUrl) {
+  // Only show one at a time
+  const existing = document.getElementById('status-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'status-toast';
+
+  const text = document.createElement('span');
+  text.className = 'toast-message';
+  text.textContent = message + ' ';
+
+  if (linkUrl) {
+    const link = document.createElement('a');
+    link.href = linkUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Check status →';
+    link.className = 'toast-link';
+    text.appendChild(link);
+  }
+
+  const dismiss = document.createElement('button');
+  dismiss.className = 'toast-dismiss';
+  dismiss.innerHTML = '&times;';
+  dismiss.setAttribute('aria-label', 'Dismiss');
+  dismiss.addEventListener('click', () => {
+    toast.classList.remove('visible');
+    setTimeout(() => toast.remove(), 300);
+  });
+
+  toast.appendChild(text);
+  toast.appendChild(dismiss);
+  document.getElementById('app-card').appendChild(toast);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('visible'));
+  });
 }
 
 sendButton.addEventListener('click', sendMessage);
