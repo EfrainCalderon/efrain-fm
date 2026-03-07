@@ -493,3 +493,488 @@ userInput.addEventListener('keypress', (e) => {
     sendMessage();
   }
 });
+
+// =====================
+// VOICE EMBED
+//
+// Usage:
+//   const el = createVoiceEmbed('/audio/intro.m4a', 'Welcome');
+//   chatMessages.appendChild(el);
+//
+// - First play shows "new transmission"
+// - Subsequent plays show "replaying transmission"
+// - Waveform is mirrored from center (symmetric)
+// - Signal line oscillates at fixed rate, independent of audio data
+// =====================
+function createVoiceEmbed(audioUrl, title = 'Welcome') {
+
+  // ── DOM ──────────────────────────────────────────────────────────
+  const wrap = document.createElement('div');
+  wrap.className = 'voice-embed';
+
+  // Waveform layer
+  const waveLayer = document.createElement('div');
+  waveLayer.className = 'voice-embed__waveform';
+
+  const waveCanvas = document.createElement('canvas');
+  waveCanvas.className = 'voice-embed__canvas';
+  waveLayer.appendChild(waveCanvas);
+
+  // Transmission indicator
+  const tx = document.createElement('span');
+  tx.className = 'voice-embed__tx';
+
+  const txLabel = document.createElement('span');
+  txLabel.className = 'voice-embed__tx-label';
+  txLabel.textContent = 'new transmission';
+
+  const txSquare = document.createElement('span');
+  txSquare.className = 'voice-embed__tx-square';
+
+  const signalCanvas = document.createElement('canvas');
+  signalCanvas.className = 'voice-embed__signal';
+
+  tx.appendChild(txLabel);
+  tx.appendChild(txSquare);
+  tx.appendChild(signalCanvas);
+  waveLayer.appendChild(tx);
+
+  // Static layer
+  const staticLayer = document.createElement('div');
+  staticLayer.className = 'voice-embed__static';
+
+  const titleEl = document.createElement('span');
+  titleEl.className = 'voice-embed__title';
+  titleEl.textContent = title;
+
+  const playBtn = document.createElement('button');
+  playBtn.className = 'voice-embed__play-btn';
+  playBtn.setAttribute('aria-label', 'Replay ' + title);
+  playBtn.innerHTML =
+    '<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M4 2.5L13 8L4 13.5V2.5Z" stroke-width="1.5" stroke-linejoin="round"/>' +
+    '</svg>';
+
+  staticLayer.appendChild(titleEl);
+  staticLayer.appendChild(playBtn);
+
+  // Audio
+  const audio = document.createElement('audio');
+  audio.src = audioUrl;
+  audio.preload = 'auto';
+
+  wrap.appendChild(waveLayer);
+  wrap.appendChild(staticLayer);
+  wrap.appendChild(audio);
+
+  // ── State ─────────────────────────────────────────────────────────
+  let audioCtx, analyser, source, dataArray, bufLen;
+  let audioReady   = false;
+  let waveAnimId   = null;
+  let signalAnimId = null;
+  let hasPlayed    = false;
+
+  // ── Web Audio ─────────────────────────────────────────────────────
+  function initAudio() {
+    if (audioReady) return;
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    bufLen    = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufLen);
+    source    = audioCtx.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    audioReady = true;
+  }
+
+  // ── Canvas sizing ─────────────────────────────────────────────────
+  function resizeWaveCanvas() {
+    const dpr  = window.devicePixelRatio || 1;
+    const pad  = 16;
+    const rect = wrap.getBoundingClientRect();
+    const w    = (rect.width - pad * 2) * dpr;
+    const h    = rect.height * dpr;
+    waveCanvas.width  = w;
+    waveCanvas.height = h;
+    waveCanvas.style.width  = (rect.width - pad * 2) + 'px';
+    waveCanvas.style.height = rect.height + 'px';
+  }
+
+  function initSignalCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    signalCanvas.width  = 32 * dpr;
+    signalCanvas.height = 10 * dpr;
+  }
+
+  // ── Color helpers ─────────────────────────────────────────────────
+  function getWaveColors() {
+    const cs = getComputedStyle(document.documentElement);
+    return {
+      unplayed: cs.getPropertyValue('--wave-color').trim()        || 'rgba(245,242,238,0.45)',
+      played:   cs.getPropertyValue('--wave-played-color').trim() || 'rgba(245,242,238,0.88)',
+    };
+  }
+
+  function getSignalColors() {
+    const cs = getComputedStyle(document.documentElement);
+    return {
+      track: cs.getPropertyValue('--wave-color').trim()        || 'rgba(245,242,238,0.45)',
+      line:  cs.getPropertyValue('--wave-played-color').trim() || 'rgba(245,242,238,0.88)',
+    };
+  }
+
+  // ── Draw waveform (mirrored from center) ──────────────────────────
+  function drawWave() {
+    waveAnimId = requestAnimationFrame(drawWave);
+    analyser.getByteFrequencyData(dataArray);
+
+    const dpr      = window.devicePixelRatio || 1;
+    const W        = waveCanvas.width;
+    const H        = waveCanvas.height;
+    const ctx      = waveCanvas.getContext('2d');
+    const colors   = getWaveColors();
+    const progress = audio.duration ? audio.currentTime / audio.duration : 0;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const halfCount = 30;
+    const barW      = 2 * dpr;
+    const totalBarW = halfCount * 2 * barW;
+    const gap       = (W - totalBarW) / (halfCount * 2 - 1);
+    const maxBarH   = H * 0.72;
+    const minBarH   = 3 * dpr;
+    const centerY   = H / 2;
+    const centerX   = W / 2;
+
+    for (let i = 0; i < halfCount; i++) {
+      const binIdx = Math.floor((i / halfCount) * bufLen * 0.75);
+      const rawVal = dataArray[binIdx] / 255;
+      const barH   = minBarH + rawVal * (maxBarH - minBarH);
+      const offset = i * (barW + gap);
+
+      const xR = centerX + offset + gap / 2;
+      const xL = centerX - offset - barW - gap / 2;
+
+      const normPos  = (centerX + offset) / W;
+      const isPlayed = normPos < (0.5 + progress * 0.5);
+
+      ctx.fillStyle = isPlayed ? colors.played : colors.unplayed;
+
+      ctx.beginPath();
+      ctx.roundRect(xR, centerY - barH / 2, barW, barH, barW / 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.roundRect(xL, centerY - barH / 2, barW, barH, barW / 2);
+      ctx.fill();
+    }
+  }
+
+  // ── Draw signal line (fixed-rate oscillation, not audio-driven) ───
+  function drawSignal(ts) {
+    signalAnimId = requestAnimationFrame(drawSignal);
+
+    const dpr    = window.devicePixelRatio || 1;
+    const W      = signalCanvas.width;
+    const H      = signalCanvas.height;
+    const ctx    = signalCanvas.getContext('2d');
+    const colors = getSignalColors();
+    const t      = ts / 1000;
+    const freq   = 0.5;   // 1 full cycle every 2 seconds
+    const cy     = H / 2;
+    const amp    = H * 0.46;
+    const pts    = 48;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Track — dim straight baseline
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+    ctx.lineTo(W, cy);
+    ctx.strokeStyle = colors.track;
+    ctx.lineWidth   = 1 * dpr;
+    ctx.globalAlpha = 0.35;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Oscillating signal
+    ctx.beginPath();
+    for (let i = 0; i <= pts; i++) {
+      const x     = (i / pts) * W;
+      const phase = (i / pts) * Math.PI * 2 - t * freq * Math.PI * 2;
+      const y     = cy + Math.sin(phase) * amp;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = colors.line;
+    ctx.lineWidth   = 1 * dpr;
+    ctx.globalAlpha = 0.85;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // ── Layer transitions ─────────────────────────────────────────────
+  function showWaveform() {
+    waveLayer.classList.remove('fading');
+    waveLayer.classList.add('visible');
+    staticLayer.classList.remove('visible');
+    tx.classList.add('active');
+    if (!signalAnimId) {
+      initSignalCanvas();
+      signalAnimId = requestAnimationFrame(drawSignal);
+    }
+  }
+
+  function showStatic() {
+    waveLayer.classList.add('fading');
+    tx.classList.remove('active');
+    if (signalAnimId) {
+      cancelAnimationFrame(signalAnimId);
+      signalAnimId = null;
+      signalCanvas.getContext('2d').clearRect(0, 0, signalCanvas.width, signalCanvas.height);
+    }
+    setTimeout(() => {
+      waveLayer.classList.remove('visible', 'fading');
+      if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
+    }, 400);
+    staticLayer.classList.add('visible');
+  }
+
+  // ── Playback ──────────────────────────────────────────────────────
+  function startPlayback() {
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  }
+
+  function play() {
+    initAudio();
+    resizeWaveCanvas();
+    // Label swap: first play vs replay
+    txLabel.textContent = hasPlayed ? 'replaying transmission' : 'new transmission';
+    hasPlayed = true;
+    showWaveform();
+    if (!waveAnimId) drawWave();
+    startPlayback();
+  }
+
+  // ── Audio events ──────────────────────────────────────────────────
+  audio.addEventListener('play', () => {
+    if (waveAnimId) return;
+    if (!audioReady) initAudio();
+    showWaveform();
+    drawWave();
+  });
+
+  audio.addEventListener('ended', () => {
+    if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
+    showStatic();
+  });
+
+  audio.addEventListener('error', () => {
+    if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
+    showStatic();
+  });
+
+  playBtn.addEventListener('click', play);
+
+  window.addEventListener('resize', resizeWaveCanvas);
+
+  // Expose startPlayback() so the intro handler can call it synchronously
+  // within the user gesture — setTimeout breaks the browser's autoplay permission.
+  wrap.startPlayback = () => {
+    resizeWaveCanvas();
+    play();
+    // If audio is still paused after 800ms (blocked), fall back to static UI
+    const guard = setTimeout(() => { if (audio.paused) showStatic(); }, 800);
+    audio.addEventListener('play', () => clearTimeout(guard), { once: true });
+  };
+
+  return wrap;
+}
+
+// =====================
+// INTRO SEQUENCE
+//
+// On load: body gets .intro-active — CSS hides textarea/send, shows start btn.
+// Click "Start exploring":
+//   1. Remove .intro-active — start btn hides
+//   2. Fade out input (hidden while audio plays)
+//   3. Wrap and append voice embed — fade it in (1.4s, matching Spotify)
+//   4. Start hum at the same moment embed fades in
+//   5. Input fades back in 1.5s before audio ends
+//   6. Hum fades out a beat after audio ends
+// =====================
+(function initIntro() {
+  const startBtn = document.getElementById('intro-start-btn');
+  if (!startBtn) return;
+
+  document.body.classList.add('intro-active');
+
+  startBtn.addEventListener('click', () => {
+    // 1. Dismiss the intro button
+    // Pre-hide input wrapper first so it doesn't flash when intro-active is removed
+    const inputWrapper = document.getElementById('input-wrapper');
+    inputWrapper.style.opacity = '0';
+    inputWrapper.style.pointerEvents = 'none';
+    document.body.classList.remove('intro-active');
+
+    // 3. Create embed, wrap it for correct spacing, append
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const yy = String(now.getFullYear()).slice(-2);
+    const hours = now.getHours();
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const h12 = String(hours % 12 || 12).padStart(2, '0');
+    const baseTitle = `TRANSMISSION: ON AIR ${mm}-${dd}-${yy} ${h12}:${mins} ${ampm}`;
+    const embed = createVoiceEmbed('/audio/welcomemsg.m4a', baseTitle);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'voice-embed-wrapper';
+    wrapper.appendChild(embed);
+    chatMessages.appendChild(wrapper);
+    scrollToBottom();
+
+    // Trigger fade-in on next frame (opacity 0 → 1 via CSS transition)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => embed.classList.add('loaded'));
+    });
+
+    // 4. Start hum at same moment embed fades in
+    const hum = new Audio('/audio/spacehumloop.mp3');
+    hum.loop   = true;
+    hum.volume = 0;
+    hum.play().catch(() => {});
+
+    let humVol = 0;
+    const HUM_TARGET = 0.18;
+    const humFadeIn = setInterval(() => {
+      humVol = Math.min(humVol + 0.012, HUM_TARGET);
+      hum.volume = humVol;
+      if (humVol >= HUM_TARGET) clearInterval(humFadeIn);
+    }, 30);
+
+    // 5. Play embed synchronously (user gesture still active)
+    embed.startPlayback();
+
+    // 6. Once duration is known, schedule input restore + hum fade
+    const voiceAudio = embed.querySelector('audio');
+    if (voiceAudio) {
+      const scheduleRestore = () => {
+        const dur = voiceAudio.duration;
+        if (!isFinite(dur)) return;
+        // Restore input 1.5s before end
+        const restoreDelay = Math.max((dur - 1.5) * 1000, 0);
+        setTimeout(() => fadeInInput(), restoreDelay);
+      };
+
+      if (isFinite(voiceAudio.duration)) {
+        scheduleRestore();
+      } else {
+        voiceAudio.addEventListener('loadedmetadata', scheduleRestore, { once: true });
+      }
+
+      // Hum lingers ~400ms after audio ends, then fades out slowly
+      voiceAudio.addEventListener('ended', () => {
+        // Append duration to title once, on first play only
+        const secs = Math.round(voiceAudio.duration);
+        const titleEl = embed.querySelector('.voice-embed__title');
+        if (titleEl && !titleEl.dataset.durationSet) {
+          titleEl.textContent = `${baseTitle} [${secs}s]`;
+          titleEl.dataset.durationSet = '1';
+        }
+        setTimeout(() => {
+          const humFadeOut = setInterval(() => {
+            hum.volume = Math.max(hum.volume - 0.008, 0);
+            if (hum.volume <= 0) {
+              clearInterval(humFadeOut);
+              hum.pause();
+            }
+          }, 40);
+        }, 400);
+      });
+    }
+
+    // 7. After 5s, fade in photos one by one (same 1.4s ease as embeds)
+    const introPhotos = [
+      { src: '/images/photo1.jpg', caption: 'One of my first California sunsets' },
+      { src: '/images/photo2.jpg', caption: 'This chicken cutlet is shaped like New Jersey' },
+      { src: '/images/photo3.jpg', caption: 'I made music for a while' },
+      { src: '/images/photo4.jpg', caption: 'My pup, Ernie' },
+    ];
+
+    // Build the grid and append it (invisible until photos fade in)
+    const photoGrid = document.createElement('div');
+    photoGrid.className = 'intro-photo-grid';
+
+    const photoItems = introPhotos.map((p) => {
+      const item = document.createElement('div');
+      item.className = 'intro-photo-item';
+      const img = document.createElement('img');
+      img.src = p.src;
+      img.alt = p.caption;
+      img.draggable = false;
+      item.appendChild(img);
+      item.addEventListener('click', () => openLightbox(p.src, p.caption));
+      photoGrid.appendChild(item);
+      return item;
+    });
+
+    chatMessages.appendChild(photoGrid);
+    scrollToBottom();
+
+    // Stagger each photo in with 1.4s gap, starting at 5s
+    photoItems.forEach((item, i) => {
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            item.classList.add('loaded');
+            scrollToBottom();
+          });
+        });
+      }, 5000 + i * 1400);
+    });
+
+  });
+})();
+
+// =====================
+// INTRO LIGHTBOX
+// =====================
+(function initLightbox() {
+  const scrim = document.createElement('div');
+  scrim.className = 'intro-lightbox-scrim';
+
+  const img = document.createElement('img');
+  img.className = 'intro-lightbox-img';
+  img.alt = '';
+
+  const caption = document.createElement('p');
+  caption.className = 'intro-lightbox-caption';
+
+  scrim.appendChild(img);
+  scrim.appendChild(caption);
+  scrim.style.display = 'none';
+  document.body.appendChild(scrim);
+
+  scrim.addEventListener('click', closeLightbox);
+
+  window.openLightbox = function(src, text) {
+    img.src = src;
+    caption.textContent = text;
+    scrim.style.display = 'flex';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => scrim.classList.add('visible'));
+    });
+  };
+
+  function closeLightbox() {
+    scrim.classList.remove('visible');
+    scrim.addEventListener('transitionend', () => {
+      scrim.style.display = 'none';
+      img.src = '';
+    }, { once: true });
+  }
+})();
+

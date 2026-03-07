@@ -26,6 +26,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Background: rings + star field. Canvas covers full viewport. -->
@@ -223,6 +224,15 @@
 
     <footer id="input-footer">
       <div id="input-wrapper">
+        <!-- Intro state: Start Exploring button replaces the text input -->
+        <button id="intro-start-btn" aria-label="Start exploring">
+          <!-- Feather-style compass icon -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+          </svg>
+          Start exploring
+        </button>
         <textarea
           id="user-input"
           placeholder="Let's find a groove..."
