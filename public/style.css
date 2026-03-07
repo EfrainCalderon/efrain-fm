@@ -64,6 +64,8 @@
   /* Skeleton loader */
   --skeleton-base: rgba(245, 242, 238, 0.06);
   --skeleton-shine: rgba(245, 242, 238, 0.1);
+  /* Universal embed fade — used for all voice/song embed opacity transitions */
+  --embed-transition: opacity 1.4s ease;
 }
 
 /* Light mode */
@@ -451,7 +453,7 @@ body::after {
   border: none;
   display: block;
   opacity: 0;
-  transition: opacity 1.4s ease;
+  transition: var(--embed-transition);
 }
 
 .song-embed.loaded {
@@ -868,7 +870,7 @@ body::after {
   overflow: hidden;
   position: relative;
   opacity: 0;
-  transition: opacity 1.4s ease;
+  transition: var(--embed-transition);
 }
 
 .voice-embed.loaded {
@@ -884,11 +886,11 @@ body::after {
   justify-content: center;
   padding: 0 16px;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: var(--embed-transition);
 }
 
 .voice-embed__waveform.visible  { opacity: 1; }
-.voice-embed__waveform.fading   { opacity: 0; transition: opacity 1.2s ease; }
+.voice-embed__waveform.fading   { opacity: 0; transition: var(--embed-transition); }
 
 .voice-embed__canvas {
   display: block;
@@ -906,7 +908,7 @@ body::after {
   justify-content: space-between;
   padding: 0 16px;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: var(--embed-transition);
   pointer-events: none;
 }
 
@@ -916,12 +918,13 @@ body::after {
 }
 
 .voice-embed__title {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 400;
   font-family: 'Space Mono', monospace;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
   user-select: none;
+  line-height: 1.6;
 }
 
 /* Replay button */
@@ -936,19 +939,16 @@ body::after {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 1px 3px var(--user-bubble-shadow);
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
 .voice-embed__play-btn:hover {
   background: var(--play-btn-hover-bg);
   transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
 }
 
 .voice-embed__play-btn:active {
   transform: scale(0.95);
-  box-shadow: none;
 }
 
 .voice-embed__play-btn svg {
@@ -1072,6 +1072,7 @@ body:not(.intro-active) #intro-start-btn {
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-top: 8px;
+  padding-bottom: 20px;
   width: 100%;
 }
 
@@ -1082,8 +1083,9 @@ body:not(.intro-active) #intro-start-btn {
   border-radius: 12px;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 1.4s ease;
+  transition: var(--embed-transition);
   background: var(--skeleton-base);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 .intro-photo-item.loaded {

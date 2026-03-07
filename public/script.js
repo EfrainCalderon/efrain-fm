@@ -545,7 +545,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 
   const titleEl = document.createElement('span');
   titleEl.className = 'voice-embed__title';
-  titleEl.textContent = title;
+  titleEl.innerHTML = title.replace('\n', '<br>');
 
   const playBtn = document.createElement('button');
   playBtn.className = 'voice-embed__play-btn';
@@ -736,8 +736,8 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     setTimeout(() => {
       waveLayer.classList.remove('visible', 'fading');
       if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
-    }, 400);
-    staticLayer.classList.add('visible');
+      staticLayer.classList.add('visible');
+    }, 1400);
   }
 
   // ── Playback ──────────────────────────────────────────────────────
@@ -809,94 +809,10 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   const startBtn = document.getElementById('intro-start-btn');
   if (!startBtn) return;
 
-  document.body.classList.add('intro-active');
+  const STORAGE_KEY = 'efrain_fm_transmission';
 
-  startBtn.addEventListener('click', () => {
-    // 1. Dismiss the intro button
-    // Pre-hide input wrapper first so it doesn't flash when intro-active is removed
-    const inputWrapper = document.getElementById('input-wrapper');
-    inputWrapper.style.opacity = '0';
-    inputWrapper.style.pointerEvents = 'none';
-    document.body.classList.remove('intro-active');
-
-    // 3. Create embed, wrap it for correct spacing, append
-    const now = new Date();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const yy = String(now.getFullYear()).slice(-2);
-    const hours = now.getHours();
-    const mins = String(now.getMinutes()).padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const h12 = String(hours % 12 || 12).padStart(2, '0');
-    const baseTitle = `TRANSMISSION: ON AIR ${mm}-${dd}-${yy} ${h12}:${mins} ${ampm}`;
-    const embed = createVoiceEmbed('/audio/welcomemsg.m4a', baseTitle);
-    const wrapper = document.createElement('div');
-    wrapper.className = 'voice-embed-wrapper';
-    wrapper.appendChild(embed);
-    chatMessages.appendChild(wrapper);
-    scrollToBottom();
-
-    // Trigger fade-in on next frame (opacity 0 → 1 via CSS transition)
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => embed.classList.add('loaded'));
-    });
-
-    // 4. Start hum at same moment embed fades in
-    const hum = new Audio('/audio/spacehumloop.mp3');
-    hum.loop   = true;
-    hum.volume = 0;
-    hum.play().catch(() => {});
-
-    let humVol = 0;
-    const HUM_TARGET = 0.18;
-    const humFadeIn = setInterval(() => {
-      humVol = Math.min(humVol + 0.012, HUM_TARGET);
-      hum.volume = humVol;
-      if (humVol >= HUM_TARGET) clearInterval(humFadeIn);
-    }, 30);
-
-    // 5. Play embed synchronously (user gesture still active)
-    embed.startPlayback();
-
-    // 6. Once duration is known, schedule input restore + hum fade
-    const voiceAudio = embed.querySelector('audio');
-    if (voiceAudio) {
-      const scheduleRestore = () => {
-        const dur = voiceAudio.duration;
-        if (!isFinite(dur)) return;
-        // Restore input 1.5s before end
-        const restoreDelay = Math.max((dur - 1.5) * 1000, 0);
-        setTimeout(() => fadeInInput(), restoreDelay);
-      };
-
-      if (isFinite(voiceAudio.duration)) {
-        scheduleRestore();
-      } else {
-        voiceAudio.addEventListener('loadedmetadata', scheduleRestore, { once: true });
-      }
-
-      // Hum lingers ~400ms after audio ends, then fades out slowly
-      voiceAudio.addEventListener('ended', () => {
-        // Append duration to title once, on first play only
-        const secs = Math.round(voiceAudio.duration);
-        const titleEl = embed.querySelector('.voice-embed__title');
-        if (titleEl && !titleEl.dataset.durationSet) {
-          titleEl.textContent = `${baseTitle} [${secs}s]`;
-          titleEl.dataset.durationSet = '1';
-        }
-        setTimeout(() => {
-          const humFadeOut = setInterval(() => {
-            hum.volume = Math.max(hum.volume - 0.008, 0);
-            if (hum.volume <= 0) {
-              clearInterval(humFadeOut);
-              hum.pause();
-            }
-          }, 40);
-        }, 400);
-      });
-    }
-
-    // 7. After 5s, fade in photos one by one (same 1.4s ease as embeds)
+  // ── Helper: build photo grid (shared by both paths) ───────────────────
+  function buildPhotoGrid(immediate) {
     const introPhotos = [
       { src: '/images/photo1.jpg', caption: 'One of my first California sunsets' },
       { src: '/images/photo2.jpg', caption: 'This chicken cutlet is shaped like New Jersey' },
@@ -904,7 +820,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       { src: '/images/photo4.jpg', caption: 'My pup, Ernie' },
     ];
 
-    // Build the grid and append it (invisible until photos fade in)
     const photoGrid = document.createElement('div');
     photoGrid.className = 'intro-photo-grid';
 
@@ -924,18 +839,144 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     chatMessages.appendChild(photoGrid);
     scrollToBottom();
 
-    // Stagger each photo in with 1.4s gap, starting at 5s
-    photoItems.forEach((item, i) => {
-      setTimeout(() => {
-        requestAnimationFrame(() => {
+    if (immediate) {
+      // Return visit: all photos already visible, no delay
+      photoItems.forEach(item => item.classList.add('loaded'));
+    } else {
+      // First visit: stagger fade in starting 5s after audio begins
+      photoItems.forEach((item, i) => {
+        setTimeout(() => {
           requestAnimationFrame(() => {
-            item.classList.add('loaded');
-            scrollToBottom();
+            requestAnimationFrame(() => {
+              item.classList.add('loaded');
+              scrollToBottom();
+            });
           });
-        });
-      }, 5000 + i * 1400);
+        }, 5000 + i * 1400);
+      });
+    }
+  }
+
+  // ── Helper: inject completed embed with saved title ────────────────────
+  function injectCompletedEmbed(savedTitle) {
+    const embed = createVoiceEmbed('/audio/welcomemsg.m4a', '');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'voice-embed-wrapper';
+    wrapper.appendChild(embed);
+    chatMessages.appendChild(wrapper);
+
+    // Show immediately in completed (static) state — no waveform, no fade sequence
+    embed.classList.add('loaded');
+    const staticLayer = embed.querySelector('.voice-embed__static');
+    if (staticLayer) staticLayer.classList.add('visible');
+    const titleEl = embed.querySelector('.voice-embed__title');
+    if (titleEl) {
+      titleEl.innerHTML = savedTitle;
+      titleEl.dataset.durationSet = '1';
+    }
+
+    scrollToBottom();
+  }
+
+  // ── RETURN VISIT ───────────────────────────────────────────────────────
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    // Skip intro entirely — go straight to ready state
+    document.body.classList.remove('intro-active');
+    // Don't show start button at all; restore input immediately
+    fadeInInput();
+    // Inject the completed embed with the persisted title
+    injectCompletedEmbed(saved);
+    // Photos already seen — show immediately
+    buildPhotoGrid(true);
+    return;
+  }
+
+  // ── FIRST VISIT ────────────────────────────────────────────────────────
+  document.body.classList.add('intro-active');
+
+  startBtn.addEventListener('click', () => {
+    // Pre-hide input wrapper first so it doesn't flash when intro-active is removed
+    const inputWrapper = document.getElementById('input-wrapper');
+    inputWrapper.style.opacity = '0';
+    inputWrapper.style.pointerEvents = 'none';
+    document.body.classList.remove('intro-active');
+
+    // Capture time at moment of click
+    const now = new Date();
+    const mm   = String(now.getMonth() + 1).padStart(2, '0');
+    const dd   = String(now.getDate()).padStart(2, '0');
+    const yy   = String(now.getFullYear()).slice(-2);
+    const hours = now.getHours();
+    const mins  = String(now.getMinutes()).padStart(2, '0');
+    const ampm  = hours >= 12 ? 'PM' : 'AM';
+    const h12   = String(hours % 12 || 12).padStart(2, '0');
+
+    const embed = createVoiceEmbed('/audio/welcomemsg.m4a', '');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'voice-embed-wrapper';
+    wrapper.appendChild(embed);
+    chatMessages.appendChild(wrapper);
+    scrollToBottom();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => embed.classList.add('loaded'));
     });
 
+    // Start hum
+    const hum = new Audio('/audio/spacehumloop.mp3');
+    hum.loop   = true;
+    hum.volume = 0;
+    hum.play().catch(() => {});
+
+    let humVol = 0;
+    const HUM_TARGET = 0.18;
+    const humFadeIn = setInterval(() => {
+      humVol = Math.min(humVol + 0.012, HUM_TARGET);
+      hum.volume = humVol;
+      if (humVol >= HUM_TARGET) clearInterval(humFadeIn);
+    }, 30);
+
+    embed.startPlayback();
+
+    const voiceAudio = embed.querySelector('audio');
+    if (voiceAudio) {
+      const scheduleRestore = () => {
+        const dur = voiceAudio.duration;
+        if (!isFinite(dur)) return;
+        const restoreDelay = Math.max((dur - 1.5) * 1000, 0);
+        setTimeout(() => fadeInInput(), restoreDelay);
+      };
+
+      if (isFinite(voiceAudio.duration)) {
+        scheduleRestore();
+      } else {
+        voiceAudio.addEventListener('loadedmetadata', scheduleRestore, { once: true });
+      }
+
+      voiceAudio.addEventListener('ended', () => {
+        const secs    = Math.round(voiceAudio.duration);
+        const titleEl = embed.querySelector('.voice-embed__title');
+        if (titleEl && !titleEl.dataset.durationSet) {
+          const fullTitle = `TRANSMISSION //<br>WELCOME MSG, ON AIR ${mm}-${dd}-${yy} ${h12}:${mins} ${ampm} [${secs}s]`;
+          titleEl.innerHTML = fullTitle;
+          titleEl.dataset.durationSet = '1';
+          // Persist for return visits — store as HTML string
+          localStorage.setItem(STORAGE_KEY, fullTitle);
+        }
+        setTimeout(() => {
+          const humFadeOut = setInterval(() => {
+            hum.volume = Math.max(hum.volume - 0.008, 0);
+            if (hum.volume <= 0) {
+              clearInterval(humFadeOut);
+              hum.pause();
+            }
+          }, 40);
+        }, 400);
+      });
+    }
+
+    buildPhotoGrid(false);
   });
 })();
 
