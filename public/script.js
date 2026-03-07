@@ -889,6 +889,9 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     injectCompletedEmbed(saved);
     // Photos already seen — show immediately
     buildPhotoGrid(true);
+    setTimeout(() => {
+      addMessage("Thanks for coming back. What are you looking for?", 'assistant');
+    }, 1400);
     return;
   }
 
