@@ -923,20 +923,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       requestAnimationFrame(() => embed.classList.add('loaded'));
     });
 
-    // Start hum
-    const hum = new Audio('/audio/spacehumloop.mp3');
-    hum.loop   = true;
-    hum.volume = 0;
-    hum.play().catch(() => {});
-
-    let humVol = 0;
-    const HUM_TARGET = 0.18;
-    const humFadeIn = setInterval(() => {
-      humVol = Math.min(humVol + 0.012, HUM_TARGET);
-      hum.volume = humVol;
-      if (humVol >= HUM_TARGET) clearInterval(humFadeIn);
-    }, 30);
-
     embed.startPlayback();
 
     const voiceAudio = embed.querySelector('audio');
@@ -964,18 +950,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           // Persist for return visits — store as HTML string
           localStorage.setItem(STORAGE_KEY, fullTitle);
         }
-        setTimeout(() => {
-          let fadeSteps = 0;
-          const FADE_STEPS = Math.ceil(HUM_TARGET / 0.008);
-          const humFadeOut = setInterval(() => {
-            fadeSteps++;
-            hum.volume = Math.max(HUM_TARGET - fadeSteps * 0.008, 0);
-            if (fadeSteps >= FADE_STEPS) {
-              clearInterval(humFadeOut);
-              hum.pause();
-            }
-          }, 40);
-        }, 400);
       });
     }
 
