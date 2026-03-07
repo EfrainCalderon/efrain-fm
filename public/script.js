@@ -965,9 +965,12 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           localStorage.setItem(STORAGE_KEY, fullTitle);
         }
         setTimeout(() => {
+          let fadeSteps = 0;
+          const FADE_STEPS = Math.ceil(HUM_TARGET / 0.008);
           const humFadeOut = setInterval(() => {
-            hum.volume = Math.max(hum.volume - 0.008, 0);
-            if (hum.volume <= 0) {
+            fadeSteps++;
+            hum.volume = Math.max(HUM_TARGET - fadeSteps * 0.008, 0);
+            if (fadeSteps >= FADE_STEPS) {
               clearInterval(humFadeOut);
               hum.pause();
             }
