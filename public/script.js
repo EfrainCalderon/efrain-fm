@@ -944,7 +944,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
         const secs    = Math.round(voiceAudio.duration);
         const titleEl = embed.querySelector('.voice-embed__title');
         if (titleEl && !titleEl.dataset.durationSet) {
-          const fullTitle = `TRANSMISSION //<br>WELCOME MSG, ON AIR ${mm}-${dd}-${yy} ${h12}:${mins} ${ampm} [${secs}s]`;
+          const fullTitle = `TRANSMISSION //<br>WELCOME MSG, ON AIR <span class="voice-embed__date">${mm}-${dd}-${yy}</span><span class="voice-embed__time"> ${h12}:${mins} ${ampm} [${secs}s]</span>`;
           titleEl.innerHTML = fullTitle;
           titleEl.dataset.durationSet = '1';
           // Persist for return visits — store as HTML string
