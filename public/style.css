@@ -927,7 +927,7 @@ body::after {
   user-select: none;
   line-height: 1.6;
   flex: 1;
-  text-align: center;
+  text-align: left;
 }
 
 .voice-embed__date,
