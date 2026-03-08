@@ -283,7 +283,7 @@ body::after {
   background-color: var(--bg-header-footer);
   backdrop-filter: var(--backdrop-blur);
   -webkit-backdrop-filter: var(--backdrop-blur);
-  padding: 24px 12px 2px;
+  padding: 20px 12px 2px;
   z-index: 100;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border-color);
