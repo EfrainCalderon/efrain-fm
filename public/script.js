@@ -814,19 +814,23 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   // ── Helper: build photo grid (shared by both paths) ───────────────────
   function buildPhotoGrid(immediate) {
     const allPhotos = [
+      { src: '/images/photo1.jpg',  caption: 'One of my first California sunsets', hasMe: true },
+      { src: '/images/photo2.jpg',  caption: 'This chicken cutlet is shaped like New Jersey', hasMe: false },
+      { src: '/images/photo3.jpg',  caption: 'I made music for a while', hasMe: true },
+      { src: '/images/photo4.jpg',  caption: 'My pup, Ernie', hasMe: false },
       { src: '/images/photo5.jpg',  caption: 'One is a professional wrestling champion, another is a product designer. Both are Cuban.', hasMe: true },
       { src: '/images/photo6.jpg',  caption: 'Caught my dog Ernie during the golden hour', hasMe: false },
       { src: '/images/photo7.jpg',  caption: 'Me, live in Hoboken way back as Rare Books', hasMe: true },
       { src: '/images/photo8.jpg',  caption: 'Camp day at Oscar with some awesome colleagues', hasMe: true },
       { src: '/images/photo9.jpg',  caption: "I won 2nd place two years in a row at Oscar's fun poker tournament. I was enjoying my opponents' body language here.", hasMe: true },
       { src: '/images/photo10.jpg', caption: 'Live shot from a Black Pumas show at Asbury Park', hasMe: false },
-      { src: '/images/photo11.jpg', caption: 'The pandemic was a strange time that called for strange hair configurations', hasMe: true },
-      { src: '/images/photo12.jpg', caption: 'Me and my fiancé Elaine at Niagara Falls', hasMe: true },
-      { src: '/images/photo13.jpg', caption: 'Product designers from Cityblock making sandcastles together at a San Diego offsite', hasMe: false },
-      { src: '/images/photo14.jpg', caption: "Let's go Mets!", hasMe: true },
-      { src: '/images/photo15.jpg', caption: 'Always wanted one of these "stickies on a wall" photos - collaborating at Cityblock in Brooklyn', hasMe: false },
-      { src: '/images/photo16.jpg', caption: 'Cityblock engagement team offsite in Chicago, all trying to get that bean photo', hasMe: true },
-      { src: '/images/photo17.jpg', caption: 'A fine gift from my local record shop, a signed Tiny Tim 7"', hasMe: true },
+      { src: '/images/photo11.jpg', caption: 'Me and my fiancé Elaine at Niagara Falls', hasMe: true },
+      { src: '/images/photo12.jpg', caption: 'Product designers from Cityblock making sandcastles together at a San Diego offsite', hasMe: false },
+      { src: '/images/photo13.jpg', caption: "Let's go Mets!", hasMe: true },
+      { src: '/images/photo14.jpg', caption: 'Always wanted one of these "stickies on a wall" photos - collaborating at Cityblock in Brooklyn', hasMe: false },
+      { src: '/images/photo15.jpg', caption: 'A fine gift from my local record shop, a signed Tiny Tim 7"', hasMe: false },
+      { src: '/images/photo16.jpg', caption: 'Cityblock engagement team offsite in Chicago, all trying to get that bean photo', hasMe: false },
+      { src: '/images/photo17.jpg', caption: "I no longer have that mullet-y cut, but it was a fun time.", hasMe: true },
     ];
 
     // Pick 4: 1–2 with hasMe, rest without, then shuffle
