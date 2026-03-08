@@ -828,7 +828,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       { src: '/images/photo12.jpg', caption: 'Product designers from Cityblock making sandcastles together at a San Diego offsite', hasMe: false },
       { src: '/images/photo13.jpg', caption: "Let's go Mets!", hasMe: true },
       { src: '/images/photo14.jpg', caption: 'Always wanted one of these "stickies on a wall" photos - collaborating at Cityblock in Brooklyn', hasMe: false },
-      { src: '/images/photo15.jpg', caption: 'A fine gift from my local record shop, a signed Tiny Tim 7"', hasMe: false },
+      { src: '/images/photo15.jpg', caption: 'A gift from my local record shop, a signed Tiny Tim 7"', hasMe: false },
       { src: '/images/photo16.jpg', caption: 'Cityblock engagement team offsite in Chicago, all trying to get that bean photo', hasMe: false },
       { src: '/images/photo17.jpg', caption: "I no longer have that mullet-y cut, but it was a fun time.", hasMe: true },
     ];
