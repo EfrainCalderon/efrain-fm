@@ -1152,10 +1152,11 @@ body:not(.intro-active) #intro-start-btn {
 }
 
 .intro-lightbox-caption {
-  margin-top: 18px;
-  font-size: 18px;
-  font-family: 'Inter', sans-serif;
+  margin-top: 16px;
+  font-size: 16px;
+  font-family: 'Space Mono', sans-serif;
   color: rgba(245, 242, 238, 0.88);
   text-align: center;
   pointer-events: none;
+  max-width: min(560px, 90vw);
 }
