@@ -127,7 +127,8 @@ const TRAIT_ALIASES = {
   'electronic': 'genre:electronic', 'synth': 'genre:electronic', 'hip-hop': 'genre:hip-hop', 'rap': 'genre:hip-hop',
   'hip hop': 'genre:hip-hop', 'soul': 'genre:soul', 'funk': 'genre:funk', 'folk': 'genre:folk',
   'experimental': 'genre:experimental', 'avant-garde': 'genre:experimental', 'noise': 'genre:noise',
-  'ambient': 'genre:ambient', 'dance': 'genre:dance', 'disco': 'genre:dance',
+  'ambient': 'genre:ambient', 'dance music': 'genre:dance', 'disco': 'genre:dance',
+  'k-pop': 'genre:k-pop', 'kpop': 'genre:k-pop', 'korean pop': 'genre:k-pop',
   'psychedelic': 'genre:psychedelic', 'art rock': 'genre:art-rock', 'afrobeat': 'genre:afrobeat',
   'r&b': 'genre:r&b', 'jazz': 'genre:jazz', 'country': 'genre:country', 'latin': 'genre:latin',
   // Pop — maps to danceable/joyful rather than a genre:pop trait we don't have.
@@ -153,7 +154,7 @@ const TRAIT_ALIASES = {
   'intimate': 'char:intimate', 'personal': 'char:intimate', 'close': 'char:intimate',
   'beautiful': 'char:beautiful', 'gorgeous': 'char:beautiful',
   'late night': 'char:late-night', 'night': 'char:late-night', 'midnight': 'char:late-night', '2am': 'char:late-night',
-  'danceable': 'char:danceable', 'dance': 'char:danceable',
+  'danceable': 'char:danceable', 'dance': 'char:danceable', 'makes you move': 'char:danceable',
   'nostalgic': 'char:nostalgic', 'nostalgia': 'char:nostalgic', 'vintage': 'char:nostalgic', 'retro': 'char:nostalgic',
 
   // Differentiating character traits — added for buried songs
@@ -283,8 +284,16 @@ function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = n
     // not just whichever one the song happens to have.
     // Exception: origin traits don't gate against genre traits and vice versa —
     // "Brazilian jazz" requires origin:brazil AND genre:jazz on the same song.
+    // Equivalences: genre:dance is satisfied by char:danceable (K-pop songs are
+    // danceable but not tagged genre:dance). genre:k-pop is satisfied by origin:korea.
     if (requiredGenreTargets.length > 0) {
-      const hasAllRequired = requiredGenreTargets.every(t => traits[t] !== undefined && traits[t] >= 0.5);
+      const hasAllRequired = requiredGenreTargets.every(t => {
+        if (traits[t] !== undefined && traits[t] >= 0.5) return true;
+        // Equivalences — alternate ways a song can satisfy a genre requirement
+        if (t === 'genre:dance' && traits['char:danceable'] >= 0.5) return true;
+        if (t === 'genre:k-pop' && traits['origin:korea'] >= 0.5) return true;
+        return false;
+      });
       if (!hasAllRequired) return { ...song, score: 0 };
     }
 
@@ -442,7 +451,7 @@ MAP TO THESE TRAIT VOCABULARY TERMS WHERE POSSIBLE:
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
 Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning", "mood:defeated", "mood:cathartic", "mood:hypnotic", "mood:romantic", "mood:celebratory", "mood:resigned"
 Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet"
-Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk", "genre:k-pop"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
 Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson"
 Origin (use when user specifies a country or region): "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland", "origin:spain", "origin:colombia", "origin:jamaica"
@@ -469,6 +478,7 @@ SITUATIONAL MAPPINGS:
 - "harmonies", "vocal harmony" → ["char:vocal-harmony"]
 - "french", "french pop", "ye-ye" → ["genre:ye-ye", "origin:france"]
 - "bittersweet" → ["mood:bittersweet", "char:bittersweet"]
+- "k-pop", "kpop", "korean pop" → ["genre:k-pop", "origin:korea"]
 
 RULES:
 - Prefer trait vocabulary terms over raw words whenever possible
