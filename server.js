@@ -802,6 +802,34 @@ function isConversational(msg) {
 }
 
 // =====================
+// =====================
+// REACTION CLASSIFIER
+// For short ambiguous messages when a last song exists.
+// Returns: 'REACTION_POSITIVE' | 'REACTION_NEGATIVE' | 'SEARCH'
+// Biased toward SEARCH — only returns a reaction classification when confident.
+// =====================
+async function classifyShortMessage(message, lastSong) {
+  const songContext = lastSong ? `The last song played was "${lastSong.title}" by ${lastSong.artist}.` : '';
+  const response = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001', max_tokens: 10,
+    system: `You classify short music chat messages. Given a message and the last song played, decide if the message is a reaction to the last song or a new search request.
+
+REACTION_POSITIVE: clear positive feedback about the last song ("love this", "this is incredible", "obsessed", "what a tune", "this one's special")
+REACTION_NEGATIVE: clear negative feedback about the last song ("not for me", "not feeling it", "this isn't working", "too slow for me")
+SEARCH: anything requesting a different song, genre, mood, artist, or vibe — including vague ones
+
+When in doubt, return SEARCH. Only return a reaction classification when the message is clearly about the last song and not asking for anything new.
+
+Reply with exactly one of: REACTION_POSITIVE, REACTION_NEGATIVE, SEARCH`,
+    messages: [{ role: 'user', content: `${songContext}\nMessage: "${message}"` }]
+  });
+  const result = response.content[0].text.trim().toUpperCase();
+  if (result.includes('REACTION_POSITIVE')) return 'REACTION_POSITIVE';
+  if (result.includes('REACTION_NEGATIVE')) return 'REACTION_NEGATIVE';
+  return 'SEARCH';
+}
+
+// =====================
 // HELPER: get spotify_url for frontend (handles new streaming object)
 // =====================
 function getSongUrl(song) {
@@ -999,6 +1027,44 @@ app.post('/api/chat', async (req, res) => {
     if (isOffScript(message)) {
       const reply = await generateConversationalResponse(message, session.lastSong);
       return res.json({ response: reply, song: null });
+    }
+
+    // ---- Haiku reaction classifier ----
+    // Catches natural feedback ("love this song", "not really my thing", "obsessed")
+    // that the regex checks above miss.
+    // Conditions: message is short (≤8 words) AND last song exists AND doesn't look like a search.
+    const wordCount = message.trim().split(/\s+/).length;
+    const looksLikeSearch = (
+      // Contains a known genre or mood word
+      [...GENRE_WORDS].some(w => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(message)) ||
+      // Contains a trait alias of 5+ chars (catches "melancholic", "ethereal", "literate" etc.)
+      Object.keys(TRAIT_ALIASES).some(a => a.length >= 5 && new RegExp(`\\b${a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(message)) ||
+      // Explicit search signal words
+      /\b(something|anything|give me|play me|find me|another|more|different|instead|not\s+\w+|less\s+\w+|more\s+\w+)\b/i.test(message)
+    );
+
+    if (wordCount <= 8 && session.lastSong && !looksLikeSearch) {
+      const classification = await classifyShortMessage(message, session.lastSong);
+      if (classification === 'REACTION_POSITIVE') {
+        const s = session.lastSong;
+        const replies = [
+          `Yeah, ${s.title} is a good one. What are you in the mood for next?`,
+          `Right? ${s.artist} doesn't miss. What do you want to hear next?`,
+          `Glad that one landed. What else are you feeling?`,
+          `${s.title} holds up every time. What are you feeling next?`,
+        ];
+        return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
+      }
+      if (classification === 'REACTION_NEGATIVE') {
+        const s = session.lastSong;
+        const replies = [
+          `Fair enough — ${s.artist} isn't for everyone. What are you in the mood for instead?`,
+          `No worries. What direction do you want to go?`,
+          `Got it. What would hit better right now?`,
+        ];
+        return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
+      }
+      // SEARCH — fall through to keyword extraction
     }
 
     if (msgLower === 'more of that energy' && session.lastSongTraits) {
