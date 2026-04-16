@@ -196,7 +196,10 @@
         "genre:folk": 0.6,
         "texture:sparse": 0.7,
         "energy:low": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:existential": 0.7,
+        "texture:quiet": 0.8,
+        "char:acoustic": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3A9GSJ9CCOO4JEI3JAiBU3",
@@ -326,7 +329,10 @@
         "char:intimate": 0.9,
         "texture:sparse": 0.8,
         "energy:low": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:existential": 0.8,
+        "char:introspective": 0.8,
+        "mood:cathartic": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4W1sol1em9Wo2o7daeAOJY",
@@ -768,7 +774,10 @@
         "texture:warm": 0.7,
         "energy:low": 0.8,
         "char:intimate": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:chamber-pop": 0.8,
+        "mood:defeated": 0.8,
+        "char:literate": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/29i8axWOLDmgbiutJb9prB",
@@ -1342,7 +1351,10 @@
         "mood:defiant": 0.7,
         "era:00s": 0.8,
         "char:heavy": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:driving": 0.8,
+        "mood:tense": 0.7,
+        "genre:blues-rock": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2fUUIfU0WurkHNLoUJwGnH",
@@ -1498,7 +1510,8 @@
         "genre:folk": 0.7,
         "era:70s": 1,
         "char:beautiful": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:literate": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7xRemq7GLu0Tbqe9OckG87",
@@ -1524,7 +1537,8 @@
         "char:nostalgic": 0.7,
         "era:70s": 1,
         "char:intimate": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:literate": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/64MISVB9IIchhOKmWHftoz",
@@ -1550,7 +1564,8 @@
         "texture:warm": 0.7,
         "energy:low": 0.8,
         "char:intimate": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:literate": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5pAWVctic0ClLM714mmqAI",
@@ -1801,7 +1816,7 @@
       "title": "Frank Sinatra",
       "artist": "Cake",
       "year": 1996,
-      "cluster": "C9",
+      "cluster": "C7",
       "cluster_secondary": "",
       "traits": {
         "mood:playful": 0.8,
@@ -2011,7 +2026,7 @@
       "title": "Construção",
       "artist": "Chico Buarque",
       "year": 1971,
-      "cluster": "C5",
+      "cluster": "C4",
       "cluster_secondary": "C4",
       "traits": {
         "genre:latin": 0.9,
@@ -2037,7 +2052,7 @@
       "title": "Cálice",
       "artist": "Chico Buarque and Milton Nascimento",
       "year": 1973,
-      "cluster": "C5",
+      "cluster": "C4",
       "cluster_secondary": "",
       "traits": {
         "genre:latin": 0.9,
@@ -3502,7 +3517,10 @@
         "texture:sparse": 0.8,
         "genre:folk": 0.6,
         "mood:tender": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:sweet": 0.8,
+        "char:fragile": 0.7,
+        "mood:bittersweet": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4IKMZtDIqyQDA6a4YvsgpK",
@@ -3839,7 +3857,10 @@
         "mood:playful": 0.6,
         "era:00s": 1,
         "texture:noisy": 0.5,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:driving": 0.8,
+        "char:angular": 0.7,
+        "mood:tense": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/20I8RduZC2PWMWTDCZuuAN",
@@ -3891,7 +3912,11 @@
         "char:beautiful": 0.8,
         "texture:warm": 0.8,
         "mood:tender": 0.7,
-        "origin:france": 1
+        "origin:france": 1,
+        "genre:ye-ye": 0.9,
+        "char:wes-anderson": 0.7,
+        "mood:romantic": 0.8,
+        "char:breezy": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6rqUOLt9dpfMANLMKTzoWj",
@@ -3917,7 +3942,11 @@
         "char:beautiful": 0.8,
         "texture:warm": 0.8,
         "mood:tender": 0.6,
-        "origin:france": 1
+        "origin:france": 1,
+        "genre:ye-ye": 0.9,
+        "char:wes-anderson": 0.6,
+        "mood:longing": 0.7,
+        "char:breezy": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0Yg1hSAUgd2AAneReFOVzS",
@@ -4255,7 +4284,9 @@
         "mood:defiant": 0.7,
         "era:10s": 0.8,
         "texture:noisy": 0.6,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "char:cool": 0.7,
+        "texture:cold": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4JzRFNQfVgNXDi45SILxge",
@@ -4584,7 +4615,7 @@
       "title": "Either Way",
       "artist": "IVE",
       "year": 2023,
-      "cluster": "C7",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:electronic": 0.7,
@@ -4820,7 +4851,7 @@
       "title": "like JENNIE",
       "artist": "JENNIE",
       "year": 2023,
-      "cluster": "C7",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:electronic": 0.7,
@@ -4846,7 +4877,7 @@
       "title": "Fast Forward",
       "artist": "Jeon Somi",
       "year": 2023,
-      "cluster": "C7",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:electronic": 0.7,
@@ -4872,7 +4903,7 @@
       "title": "Extra",
       "artist": "Jeon Somi",
       "year": 2023,
-      "cluster": "C7",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:electronic": 0.7,
@@ -4907,7 +4938,8 @@
         "texture:warm": 0.7,
         "char:intimate": 0.8,
         "char:weird": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:literate": 0.9
       },
       "streaming": {
         "spotify": "",
@@ -5444,7 +5476,7 @@
       "title": "Antifragile",
       "artist": "Le Sserafim",
       "year": 2022,
-      "cluster": "C7",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:electronic": 0.7,
@@ -5951,7 +5983,10 @@
         "energy:low": 0.8,
         "texture:warm": 0.7,
         "mood:melancholic": 0.7,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "genre:dream-pop": 0.8,
+        "char:hazy": 0.7,
+        "mood:hypnotic": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6Ijmj8Z0L31hCp5pLZnT5U",
@@ -6212,8 +6247,10 @@
         "era:00s": 0.8,
         "genre:folk": 0.5,
         "genre:americana": 0.7,
-        "char:southern": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:anthemic": 0.8,
+        "char:bombastic": 0.7,
+        "genre:indie-rock": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6mHcbczLuUtELuAa6Boxkb",
@@ -6239,7 +6276,10 @@
         "mood:joyful": 0.7,
         "era:00s": 0.8,
         "mood:tender": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:americana": 0.8,
+        "mood:romantic": 0.7,
+        "char:acoustic": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3kQDykkw9HVowlm3HxTcuR",
@@ -6490,7 +6530,7 @@
       "title": "Ditto",
       "artist": "New Jeans",
       "year": 2022,
-      "cluster": "C7",
+      "cluster": "C10",
       "cluster_secondary": "C8",
       "traits": {
         "char:nostalgic": 0.7,
@@ -6733,7 +6773,10 @@
         "energy:high": 0.7,
         "texture:lush": 0.6,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:eccentric": 0.8,
+        "mood:playful": 0.7,
+        "genre:glam": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/36N7p13JjbRfOby8DWV8Nn",
@@ -7149,7 +7192,10 @@
         "mood:playful": 0.6,
         "char:intimate": 0.7,
         "era:80s": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:lo-fi": 0.9,
+        "char:eccentric": 0.8,
+        "char:confessional": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6EZKk4miwtChOObYJMMr2u",
@@ -7307,7 +7353,11 @@
         "energy:medium": 0.7,
         "era:modern": 0.7,
         "texture:warm": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:narrative": 0.9,
+        "char:literate": 0.8,
+        "mood:longing": 0.7,
+        "char:bittersweet": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5qyrVGCTSvX9kV3jj59et6",
@@ -7333,7 +7383,12 @@
         "energy:low": 0.7,
         "char:intimate": 0.7,
         "era:modern": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:indie-rock": 0.7,
+        "genre:folk": 0.6,
+        "char:acoustic": 0.7,
+        "char:narrative": 0.8,
+        "mood:romantic": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7CQIBZ4ZxUlEBfCr8qKe5M",
@@ -7568,7 +7623,10 @@
         "genre:folk": 0.5,
         "energy:low": 0.7,
         "era:modern": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:indie-rock": 0.7,
+        "mood:yearning": 0.8,
+        "char:defiant": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5th3rj1nW25bm5iSLiK3i9",
@@ -7802,7 +7860,10 @@
         "energy:medium": 0.7,
         "mood:joyful": 0.6,
         "era:70s": 1,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:slow-burn": 0.8,
+        "mood:hypnotic": 0.7,
+        "char:psychedelic": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1aPFLpNNczxjY34qdKVJLg",
@@ -8036,7 +8097,10 @@
         "era:80s": 1,
         "texture:warm": 0.7,
         "char:intimate": 0.6,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "genre:new-wave": 0.8,
+        "char:witty": 0.7,
+        "char:literate": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2vJbwwGmmrBGNea0rkF3V0",
@@ -8114,7 +8178,10 @@
         "era:80s": 0.9,
         "texture:warm": 0.7,
         "char:intimate": 0.6,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "genre:new-wave": 0.8,
+        "char:witty": 0.6,
+        "char:literate": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7c3WIsUNdaMNbQQzL1Q56l",
@@ -8246,7 +8313,10 @@
         "texture:warm": 0.8,
         "era:70s": 1,
         "char:intimate": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:yacht-rock": 0.8,
+        "mood:bittersweet": 0.7,
+        "char:literate": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3IvTwPCCjfZczCN2k4qPiH",
@@ -8742,7 +8812,10 @@
         "char:political": 0.5,
         "era:00s": 0.8,
         "energy:medium": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:indie-rock": 0.7,
+        "char:literate": 0.8,
+        "char:nj": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0PkqVbqo5Y9CLMayxMmf4i",
@@ -8848,7 +8921,10 @@
         "texture:warm": 0.7,
         "era:90s": 0.9,
         "char:intimate": 0.6,
-        "origin:sweden": 1
+        "origin:sweden": 1,
+        "genre:indie-pop": 0.8,
+        "char:bittersweet": 0.8,
+        "mood:resigned": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6ZaiqbV2GfUtrUlhsu58fN",
@@ -9056,7 +9132,9 @@
         "mood:dreamlike": 0.7,
         "energy:low": 0.7,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:abstract": 0.8,
+        "char:suite": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4emDb4uF3DbcpA3koW4sPd",
@@ -9342,7 +9420,11 @@
         "era:70s": 0.9,
         "texture:warm": 0.7,
         "char:intimate": 0.6,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:wistful": 0.8,
+        "char:travel": 0.7,
+        "char:wes-anderson": 0.6,
+        "mood:yearning": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1gnP3cx9uzFAVll8OfBcqz",
@@ -9628,7 +9710,10 @@
         "mood:playful": 0.7,
         "genre:folk": 0.5,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:anti-folk": 0.9,
+        "char:lo-fi": 0.8,
+        "char:sweet": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0TcbL2SYCCjJxgOLOWpUMS",
@@ -10046,7 +10131,10 @@
         "texture:sparse": 0.7,
         "era:60s": 1,
         "mood:tender": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:confessional": 0.8,
+        "char:literary": 0.8,
+        "texture:quiet": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2Vp0ue7NNLHFF6RKSdOEuN",
@@ -10098,7 +10186,10 @@
         "mood:joyful": 0.7,
         "era:60s": 1,
         "mood:tender": 0.6,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:vocal-harmony": 0.9,
+        "genre:baroque-pop": 0.7,
+        "mood:celebratory": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3rXtVEHLj6m7LCXFQW2rC8",
@@ -10830,7 +10921,10 @@
         "mood:playful": 0.6,
         "genre:folk": 0.4,
         "era:90s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:rock": 0.7,
+        "char:guitar-driven": 0.8,
+        "mood:defiant": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2rOoHtWCDcMwG1kDcMd0kq",
@@ -11246,7 +11340,9 @@
         "texture:noisy": 0.6,
         "era:00s": 0.8,
         "mood:playful": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:eccentric": 0.8,
+        "char:narrative": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6QdSHQkW0jqj3chj3usP9l",
@@ -11354,7 +11450,10 @@
         "genre:folk": 0.6,
         "texture:warm": 0.7,
         "era:00s": 0.8,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "genre:indie-folk": 0.8,
+        "mood:hopeful": 0.8,
+        "char:domestic": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/66olzBxCgKlpFRB1LKH5pO",
@@ -11380,7 +11479,10 @@
         "texture:sparse": 0.7,
         "energy:low": 0.7,
         "era:10s": 0.7,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "genre:indie-folk": 0.8,
+        "char:ethereal": 0.7,
+        "mood:yearning": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/71pLAOb9hGDPnDuGse80fV",
@@ -11966,7 +12068,10 @@
         "texture:sparse": 0.8,
         "genre:folk": 0.6,
         "era:00s": 0.8,
-        "origin:ireland": 1
+        "origin:ireland": 1,
+        "char:duet": 0.8,
+        "char:dynamic": 0.7,
+        "genre:chamber-folk": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5mb6SzBnxv1ywFSH9V3uxd",
@@ -11992,7 +12097,9 @@
         "texture:sparse": 0.8,
         "genre:folk": 0.6,
         "era:00s": 0.8,
-        "origin:ireland": 1
+        "origin:ireland": 1,
+        "char:duet": 0.8,
+        "genre:chamber-folk": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3JiiqMYLbnHa1qys1JOpFK",
@@ -12018,7 +12125,10 @@
         "texture:sparse": 0.7,
         "genre:folk": 0.6,
         "era:00s": 0.8,
-        "origin:ireland": 1
+        "origin:ireland": 1,
+        "char:duet": 0.8,
+        "genre:chamber-folk": 0.7,
+        "char:mainstream": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3AkxSspcYOvhWTkaMvqyaD",
@@ -12295,7 +12405,7 @@
       "title": "Speed Love",
       "artist": "tripleS",
       "year": 2022,
-      "cluster": "C7",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:electronic": 0.7,
@@ -12321,7 +12431,7 @@
       "title": "Seoul Sonyo Sound",
       "artist": "tripleS",
       "year": 2022,
-      "cluster": "C7",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:electronic": 0.7,
@@ -12663,7 +12773,7 @@
       "title": "Could It Be",
       "artist": "YUQI",
       "year": 2023,
-      "cluster": "C7",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:electronic": 0.7,
@@ -13149,7 +13259,10 @@
         "char:late-night": 0.8,
         "mood:melancholic": 0.6,
         "char:beautiful": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:dream-pop": 0.8,
+        "char:hazy": 0.7,
+        "genre:jazz": 0.5
       }
     },
     {
@@ -13174,7 +13287,10 @@
         "texture:warm": 0.8,
         "char:late-night": 0.9,
         "mood:melancholic": 0.6,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "genre:dream-pop": 0.8,
+        "char:hazy": 0.7,
+        "char:ethereal": 0.7
       }
     },
     {
@@ -13243,7 +13359,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C8",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:r&b": 0.8,
@@ -13269,7 +13385,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C8",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "genre:r&b": 0.7,
@@ -13294,7 +13410,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C8",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "char:danceable": 0.8,
@@ -13321,7 +13437,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C8",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "char:danceable": 0.8,
@@ -13348,7 +13464,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C8",
+      "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
         "char:danceable": 0.9,
@@ -13373,7 +13489,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C8",
+      "cluster": "C10",
       "cluster_secondary": "C1",
       "traits": {
         "char:weird": 0.8,
@@ -14293,7 +14409,10 @@
         "energy:low": 0.8,
         "char:late-night": 0.7,
         "mood:melancholic": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:dream-pop": 0.8,
+        "char:ethereal": 0.7,
+        "genre:synth-pop": 0.6
       }
     },
     {
@@ -15075,7 +15194,10 @@
         "char:late-night": 0.7,
         "mood:melancholic": 0.6,
         "char:beautiful": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:dream-pop": 0.8,
+        "char:hazy": 0.7,
+        "genre:jazz": 0.5
       }
     },
     {
@@ -15915,7 +16037,10 @@
         "texture:sparse": 0.7,
         "genre:folk": 0.6,
         "energy:low": 0.7,
-        "origin:france": 1
+        "origin:france": 1,
+        "genre:anti-folk": 0.9,
+        "char:witty": 0.7,
+        "mood:bittersweet": 0.7
       }
     },
     {
@@ -15932,7 +16057,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C9",
+      "cluster": "C8",
       "cluster_secondary": "",
       "traits": {
         "genre:country": 0.9,
@@ -15958,7 +16083,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C9",
+      "cluster": "C8",
       "cluster_secondary": "",
       "traits": {
         "genre:country": 0.8,
@@ -15984,7 +16109,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C9",
+      "cluster": "C8",
       "cluster_secondary": "C8",
       "traits": {
         "genre:country": 1,
@@ -17041,7 +17166,10 @@
         "char:late-night": 0.8,
         "mood:melancholic": 0.6,
         "char:beautiful": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:dream-pop": 0.8,
+        "char:yearning": 0.8,
+        "char:ethereal": 0.7
       }
     },
     {
@@ -18279,7 +18407,8 @@
         "texture:warm": 0.7,
         "texture:sparse": 0.7,
         "mood:tender": 0.6,
-        "char:late-night": 0.6
+        "char:late-night": 0.6,
+        "char:literate": 0.9
       }
     },
     {
@@ -18296,7 +18425,7 @@
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
-      "cluster": "C9",
+      "cluster": "C7",
       "cluster_secondary": "",
       "traits": {
         "genre:indie-rock": 0.9,
@@ -18836,36 +18965,36 @@
       }
     },
     {
-  "id": "0717",
-  "title": "Graveyard Girl",
-  "artist": "M83",
-  "year": "2008",
-  "streaming": {
-    "spotify": "https://open.spotify.com/embed/track/7BULOI2sTAnkK0qN9RNcv5",
-    "apple_music": "",
-    "youtube": ""
-  },
-  "commentary": "Haven't we all felt like the Graveyard Girl at some point or another?",
-  "tag_title": "",
-  "tag_url": "",
-  "audio_story": "",
-  "cluster": "C9",
-  "cluster_secondary": "C8",
-  "traits": {
-    "genre:synth-pop": 1.0,
-    "genre:dream-pop": 0.7,
-    "mood:melancholic": 0.8,
-    "mood:dreamlike": 0.7,
-    "mood:playful": 0.5,
-    "energy:medium": 0.7,
-    "char:nostalgic": 1.0,
-    "char:beautiful": 0.8,
-    "char:weird": 0.6,
-    "texture:lush": 0.8,
-    "texture:warm": 0.6,
-    "era:00s": 1.0,
-    "origin:france": 1.0
-  }
-}
+      "id": "0717",
+      "title": "Graveyard Girl",
+      "artist": "M83",
+      "year": "2008",
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/7BULOI2sTAnkK0qN9RNcv5",
+        "apple_music": "",
+        "youtube": ""
+      },
+      "commentary": "Haven't we all felt like the Graveyard Girl at some point or another?",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C9",
+      "cluster_secondary": "C8",
+      "traits": {
+        "genre:synth-pop": 1.0,
+        "genre:dream-pop": 0.7,
+        "mood:melancholic": 0.8,
+        "mood:dreamlike": 0.7,
+        "mood:playful": 0.5,
+        "energy:medium": 0.7,
+        "char:nostalgic": 1.0,
+        "char:beautiful": 0.8,
+        "char:weird": 0.6,
+        "texture:lush": 0.8,
+        "texture:warm": 0.6,
+        "era:00s": 1.0,
+        "origin:france": 1.0
+      }
+    }
   ]
 }

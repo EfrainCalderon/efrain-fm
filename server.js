@@ -66,6 +66,9 @@ const GENRE_WORDS = new Set([
   'slowcore', 'emo', 'hardcore', 'thrash', 'death metal', 'black metal',
   'bossa nova', 'samba', 'tropicalia', 'cumbia', 'salsa', 'merengue',
   'east coast rap', 'west coast rap', 'southern rap', 'trap',
+  'yacht rock', 'soft rock', 'anti-folk', 'chamber folk', 'chamber pop',
+  'blues rock', 'indie rock', 'indie folk', 'baroque pop', 'ye-ye',
+  'synth pop', 'glam rock', 'glam', 'lo-fi folk',
   // Moods — also genre-like in that they should hit trait fields, not titles
   'mellow', 'chill', 'upbeat', 'energetic', 'melancholy', 'dreamy',
   'raw', 'smooth', 'sparse', 'minimal', 'intense', 'gentle', 'soft',
@@ -161,7 +164,39 @@ const TRAIT_ALIASES = {
   'bittersweet': 'char:bittersweet',
   'japanese': 'char:japanese', 'japan': 'char:japanese',
   'deadpan': 'char:deadpan',
-  'chamber pop': 'char:chamber-pop', 'chamber-pop': 'char:chamber-pop',
+  'chamber pop': 'genre:chamber-pop', 'chamber-pop': 'genre:chamber-pop',
+  // New character traits
+  'literate': 'char:literate', 'literary': 'char:literate', 'cerebral': 'char:literate', 'intellectual': 'char:literate', 'wordy': 'char:literate',
+  'sweet': 'char:sweet',
+  'acoustic': 'char:acoustic', 'unplugged': 'char:acoustic',
+  'ethereal': 'char:ethereal', 'airy': 'char:ethereal', 'floaty': 'char:ethereal',
+  'hazy': 'char:hazy', 'foggy': 'char:hazy', 'blurry': 'char:hazy',
+  'driving': 'char:driving', 'propulsive': 'char:driving', 'motorik': 'char:driving',
+  'angular': 'char:angular', 'choppy': 'char:angular', 'jerky': 'char:angular',
+  'eccentric': 'char:eccentric', 'odd': 'char:eccentric', 'peculiar': 'char:eccentric',
+  'confessional': 'char:confessional', 'diary': 'char:confessional',
+  'existential': 'char:existential', 'philosophical': 'char:existential',
+  'duet': 'char:duet', 'two voices': 'char:duet',
+  'wes anderson': 'char:wes-anderson', 'wes anderson-y': 'char:wes-anderson', 'wes andersony': 'char:wes-anderson',
+  'vocal harmony': 'char:vocal-harmony', 'harmonies': 'char:vocal-harmony', 'harmonized': 'char:vocal-harmony',
+  'slow burn': 'char:slow-burn', 'slow-burn': 'char:slow-burn', 'builds': 'char:slow-burn',
+  'abstract': 'char:abstract',
+  'cool': 'char:cool',
+  // New genre aliases
+  'dream pop': 'genre:dream-pop', 'dreamy pop': 'genre:dream-pop',
+  'yacht rock': 'genre:yacht-rock', 'soft rock': 'genre:yacht-rock', 'adult contemporary': 'genre:yacht-rock',
+  'anti-folk': 'genre:anti-folk', 'antifolk': 'genre:anti-folk',
+  'chamber folk': 'genre:chamber-folk', 'chamber-folk': 'genre:chamber-folk',
+  'chamber pop': 'genre:chamber-pop',
+  'blues rock': 'genre:blues-rock', 'blues-rock': 'genre:blues-rock',
+  'indie rock': 'genre:indie-rock', 'indie-rock': 'genre:indie-rock',
+  'indie folk': 'genre:indie-folk', 'indie-folk': 'genre:indie-folk',
+  'baroque pop': 'genre:baroque-pop', 'baroque-pop': 'genre:baroque-pop',
+  'ye-ye': 'genre:ye-ye', 'ye ye': 'genre:ye-ye', 'yé-yé': 'genre:ye-ye', 'french pop': 'genre:ye-ye',
+  'synth pop': 'genre:synth-pop', 'synth-pop': 'genre:synth-pop', 'synthpop': 'genre:synth-pop',
+  'new wave': 'genre:new-wave', 'new-wave': 'genre:new-wave',
+  'glam': 'genre:glam', 'glam rock': 'genre:glam',
+  'lo-fi folk': 'genre:lo-fi-folk', 'lo fi folk': 'genre:lo-fi-folk',
 
   // Origin / Country — maps to origin: traits in songs.json
   'american': 'origin:us', 'us': 'origin:us', 'usa': 'origin:us',
@@ -401,15 +436,15 @@ function findSongsByArtist(message) {
 async function extractKeywords(userMessage) {
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001', max_tokens: 200,
-    messages: [{ role: 'user', content: `You are a music search assistant. Convert any request — including moods, situations, metaphors, and feelings — into music trait keywords. Return ONLY a JSON array.
+    system: `You are a music search assistant. Convert any request — including moods, situations, metaphors, and feelings — into music trait keywords. Return ONLY a JSON array, no explanation.
 
 MAP TO THESE TRAIT VOCABULARY TERMS WHERE POSSIBLE:
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
-Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual"
-Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic"
-Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin"
+Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning", "mood:defeated", "mood:cathartic", "mood:hypnotic", "mood:romantic", "mood:celebratory", "mood:resigned"
+Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
-Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic"
+Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson"
 Origin (use when user specifies a country or region): "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland", "origin:spain", "origin:colombia", "origin:jamaica"
 
 SITUATIONAL MAPPINGS:
@@ -425,15 +460,23 @@ SITUATIONAL MAPPINGS:
 - "beautiful", "gorgeous", "stunning" → ["char:beautiful"]
 - "intimate", "personal", "quiet" → ["char:intimate", "texture:sparse"]
 - "cosmic", "space", "otherworldly" → ["genre:experimental", "mood:dreamlike", "char:weird"]
+- "dream pop", "hazy", "gauzy", "floaty" → ["genre:dream-pop", "char:hazy", "char:ethereal"]
+- "literate", "literary", "cerebral", "wordy", "intellectual" → ["char:literate"]
+- "storytelling", "narrative" → ["char:narrative", "char:literate"]
+- "driving", "motorik", "propulsive" → ["char:driving", "energy:high"]
+- "yacht rock", "soft rock", "smooth" → ["genre:yacht-rock"]
+- "wes anderson", "wes anderson-y" → ["char:wes-anderson", "char:nostalgic"]
+- "harmonies", "vocal harmony" → ["char:vocal-harmony"]
+- "french", "french pop", "ye-ye" → ["genre:ye-ye", "origin:france"]
+- "bittersweet" → ["mood:bittersweet", "char:bittersweet"]
 
 RULES:
 - Prefer trait vocabulary terms over raw words whenever possible
 - For artist names or song titles, return them as plain strings
 - Return 3–8 items
-- Return ONLY the JSON array
-- If the input is gibberish, a random string of characters, or clearly not a word in any language, return []. Do NOT return [] for real words, genre names, mood words, artist names, or any legitimate request — even if it is very short or vague
-
-Request: "${userMessage}"` }]
+- Return ONLY the JSON array, no preamble or explanation
+- If the input is gibberish, a random string of characters, or clearly not a word in any language, return []. Do NOT return [] for real words, genre names, mood words, artist names, or any legitimate request — even if it is very short or vague`,
+    messages: [{ role: 'user', content: userMessage }]
   });
   try {
     const text = response.content[0].text.trim();
@@ -483,24 +526,27 @@ function detectLikeArtist(message) {
 async function extractArtistTraits(artistName) {
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001', max_tokens: 200,
-    messages: [{ role: 'user', content: `You are a music search assistant. Describe the sonic characteristics of the artist "${artistName}" using ONLY trait vocabulary terms from this list. Return ONLY a JSON array of 4–7 traits.
+    system: `You are a music search assistant. Describe the sonic characteristics of a given artist using ONLY trait vocabulary terms from this list. Return ONLY a JSON array of 4–7 traits, no explanation.
 
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
-Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual"
-Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic"
-Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin"
+Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning"
+Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
-Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic"
-Origin: "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria"
+Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:cool"
+Origin: "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland"
 
 Examples:
 - "Nico" → ["texture:sparse", "mood:melancholic", "mood:dark", "genre:art-rock", "era:60s", "char:intimate"]
 - "Portishead" → ["genre:electronic", "mood:melancholic", "mood:tense", "texture:cold", "char:late-night", "energy:low"]
 - "Chet Baker" → ["genre:jazz", "mood:tender", "texture:sparse", "energy:low", "char:intimate", "char:late-night"]
 - "Fela Kuti" → ["genre:afrobeat", "energy:high", "char:political", "mood:defiant", "texture:lush"]
+- "Elliott Smith" → ["genre:indie-folk", "texture:sparse", "mood:melancholic", "char:intimate", "char:confessional", "char:sweet"]
+- "Joanna Newsom" → ["genre:indie-folk", "char:literate", "char:eccentric", "texture:lush", "char:intimate", "era:modern"]
 
 If you don't recognize the artist, return an empty array [].
-Return ONLY the JSON array.` }]
+Return ONLY the JSON array.`,
+    messages: [{ role: 'user', content: `Artist: "${artistName}"` }]
   });
   try {
     const text = response.content[0].text.trim();
