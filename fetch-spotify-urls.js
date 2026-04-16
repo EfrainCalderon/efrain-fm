@@ -65,7 +65,7 @@ async function searchSpotify(token, artist, title) {
 }
 
 async function main() {
-  const data = JSON.parse(fs.readFileSync('songs_merged.json', 'utf8'));
+const data = JSON.parse(fs.readFileSync('/Users/efrain/documents/efrain-fm/data/songs.json', 'utf8'));
   const songs = data.songs;
 
   // Only process songs missing a spotify URL and not already having youtube
@@ -98,7 +98,7 @@ async function main() {
   console.log(`\nDone! Found: ${found}, Not found: ${notFound}`);
 
   // Save updated file
-  fs.writeFileSync('songs_merged.json', JSON.stringify(data, null, 2));
+  fs.writeFileSync('/Users/efrain/documents/efrain-fm/data/songs.json', JSON.stringify(data, null, 2));
   console.log('Updated songs_merged.json saved.');
 
   // Also log anything still missing for manual lookup
