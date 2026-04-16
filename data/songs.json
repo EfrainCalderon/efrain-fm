@@ -17126,11 +17126,11 @@
     },
     {
       "id": "0663",
-      "title": "Promises Movement 6",
-      "artist": "Floating Points",
+      "title": "Movement 6",
+      "artist": "Floating Points, Pharoah Sanders & The London Symphony Orchestra",
       "year": "2021",
       "streaming": {
-        "spotify": "",
+        "spotify": "https://open.spotify.com/embed/track/5i0EqAX50KcKNgMDMHZndM",
         "apple_music": "",
         "youtube": ""
       },
@@ -17404,15 +17404,15 @@
     },
     {
       "id": "0672",
-      "title": "Casio Del Sol",
+      "title": "Camino Del Sol",
       "artist": "Antena",
       "year": "1982",
       "streaming": {
-        "spotify": "",
+        "spotify": "https://open.spotify.com/embed/track/4UFm6Kib5Jxzw9FL0F6x0q",
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "Found out about this when I was following the Numero Group label releases. It's a French-Belgian trio that released this electropop bossa nova in 1982. Numero called it the missing link between Kraftwerk and Antonio Carlos Jobim, which is pretty funny. Still sounds very modern.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -17567,7 +17567,7 @@
         "apple_music": "",
         "youtube": "https://www.youtube.com/embed/vGnYMpxGlXg"
       },
-      "commentary": "",
+      "commentary": "It's a long journey, getting to treating yourself kindly. It's remarkable how much easier it is to give others the benefit of the doubt if you're not a full on psychopath. Just a reminder then, treat yoursefl with kindness.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -18544,15 +18544,15 @@
     },
     {
       "id": "0708",
-      "title": "Sailing to Byzantium",
+      "title": "Sailing to Byzntium",
       "artist": "Liars",
       "year": "2004",
       "streaming": {
-        "spotify": "",
+        "spotify": "https://open.spotify.com/embed/track/7uG9MfVAH0P70DKsrWlch3",
         "apple_music": "",
         "youtube": ""
       },
-      "commentary": "",
+      "commentary": "In my head, this lives near M83's album, Saturdays = Youth. While that one is more straight-forward I think you could compile a combined album and have a good time.",
       "tag_title": "",
       "tag_url": "",
       "audio_story": "",
@@ -18834,6 +18834,38 @@
         "mood:dreamlike": 1.0,
         "char:late-night": 0.8
       }
-    }
+    },
+    {
+  "id": "0717",
+  "title": "Graveyard Girl",
+  "artist": "M83",
+  "year": "2008",
+  "streaming": {
+    "spotify": "https://open.spotify.com/embed/track/7BULOI2sTAnkK0qN9RNcv5",
+    "apple_music": "",
+    "youtube": ""
+  },
+  "commentary": "Haven't we all felt like the Graveyard Girl at some point or another?",
+  "tag_title": "",
+  "tag_url": "",
+  "audio_story": "",
+  "cluster": "C9",
+  "cluster_secondary": "C8",
+  "traits": {
+    "genre:synth-pop": 1.0,
+    "genre:dream-pop": 0.7,
+    "mood:melancholic": 0.8,
+    "mood:dreamlike": 0.7,
+    "mood:playful": 0.5,
+    "energy:medium": 0.7,
+    "char:nostalgic": 1.0,
+    "char:beautiful": 0.8,
+    "char:weird": 0.6,
+    "texture:lush": 0.8,
+    "texture:warm": 0.6,
+    "era:00s": 1.0,
+    "origin:france": 1.0
+  }
+}
   ]
 }
