@@ -55,9 +55,6 @@ const KEYSTONE_LOOKUP = new Map(
   GROOVE_KEYSTONES.map(k => [`${normalize(k.title)}|||${normalize(k.artist)}`, k])
 );
 
-// Cluster label lookup for log/response use
-const CLUSTER_LABEL = Object.fromEntries(GROOVE_KEYSTONES.map(k => [k.cluster, k.label]));
-
 function getSession(sessionId) {
   if (!sessions.has(sessionId)) {
     sessions.set(sessionId, {
@@ -1463,39 +1460,65 @@ app.get('/api/groove-keystones', (req, res) => {
 });
 
 // =====================
-// GROOVE GLOW LOG ENDPOINT
-// Logs per-visitor unlock events to stdout (visible in Render dashboard)
-// and appends to /api/groove-log.json if the directory is writable.
-// Format: { visitorId, cluster, label, inputThatTriggered, unlockedAt }
+// GROOVE GLOW LOG + EMAIL NOTIFICATION
+// Called by the frontend on each cluster unlock.
+// Logs to stdout and sends an email via Resend with unlock details.
 // =====================
-const LOG_PATH = path.join(__dirname, 'api', 'groove-log.json');
-
-app.post('/api/log', (req, res) => {
+app.post('/api/log', async (req, res) => {
   try {
     const { visitorId, cluster, label, input, firstSessionStart, allUnlocks } = req.body;
+    const unlockedAt = new Date().toISOString();
     const entry = {
-      visitorId:         visitorId || 'unknown',
+      visitorId:          visitorId || 'unknown',
       cluster,
       label,
       inputThatTriggered: input || '',
-      unlockedAt:        new Date().toISOString(),
-      firstSessionStart: firstSessionStart || null,
-      totalUnlocks:      allUnlocks ? allUnlocks.length : 0,
+      unlockedAt,
+      firstSessionStart:  firstSessionStart || null,
+      totalUnlocks:       allUnlocks ? allUnlocks.length : 0,
+      allUnlocks:         allUnlocks || [],
     };
 
-    // Always log to stdout — visible in Render dashboard logs
+    // Always log to stdout — visible in Render dashboard
     console.log('[GROOVE UNLOCK]', JSON.stringify(entry));
 
-    // Try to append to file — will fail gracefully on ephemeral filesystem
-    try {
-      let log = [];
-      if (fs.existsSync(LOG_PATH)) {
-        log = JSON.parse(fs.readFileSync(LOG_PATH, 'utf8'));
-      }
-      log.push(entry);
-      fs.writeFileSync(LOG_PATH, JSON.stringify(log, null, 2));
-    } catch (fileErr) {
-      // Ephemeral filesystem — stdout is sufficient
+    // Send email via Resend if configured
+    const resendKey   = process.env.RESEND_API_KEY;
+    const notifyEmail = process.env.NOTIFY_EMAIL;
+
+    if (resendKey && notifyEmail) {
+      const firstStart = firstSessionStart
+        ? new Date(firstSessionStart).toLocaleString('en-US', { timeZone: 'America/New_York' })
+        : 'unknown';
+      const unlockedTime = new Date(unlockedAt).toLocaleString('en-US', { timeZone: 'America/New_York' });
+      const allLabels = (allUnlocks || []).join(', ') || label;
+
+      const html = `
+        <p><strong>Visitor:</strong> ${entry.visitorId}</p>
+        <p><strong>Cluster unlocked:</strong> ${label} (${cluster})</p>
+        <p><strong>Triggered by:</strong> "${entry.inputThatTriggered}"</p>
+        <p><strong>Unlocked at:</strong> ${unlockedTime} ET</p>
+        <p><strong>First session start:</strong> ${firstStart} ET</p>
+        <p><strong>Total unlocked so far:</strong> ${entry.totalUnlocks} / 9</p>
+        <p><strong>All unlocked:</strong> ${allLabels}</p>
+      `;
+
+      fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from:    'efrain.fm <onboarding@resend.dev>',
+          to:      [notifyEmail],
+          subject: `// ${label} unlocked — efrain.fm`,
+          html,
+        }),
+      }).then(r => {
+        if (!r.ok) r.text().then(t => console.error('Resend error:', t));
+        else console.log('[RESEND] Email sent for', label);
+      }).catch(e => console.error('Resend fetch error:', e));
     }
 
     res.json({ ok: true });
