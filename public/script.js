@@ -14,6 +14,15 @@ let isTyping = false;
 let pendingFavoriteInput = false;
 
 // =====================
+// PLAYER PREFERENCE
+// Toggles between 'spotify' and 'apple' via /player command.
+// Persists in localStorage. Default is spotify.
+// =====================
+const PLAYER_KEY = 'efrain_fm_player';
+function getPlayerPref() { return localStorage.getItem(PLAYER_KEY) || 'spotify'; }
+function setPlayerPref(val) { localStorage.setItem(PLAYER_KEY, val); }
+
+// =====================
 // GROOVE GLOW STATE
 // Tracks per-visitor cluster unlock state in localStorage.
 // clusterCounts: how many non-keystone songs from each cluster have been played this session.
@@ -144,8 +153,22 @@ function handleSecretCommand(command) {
       console.log(`Songs: ${sessionStats.songsPlayed}, Messages: ${sessionStats.messagesExchanged}, Uptime: ${uptime}min`);
       return true;
 
+    case '/player': {
+      const pref = args.toLowerCase().trim();
+      if (pref === 'apple') {
+        setPlayerPref('apple');
+        console.log('Player set to Apple Music. Songs with Apple Music URLs will use that player.');
+      } else if (pref === 'spotify') {
+        setPlayerPref('spotify');
+        console.log('Player set to Spotify.');
+      } else {
+        console.log(`Current player: ${getPlayerPref()}. Usage: /player apple | /player spotify`);
+      }
+      return true;
+    }
+
     case '/help':
-      console.log('Commands: /theme [light|dark|auto], /reset, /debug, /push [c1-c9], /groove-reset, /help');
+      console.log('Commands: /theme [light|dark|auto], /reset, /debug, /push [c1-c9], /groove-reset, /player [apple|spotify], /help');
       return true;
 
     case '/push': {
@@ -412,41 +435,94 @@ async function displaySong(song, storyText) {
   const songContainer = document.createElement('div');
   songContainer.classList.add('message', 'song');
 
-  const isYouTube = song.spotify_url && (
-    song.spotify_url.includes('youtube.com') ||
-    song.spotify_url.includes('youtu.be')
-  );
+  const player       = getPlayerPref();
+  const appleUrl     = song.apple_music_url || '';
+  const spotifyUrl   = song.spotify_url     || '';
+  const youtubeUrl   = song.youtube_url     || spotifyUrl; // legacy: spotify_url may hold a youtube link
 
-  const embedWrapper = document.createElement('div');
-  embedWrapper.classList.add('song-embed-wrapper');
-  if (isYouTube) embedWrapper.classList.add('youtube');
+  // Determine which music embed to show — Apple wins if preferred and available, else Spotify
+  const isYouTubeOnly = spotifyUrl && (spotifyUrl.includes('youtube.com') || spotifyUrl.includes('youtu.be'));
+  const useApple      = player === 'apple' && appleUrl;
+  const musicUrl      = useApple ? appleUrl : (isYouTubeOnly ? '' : spotifyUrl);
 
-  const iframe = document.createElement('iframe');
-  iframe.classList.add('song-embed');
-  iframe.frameBorder = '0';
+  // YouTube embed — always shown if present (additive)
+  const ytUrl = isYouTubeOnly
+    ? spotifyUrl
+    : (youtubeUrl && (youtubeUrl.includes('youtube.com') || youtubeUrl.includes('youtu.be')) ? youtubeUrl : '');
 
-  iframe.addEventListener('load', () => {
-    iframe.classList.add('loaded');
-    embedWrapper.classList.add('loaded');
-  });
+  // Music embed (Spotify or Apple Music)
+  if (musicUrl) {
+    const embedWrapper = document.createElement('div');
+    embedWrapper.classList.add('song-embed-wrapper');
 
-  if (isYouTube) {
-    let embedUrl = song.spotify_url;
-    if (embedUrl.includes('watch?v=')) {
-      embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-    } else if (embedUrl.includes('youtu.be/')) {
-      embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
+    const iframe = document.createElement('iframe');
+    iframe.classList.add('song-embed');
+    iframe.frameBorder = '0';
+    iframe.addEventListener('load', () => {
+      iframe.classList.add('loaded');
+      embedWrapper.classList.add('loaded');
+    });
+
+    if (useApple) {
+      // Apple Music embed URL format: https://embed.music.apple.com/...
+      // songs.json should store the embed URL directly
+      iframe.src = appleUrl;
+      iframe.allow = 'autoplay *; encrypted-media *; fullscreen *';
+      iframe.style.borderRadius = '10px';
+    } else {
+      iframe.src = spotifyUrl;
+      iframe.allow = 'encrypted-media';
     }
-    iframe.src = embedUrl;
-    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-    iframe.allowFullscreen = true;
-  } else {
-    iframe.src = song.spotify_url;
-    iframe.allow = 'encrypted-media';
+
+    embedWrapper.appendChild(iframe);
+    songContainer.appendChild(embedWrapper);
   }
 
-  embedWrapper.appendChild(iframe);
-  songContainer.appendChild(embedWrapper);
+  // YouTube embed — always additive
+  if (ytUrl && !isYouTubeOnly) {
+    const ytWrapper = document.createElement('div');
+    ytWrapper.classList.add('song-embed-wrapper', 'youtube');
+
+    const ytIframe = document.createElement('iframe');
+    ytIframe.classList.add('song-embed');
+    ytIframe.frameBorder = '0';
+    ytIframe.addEventListener('load', () => {
+      ytIframe.classList.add('loaded');
+      ytWrapper.classList.add('loaded');
+    });
+
+    let embedUrl = ytUrl;
+    if (embedUrl.includes('watch?v=')) embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+    else if (embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
+    ytIframe.src = embedUrl;
+    ytIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    ytIframe.allowFullscreen = true;
+
+    ytWrapper.appendChild(ytIframe);
+    songContainer.appendChild(ytWrapper);
+  } else if (isYouTubeOnly) {
+    // Legacy: spotify_url is actually a YouTube link — show it as YouTube embed
+    const ytWrapper = document.createElement('div');
+    ytWrapper.classList.add('song-embed-wrapper', 'youtube');
+
+    const ytIframe = document.createElement('iframe');
+    ytIframe.classList.add('song-embed');
+    ytIframe.frameBorder = '0';
+    ytIframe.addEventListener('load', () => {
+      ytIframe.classList.add('loaded');
+      ytWrapper.classList.add('loaded');
+    });
+
+    let embedUrl = spotifyUrl;
+    if (embedUrl.includes('watch?v=')) embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
+    else if (embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
+    ytIframe.src = embedUrl;
+    ytIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    ytIframe.allowFullscreen = true;
+
+    ytWrapper.appendChild(ytIframe);
+    songContainer.appendChild(ytWrapper);
+  }
 
   if (song.tag_title && song.tag_title.trim() !== '') {
     const liveTag = document.createElement('div');
@@ -555,7 +631,7 @@ async function playGrooveTransmission(keystoneConfig, song, commentary) {
       // Set the title string (same pattern as intro)
       const secs     = Math.round(voiceAudio.duration || 0);
       const titleEl  = embed.querySelector('.voice-embed__title');
-      const fullTitle = `DISCOVERY: ${clusterLabel} //<br>ON AIR <span class="voice-embed__date">${mm}-${dd}-${yy}</span><span class="voice-embed__time"> ${h12}:${mins} ${ampm} [${secs}s]</span>`;
+      const fullTitle = `GROOVE UNLOCKED // ${clusterLabel}<br><span class="voice-embed__date">${mm}-${dd}-${yy}</span><span class="voice-embed__time"> ${h12}:${mins} ${ampm} [${secs}s]</span>`;
       if (titleEl && !titleEl.dataset.durationSet) {
         titleEl.innerHTML = fullTitle;
         titleEl.dataset.durationSet = '1';
@@ -1342,7 +1418,10 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 
   // ── Visibility ────────────────────────────────────────────────────────
   function syncButtonVisibility() {
-    mapBtn.classList.toggle('visible', grooveState.unlockedClusters.length > 0);
+    const count = grooveState.unlockedClusters.length;
+    mapBtn.classList.toggle('visible', count > 0);
+    const titleEl = document.getElementById('groove-modal-title');
+    if (titleEl) titleEl.textContent = `${count} Groove${count === 1 ? '' : 's'} Unlocked`;
   }
   syncButtonVisibility();
   window.addEventListener('grooveRingUnlock', syncButtonVisibility);

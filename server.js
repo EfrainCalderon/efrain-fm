@@ -854,11 +854,22 @@ Reply with exactly one of: REACTION_POSITIVE, REACTION_NEGATIVE, SEARCH`,
 }
 
 // =====================
-// HELPER: get spotify_url for frontend (handles new streaming object)
+// HELPER: get streaming URLs for frontend
+// Returns spotify and apple_music separately so frontend can pick based on user preference.
+// YouTube is always returned as it's additive.
 // =====================
 function getSongUrl(song) {
   if (!song.streaming) return '';
   return song.streaming.spotify || song.streaming.youtube || song.streaming.apple_music || '';
+}
+
+function getStreamingUrls(song) {
+  const s = song.streaming || {};
+  return {
+    spotify:     s.spotify     || '',
+    apple_music: s.apple_music || '',
+    youtube:     s.youtube     || '',
+  };
 }
 
 // =====================
@@ -912,12 +923,14 @@ function buildSongResponse(song, session, interrupt = null, bridge = null) {
     response: groove ? null : song.commentary, // keystones carry no commentary — the audio transmission speaks for itself
     bridgingResponse: bridge,
     song: {
-      title: song.title,
-      artist: song.artist,
-      spotify_url: getSongUrl(song), // frontend still expects spotify_url key
-      tag_title: song.tag_title || '',
-      tag_url: song.tag_url || '',
-      cluster: song.cluster || null,  // used by frontend for groove cluster counting
+      title:        song.title,
+      artist:       song.artist,
+      spotify_url:  getSongUrl(song), // legacy field — still used as fallback
+      apple_music_url: getStreamingUrls(song).apple_music,
+      youtube_url:     getStreamingUrls(song).youtube,
+      tag_title:    song.tag_title || '',
+      tag_url:      song.tag_url   || '',
+      cluster:      song.cluster   || null,
     },
     groove,   // null for normal songs, populated for keystone unlocks
     interrupt: int,
@@ -952,7 +965,7 @@ app.post('/api/favorite', async (req, res) => {
       session.lastSongTraits = s.traits || {};
       session.lastSongArtist = s.artist;
       session.songCount++;
-      song = { title: s.title, artist: s.artist, spotify_url: getSongUrl(s), tag_title: s.tag_title || '', tag_url: s.tag_url || '' };
+      song = { title: s.title, artist: s.artist, spotify_url: getSongUrl(s), apple_music_url: getStreamingUrls(s).apple_music, youtube_url: getStreamingUrls(s).youtube, tag_title: s.tag_title || '', tag_url: s.tag_url || '' };
     }
     res.json({ response: responseText, song });
   } catch (e) {
