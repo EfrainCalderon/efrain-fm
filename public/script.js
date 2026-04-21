@@ -13,6 +13,75 @@ let sessionStats = {
 let isTyping = false;
 let pendingFavoriteInput = false;
 
+// =====================
+// GROOVE GLOW STATE
+// Tracks per-visitor cluster unlock state in localStorage.
+// clusterCounts: how many non-keystone songs from each cluster have been played this session.
+// unlockedClusters: clusters whose keystone has been unlocked (persists across sessions).
+// glowRingCount: how many rings are currently glowing (= unlockedClusters.length).
+// =====================
+const GROOVE_STORAGE_KEY   = 'efrain_fm_groove';
+const VISITOR_ID_KEY       = 'efrain_fm_visitor_id';
+const SESSION_START_KEY    = 'efrain_fm_first_session';
+
+// Persistent state (survives page close)
+function loadGrooveState() {
+  try { return JSON.parse(localStorage.getItem(GROOVE_STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function saveGrooveState(state) {
+  localStorage.setItem(GROOVE_STORAGE_KEY, JSON.stringify(state));
+}
+
+let grooveState = loadGrooveState();
+// grooveState shape:
+// {
+//   unlockedClusters: ['C1', 'C3', ...],   // persists
+//   glowRingCount: 2,                        // persists (= unlockedClusters.length)
+// }
+if (!grooveState.unlockedClusters) grooveState.unlockedClusters = [];
+if (!grooveState.glowRingCount)    grooveState.glowRingCount    = 0;
+
+// Session-only state (resets on page reload — intentional)
+let clusterPlayCounts = {}; // { C1: 2, C3: 1, ... } for this session only
+
+// Visitor ID — generated once, persists forever
+function getVisitorId() {
+  let id = localStorage.getItem(VISITOR_ID_KEY);
+  if (!id) {
+    id = 'v_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+    localStorage.setItem(VISITOR_ID_KEY, id);
+  }
+  return id;
+}
+
+// First session timestamp
+function getFirstSessionStart() {
+  let t = localStorage.getItem(SESSION_START_KEY);
+  if (!t) { t = new Date().toISOString(); localStorage.setItem(SESSION_START_KEY, t); }
+  return t;
+}
+
+// Groove keystone map — fetched from server on load
+// Maps cluster → { label, title, artist, audio }
+let grooveKeystones = [];
+let keystoneByCluster = {};
+
+async function loadGrooveKeystones() {
+  try {
+    const res = await fetch('/api/groove-keystones');
+    grooveKeystones = await res.json();
+    keystoneByCluster = Object.fromEntries(grooveKeystones.map(k => [k.cluster, k]));
+    // Expose glow count to the canvas immediately on load (rings light up on revisit)
+    updateRingGlowState(grooveState.glowRingCount, false);
+  } catch (e) {
+    console.warn('Could not load groove keystones', e);
+  }
+}
+loadGrooveKeystones();
+
+// Called by the canvas script to know how many rings should glow
+window.getGrooveGlowCount = () => grooveState.glowRingCount;
+
 // Auto-expand textarea
 userInput.addEventListener('input', function() {
   this.style.height = '48px';
@@ -76,7 +145,65 @@ function handleSecretCommand(command) {
       return true;
 
     case '/help':
-      console.log('Commands: /theme [light|dark|auto], /reset, /debug, /help');
+      console.log('Commands: /theme [light|dark|auto], /reset, /debug, /push [c1-c9], /groove-reset, /help');
+      return true;
+
+    case '/push': {
+      // Force-trigger a cluster's groove transmission for local testing
+      // Usage: /push c1 through /push c9
+      const cluster = args.toUpperCase().trim();
+      if (!cluster.match(/^C[1-9]$/)) {
+        console.log('Usage: /push c1 through /push c9');
+        return true;
+      }
+      // Fire directly against the API with pushCluster set
+      (async () => {
+        const typingIndicator = showTypingIndicator();
+        isTyping = true;
+        fadeOutInput();
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message:          `push ${cluster}`,
+              sessionId,
+              unlockedClusters: [],  // treat as unlocked=none so groove fires
+              clusterCounts:    {},
+              pushCluster:      cluster,
+            }),
+          });
+          const data = await response.json();
+          removeTypingIndicator(typingIndicator);
+          if (data.song) {
+            window._lastGrooveInput = `/push ${cluster}`;
+            // Force groove even if already unlocked — dev mode
+            const keystone = keystoneByCluster[cluster];
+            if (keystone) {
+              await playGrooveTransmission(keystone, data.song, data.response);
+            } else {
+              await displaySong(data.song, data.response);
+            }
+          } else if (data.response) {
+            await addMessageToChatWithTyping(data.response, 'assistant');
+          }
+        } catch (e) {
+          console.error('/push error', e);
+          removeTypingIndicator(typingIndicator);
+        }
+        isTyping = false;
+        setTimeout(fadeInInput, 600);
+      })();
+      return true;
+    }
+
+    case '/groove-reset':
+      // Reset all groove glow state — useful for testing the full first-unlock flow
+      grooveState = { unlockedClusters: [], glowRingCount: 0 };
+      saveGrooveState(grooveState);
+      clusterPlayCounts = {};
+      updateRingGlowState(0, false);
+      console.log('Groove state reset. Reload to clear session cluster counts.');
       return true;
 
     default:
@@ -128,6 +255,7 @@ async function sendMessage() {
   userInput.value = '';
   userInput.style.height = '48px';
   sessionStats.messagesExchanged++;
+  window._lastGrooveInput = message; // captured for groove unlock logging
 
   fadeOutInput();
 
@@ -139,7 +267,13 @@ async function sendMessage() {
     const endpoint = pendingFavoriteInput ? '/api/favorite' : '/api/chat';
     const body = pendingFavoriteInput
       ? { input: message, sessionId }
-      : { message, sessionId };
+      : {
+          message,
+          sessionId,
+          unlockedClusters: grooveState.unlockedClusters,
+          clusterCounts:    clusterPlayCounts,
+          pushCluster:      null,
+        };
 
     const wasFavoriteInput = pendingFavoriteInput;
     pendingFavoriteInput = false;
@@ -164,8 +298,23 @@ async function sendMessage() {
       if (data.bridgingResponse) {
         await addMessageToChatWithTyping(data.bridgingResponse, 'assistant');
       }
-      await displaySong(data.song, data.response);
-      sessionStats.songsPlayed++;
+
+      // Track cluster play count for groove glow logic
+      // The server tells us the song's cluster via data.song.cluster (we'll need to look it up)
+      // We track based on whether the server returned groove metadata or not.
+      // If groove is present: it's a keystone — handled specially below.
+      // If not: look up which cluster this song belongs to and increment.
+
+      const grooveHandled = await handleGrooveSong(data);
+      if (!grooveHandled) {
+        // Normal song — track cluster count for future groove unlock
+        if (data.song && data.song.cluster) {
+          const cl = data.song.cluster;
+          clusterPlayCounts[cl] = (clusterPlayCounts[cl] || 0) + 1;
+        }
+        await displaySong(data.song, data.response);
+        sessionStats.songsPlayed++;
+      }
     } else if (data.response) {
       removeTypingIndicator(typingIndicator);
       await addMessageToChatWithTyping(data.response, 'assistant');
@@ -338,6 +487,157 @@ async function displaySong(song, storyText) {
   } else {
     storyDiv.remove();
   }
+}
+
+// =====================
+// RING GLOW STATE
+// Tells the canvas how many rings to render as glowing voids.
+// animate=true: triggers a brief pulse transition when a new ring lights up.
+// animate=false: silently restores persisted state on page load.
+// =====================
+function updateRingGlowState(count, animate = false) {
+  if (animate) {
+    // Don't set _grooveGlowCount here — let the grooveRingUnlock event listener do it.
+    // This ensures ringUnlockTimes gets recorded BEFORE glowCount increments,
+    // so the first frame sees progress=0 rather than progress=1.
+    window.dispatchEvent(new CustomEvent('grooveRingUnlock', { detail: { count } }));
+  } else {
+    // Silent restore on page load — no animation, set immediately
+    window._grooveGlowCount = count;
+  }
+}
+
+// =====================
+// GROOVE TRANSMISSION
+// When a cluster keystone is unlocked:
+//  1. Play the cluster audio transmission (same component as intro)
+//  2. After audio ends → print the song embed
+//  3. After embed prints → light the next ring
+//  4. Log the unlock to server
+// =====================
+async function playGrooveTransmission(keystoneConfig, song, commentary) {
+  // --- Transmission embed ---
+  const now   = new Date();
+  const mm    = String(now.getMonth() + 1).padStart(2, '0');
+  const dd    = String(now.getDate()).padStart(2, '0');
+  const yy    = String(now.getFullYear()).slice(-2);
+  const hours = now.getHours();
+  const mins  = String(now.getMinutes()).padStart(2, '0');
+  const ampm  = hours >= 12 ? 'PM' : 'AM';
+  const h12   = String(hours % 12 || 12).padStart(2, '0');
+
+  // Build initial title (duration fills in after audio ends)
+  const clusterLabel = keystoneConfig.label.toUpperCase();
+  const storageKey   = `efrain_fm_groove_${keystoneConfig.cluster}`;
+
+  const embed = createVoiceEmbed(keystoneConfig.audio, '');
+  embed.dataset.grooveCluster = keystoneConfig.cluster;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'voice-embed-wrapper';
+  wrapper.appendChild(embed);
+  chatMessages.appendChild(wrapper);
+  scrollToBottom();
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => embed.classList.add('loaded'));
+  });
+
+  // Start playback within this call stack (user gesture already happened via send)
+  embed.startPlayback();
+
+  // Wait for audio to end, then show the song
+  await new Promise(resolve => {
+    const voiceAudio = embed.querySelector('audio');
+    if (!voiceAudio) { resolve(); return; }
+
+    voiceAudio.addEventListener('ended', () => {
+      // Set the title string (same pattern as intro)
+      const secs     = Math.round(voiceAudio.duration || 0);
+      const titleEl  = embed.querySelector('.voice-embed__title');
+      const fullTitle = `DISCOVERY: ${clusterLabel} //<br>ON AIR <span class="voice-embed__date">${mm}-${dd}-${yy}</span><span class="voice-embed__time"> ${h12}:${mins} ${ampm} [${secs}s]</span>`;
+      if (titleEl && !titleEl.dataset.durationSet) {
+        titleEl.innerHTML = fullTitle;
+        titleEl.dataset.durationSet = '1';
+        localStorage.setItem(storageKey, fullTitle);
+      }
+      resolve();
+    }, { once: true });
+
+    // Guard: if audio fails, still resolve
+    voiceAudio.addEventListener('error', resolve, { once: true });
+  });
+
+  // Short pause before song drops
+  await new Promise(r => setTimeout(r, 600));
+
+  // Print the song embed
+  await displaySong(song, commentary);
+  sessionStats.songsPlayed++;
+
+  // Short pause, then light the ring
+  await new Promise(r => setTimeout(r, 800));
+
+  // Update groove state
+  if (!grooveState.unlockedClusters.includes(keystoneConfig.cluster)) {
+    grooveState.unlockedClusters.push(keystoneConfig.cluster);
+  }
+  grooveState.glowRingCount = grooveState.unlockedClusters.length;
+  saveGrooveState(grooveState);
+  updateRingGlowState(grooveState.glowRingCount, true); // animate the ring lighting up
+
+  // Log to server
+  try {
+    await fetch('/api/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visitorId:        getVisitorId(),
+        cluster:          keystoneConfig.cluster,
+        label:            keystoneConfig.label,
+        input:            window._lastGrooveInput || '',
+        firstSessionStart: getFirstSessionStart(),
+        allUnlocks:       grooveState.unlockedClusters,
+      }),
+    });
+  } catch (e) { /* non-critical */ }
+}
+
+// Called when a song with groove metadata is returned from the server
+// Returns true if it handled the groove (caller should NOT call displaySong again)
+async function handleGrooveSong(data) {
+  const g = data.groove;
+  if (!g) return false;
+
+  const keystone = keystoneByCluster[g.cluster];
+  if (!keystone) return false;
+
+  // Already unlocked (e.g. /push dev command used again) — just show the song normally
+  if (grooveState.unlockedClusters.includes(g.cluster)) return false;
+
+  await playGrooveTransmission(keystone, data.song, data.response);
+  return true;
+}
+
+// Returns a previously-completed groove embed in its static state (for return visits)
+function buildCompletedGrooveEmbed(cluster, label, savedTitle) {
+  const keystone = keystoneByCluster[cluster];
+  if (!keystone) return null;
+
+  const embed = createVoiceEmbed(keystone.audio, '');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'voice-embed-wrapper';
+  wrapper.appendChild(embed);
+
+  embed.classList.add('loaded');
+  const staticLayer = embed.querySelector('.voice-embed__static');
+  if (staticLayer) staticLayer.classList.add('visible');
+  const titleEl = embed.querySelector('.voice-embed__title');
+  if (titleEl) {
+    titleEl.innerHTML = savedTitle;
+    titleEl.dataset.durationSet = '1';
+  }
+  return wrapper;
 }
 
 // =====================
@@ -887,7 +1187,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 
   // ── Helper: inject completed embed with saved title ────────────────────
   function injectCompletedEmbed(savedTitle) {
-    const embed = createVoiceEmbed('/audio/welcomemsg.m4a', '');
+    const embed = createVoiceEmbed('/audio/AIntro.m4a', '');
     const wrapper = document.createElement('div');
     wrapper.className = 'voice-embed-wrapper';
     wrapper.appendChild(embed);
@@ -943,7 +1243,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     const ampm  = hours >= 12 ? 'PM' : 'AM';
     const h12   = String(hours % 12 || 12).padStart(2, '0');
 
-    const embed = createVoiceEmbed('/audio/welcomemsg.m4a', '');
+    const embed = createVoiceEmbed('/audio/AIntro.m4a', '');
     const wrapper = document.createElement('div');
     wrapper.className = 'voice-embed-wrapper';
     wrapper.appendChild(embed);
@@ -1025,5 +1325,536 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       img.src = '';
     }, { once: true });
   }
+})();
+
+// =====================
+// GROOVE MAP — radio button + Three.js rock modal
+// =====================
+(function initGrooveMap() {
+
+  const mapBtn   = document.getElementById('groove-map-btn');
+  const modal    = document.getElementById('groove-modal');
+  const closeBtn = document.getElementById('groove-modal-close');
+  const hint     = document.getElementById('groove-modal-hint');
+  if (!mapBtn || !modal) return;
+
+  let clickLocked = false; // prevents double-invoke
+
+  // ── Visibility ────────────────────────────────────────────────────────
+  function syncButtonVisibility() {
+    mapBtn.classList.toggle('visible', grooveState.unlockedClusters.length > 0);
+  }
+  syncButtonVisibility();
+  window.addEventListener('grooveRingUnlock', syncButtonVisibility);
+
+  // ── Modal open / close ────────────────────────────────────────────────
+  function openModal() {
+    clickLocked = false;
+    modal.classList.add('open');
+    requestAnimationFrame(() => requestAnimationFrame(() => modal.classList.add('visible')));
+    initRock();
+  }
+
+  function closeModal() {
+    modal.classList.remove('visible');
+    modal.addEventListener('transitionend', () => {
+      modal.classList.remove('open');
+      destroyRock();
+    }, { once: true });
+  }
+
+  mapBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+
+  // ── Three.js state ────────────────────────────────────────────────────
+  let renderer, scene, camera, group, animId;
+  let zoneMeshes = [];
+  let pointerDown = false, hasDragged = false;
+  let dragStartX = 0, dragStartY = 0;
+  let velX = 0, velY = 0;
+  let autoRotate = true;
+  let autoRotateTimer = null;
+  let hoveredZone = null;
+  let frontmostZone = null;
+
+  // Hint click — fires once at IIFE level, not inside initRock
+  // so it doesn't stack up on repeated modal opens
+  if (hint) {
+    hint.addEventListener('click', () => {
+      if (frontmostZone && !clickLocked) {
+        clickLocked = true;
+        handleZoneClick(frontmostZone);
+      }
+    });
+    hint.addEventListener('mousedown', () => hint.classList.add('pressed'));
+    hint.addEventListener('mouseup',   () => hint.classList.remove('pressed'));
+    hint.addEventListener('mouseleave',() => hint.classList.remove('pressed'));
+    hint.addEventListener('touchstart',() => hint.classList.add('pressed'),   { passive: true });
+    hint.addEventListener('touchend',  () => hint.classList.remove('pressed'), { passive: true });
+  }
+
+  const ZONES = [
+    { cluster: 'C8', label: 'Memory',   songs: 110 },
+    { cluster: 'C4', label: 'Cosmic',   songs: 103 },
+    { cluster: 'C7', label: 'Art',      songs: 101 },
+    { cluster: 'C3', label: 'Raw',      songs: 92  },
+    { cluster: 'C5', label: 'Soul',     songs: 72  },
+    { cluster: 'C6', label: 'Loss',     songs: 71  },
+    { cluster: 'C2', label: 'Night',    songs: 68  },
+    { cluster: 'C1', label: 'Outsider', songs: 67  },
+    { cluster: 'C9', label: 'Static',   songs: 26  },
+  ];
+  const TOTAL_SONGS = ZONES.reduce((s, z) => s + z.songs, 0);
+
+  // Zone material colors — three states per zone type
+  const MAT = {
+    undiscovered:      { color: 0x1a1a1a, emissive: 0x000000, specular: 0x2a2a2a, shininess: 5  },
+    discovered:        { color: 0x4a2a18, emissive: 0x1a0a02, specular: 0xc87941, shininess: 60 },
+    hoverUndiscovered: { color: 0x3a3d2e, emissive: 0x0e100a, specular: 0x6a7850, shininess: 22 },
+    hoverDiscovered:   { color: 0x6a3c22, emissive: 0x220e04, specular: 0xd88848, shininess: 68 },
+  };
+
+  function applyMatState(zm, state) {
+    zm.mat.color.setHex(MAT[state].color);
+    zm.mat.emissive.setHex(MAT[state].emissive);
+    zm.mat.specular.setHex(MAT[state].specular);
+    zm.mat.shininess = MAT[state].shininess;
+  }
+
+  function defaultState(zm) {
+    return zm.discovered ? 'discovered' : 'undiscovered';
+  }
+
+  function seededRand(seed) {
+    let s = seed;
+    return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+  }
+
+  function buildIrregularGeo(seed, baseR, jitterAmt) {
+    const geo  = new THREE.IcosahedronGeometry(baseR, 2);
+    const pos  = geo.attributes.position;
+    const rand = seededRand(seed);
+    const vertMap = new Map();
+
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      const k = `${x.toFixed(4)},${y.toFixed(4)},${z.toFixed(4)}`;
+      if (!vertMap.has(k)) {
+        const v = new THREE.Vector3(x, y, z).normalize();
+        const wave =
+          Math.sin(v.x * 1.8 + v.y * 2.9) * 0.45 +
+          Math.sin(v.y * 2.4 + v.z * 1.6) * 0.35 +
+          Math.cos(v.z * 3.3 + v.x * 1.2) * 0.20;
+        const radialPush  = jitterAmt * (0.5 + wave * 0.9);
+        const lateralNoise = jitterAmt * 0.22;
+        vertMap.set(k, v.clone().multiplyScalar(radialPush).add(
+          new THREE.Vector3(
+            (rand() - 0.5) * lateralNoise,
+            (rand() - 0.5) * lateralNoise,
+            (rand() - 0.5) * lateralNoise
+          )
+        ));
+      }
+    }
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      const j = vertMap.get(`${x.toFixed(4)},${y.toFixed(4)},${z.toFixed(4)}`);
+      pos.setXYZ(i, x + j.x, y + j.y, z + j.z);
+    }
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+    return geo;
+  }
+
+  function buildZonedRock() {
+    const geo = buildIrregularGeo(42, 1.6, 0.72);
+    const pos = geo.attributes.position;
+
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    const N = ZONES.length;
+    const seeds = ZONES.map((z, i) => {
+      const y = 1 - (i / (N - 1)) * 2;
+      const r = Math.sqrt(Math.max(0, 1 - y * y));
+      const theta = goldenAngle * i;
+      return {
+        pos:    new THREE.Vector3(r * Math.cos(theta), y, r * Math.sin(theta)).normalize(),
+        weight: z.songs / TOTAL_SONGS,
+      };
+    });
+
+    const faceCount = pos.count / 3;
+    const faceZones = new Int32Array(faceCount);
+
+    for (let f = 0; f < faceCount; f++) {
+      const centroid = new THREE.Vector3(
+        (pos.getX(f*3) + pos.getX(f*3+1) + pos.getX(f*3+2)) / 3,
+        (pos.getY(f*3) + pos.getY(f*3+1) + pos.getY(f*3+2)) / 3,
+        (pos.getZ(f*3) + pos.getZ(f*3+1) + pos.getZ(f*3+2)) / 3
+      ).normalize();
+      let bestScore = -Infinity, bestIdx = 0;
+      seeds.forEach((s, i) => {
+        const score = centroid.dot(s.pos) + s.weight * 2.2;
+        if (score > bestScore) { bestScore = score; bestIdx = i; }
+      });
+      faceZones[f] = bestIdx;
+    }
+
+    const discovered = new Set(grooveState.unlockedClusters);
+    zoneMeshes = [];
+
+    ZONES.forEach((zone, zIdx) => {
+      const isDiscovered = discovered.has(zone.cluster);
+      const indices = [];
+      for (let f = 0; f < faceCount; f++) {
+        if (faceZones[f] === zIdx) indices.push(f*3, f*3+1, f*3+2);
+      }
+      if (!indices.length) return;
+
+      const zoneGeo = new THREE.BufferGeometry();
+      const verts = new Float32Array(indices.length * 3);
+      const norms = new Float32Array(indices.length * 3);
+      const nAttr = geo.attributes.normal;
+      indices.forEach((vi, i) => {
+        verts[i*3]   = pos.getX(vi); verts[i*3+1] = pos.getY(vi); verts[i*3+2] = pos.getZ(vi);
+        norms[i*3]   = nAttr.getX(vi); norms[i*3+1] = nAttr.getY(vi); norms[i*3+2] = nAttr.getZ(vi);
+      });
+      zoneGeo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+      zoneGeo.setAttribute('normal',   new THREE.BufferAttribute(norms, 3));
+
+      const state = isDiscovered ? 'discovered' : 'undiscovered';
+      const mat = new THREE.MeshPhongMaterial({
+        color:     MAT[state].color,
+        emissive:  MAT[state].emissive,
+        specular:  MAT[state].specular,
+        shininess: MAT[state].shininess,
+        flatShading: true,
+      });
+
+      const mesh = new THREE.Mesh(zoneGeo, mat);
+      mesh.scale.setScalar(0.964);
+      group.add(mesh);
+      zoneMeshes.push({ mesh, mat, cluster: zone.cluster, label: zone.label, discovered: isDiscovered });
+    });
+
+    // Inner void sphere — crack depth illusion
+    group.add(new THREE.Mesh(
+      buildIrregularGeo(42, 1.44, 0.72),
+      new THREE.MeshPhongMaterial({ color: 0x040404, side: THREE.BackSide, flatShading: true })
+    ));
+  }
+
+  function initRock() {
+    if (renderer) return;
+
+    const canvas    = document.getElementById('groove-rock-canvas');
+    const container = document.getElementById('groove-rock-container');
+    const W = container.clientWidth  || 300;
+    const H = container.clientHeight || 300;
+
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(W, H);
+    renderer.setClearColor(0x000000, 0);
+
+    scene  = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 100);
+    camera.position.z = 7.2; // pulled back to avoid clipping
+
+    scene.add(new THREE.AmbientLight(0x2a2a2a, 1.0));
+    const key = new THREE.DirectionalLight(0xffffff, 1.5);
+    key.position.set(-2, 3, 3); scene.add(key);
+    const fill = new THREE.DirectionalLight(0x888888, 0.3);
+    fill.position.set(3, -1, 1); scene.add(fill);
+    const rim = new THREE.DirectionalLight(0x444444, 0.45);
+    rim.position.set(0.5, -2, -3); scene.add(rim);
+
+    group = new THREE.Group();
+    scene.add(group);
+    buildZonedRock();
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function getZoneAt(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x =  ((clientX - rect.left) / rect.width)  * 2 - 1;
+      mouse.y = -((clientY - rect.top)  / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(zoneMeshes.map(z => z.mesh));
+      if (!hits.length) return null;
+      return zoneMeshes.find(z => z.mesh === hits[0].object) || null;
+    }
+
+    function setHover(zone) {
+      if (hoveredZone === zone) return;
+      if (hoveredZone) applyMatState(hoveredZone, defaultState(hoveredZone));
+      hoveredZone = zone;
+      if (zone) {
+        applyMatState(zone, zone.discovered ? 'hoverDiscovered' : 'hoverUndiscovered');
+        hint.textContent = zone.discovered
+          ? `// ${zone.label}`
+          : `// ${zone.label} — Invoke`;
+        canvas.style.cursor = 'pointer';
+      } else {
+        hint.textContent = '';
+        canvas.style.cursor = 'default';
+      }
+    }
+
+    // ── Pointer events (mouse + touch unified) ────────────────────────
+    // mouseup on WINDOW so drag never gets stuck if pointer leaves canvas
+    function onPointerDown(clientX, clientY) {
+      pointerDown  = true;
+      hasDragged   = false;
+      dragStartX   = clientX;
+      dragStartY   = clientY;
+      velX = velY  = 0;
+      autoRotate   = false;
+      clearTimeout(autoRotateTimer);
+    }
+
+    function onPointerMove(clientX, clientY) {
+      if (!pointerDown) {
+        setHover(getZoneAt(clientX, clientY));
+        return;
+      }
+      const dx = clientX - dragStartX;
+      const dy = clientY - dragStartY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged = true;
+      velX = dx * 0.005;
+      velY = dy * 0.005;
+      group.rotation.y += velX;
+      // Clamp x rotation so rock never flips fully vertical
+      group.rotation.x = Math.max(-0.8, Math.min(0.8, group.rotation.x + velY));
+      dragStartX = clientX;
+      dragStartY = clientY;
+    }
+
+    function onPointerUp(clientX, clientY) {
+      if (!pointerDown) return;
+      pointerDown = false;
+      if (!hasDragged && !clickLocked) {
+        const zone = getZoneAt(clientX, clientY);
+        if (zone) {
+          clickLocked = true; // block any further clicks until modal fully closes
+          handleZoneClick(zone);
+        }
+      }
+      autoRotateTimer = setTimeout(() => { autoRotate = true; }, 1800);
+    }
+
+    // Mouse
+    canvas.addEventListener('mousedown', (e) => onPointerDown(e.clientX, e.clientY));
+    canvas.addEventListener('mousemove', (e) => onPointerMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup',   (e) => onPointerUp(e.clientX, e.clientY));
+    canvas.addEventListener('mouseleave', () => {
+      // Clear hover when pointer leaves canvas without button held
+      if (!pointerDown) setHover(null);
+    });
+
+    // Touch
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      onPointerDown(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      onPointerUp(t.clientX, t.clientY);
+    }, { passive: false });
+
+    // Render loop
+    function animate() {
+      animId = requestAnimationFrame(animate);
+      if (autoRotate) {
+        // y-rotation sweeps all 9 zones past the front continuously.
+        // x eases to a fixed tilt so no zone hides at the poles.
+        group.rotation.y += 0.004;
+        group.rotation.x += (0.18 - group.rotation.x) * 0.02;
+      } else {
+        velX *= 0.93; velY *= 0.93;
+        group.rotation.y += velX;
+        group.rotation.x = Math.max(-0.8, Math.min(0.8, group.rotation.x + velY));
+      }
+      renderer.render(scene, camera);
+
+      // Story 1 + 2: Find frontmost zone and apply selected visual state.
+      // When hovering on desktop, hover takes priority and frontmost is reset.
+      if (!hoveredZone) {
+        let newFrontmost = null, bestZ = Infinity;
+        const center = new THREE.Vector3();
+        const proj   = new THREE.Vector3();
+        zoneMeshes.forEach(zm => {
+          zm.mesh.geometry.computeBoundingBox();
+          zm.mesh.geometry.boundingBox.getCenter(center);
+          center.applyMatrix4(zm.mesh.matrixWorld);
+          proj.copy(center).project(camera);
+          // In NDC, z ranges -1 (near) to 1 (far). Lowest z = closest to camera.
+          // Also check the centroid is in front of the camera (proj.z < 1) and on screen.
+          if (proj.z < 1 && Math.abs(proj.x) < 1.2 && proj.z < bestZ) {
+            bestZ = proj.z;
+            newFrontmost = zm;
+          }
+        });
+
+        if (newFrontmost !== frontmostZone) {
+          if (frontmostZone) applyMatState(frontmostZone, defaultState(frontmostZone));
+          frontmostZone = newFrontmost;
+        }
+        // Apply selected state every frame — same visual as desktop hover
+        if (frontmostZone) {
+          applyMatState(frontmostZone, frontmostZone.discovered ? 'hoverDiscovered' : 'hoverUndiscovered');
+          hint.textContent = frontmostZone.discovered
+            ? `// ${frontmostZone.label}`
+            : `// ${frontmostZone.label} — Invoke`;
+          hint.style.cursor = 'pointer';
+        } else {
+          hint.textContent = '';
+          hint.style.cursor = 'default';
+        }
+      } else {
+        // Desktop hover active — reset any frontmost highlight
+        if (frontmostZone) {
+          applyMatState(frontmostZone, defaultState(frontmostZone));
+          frontmostZone = null;
+        }
+        hint.style.cursor = 'default';
+      }
+    }
+    animate();
+  }
+
+  function destroyRock() {
+    if (animId) cancelAnimationFrame(animId);
+    if (renderer) { renderer.dispose(); renderer = null; }
+    scene = camera = group = animId = null;
+    zoneMeshes = [];
+    hoveredZone = null;
+    frontmostZone = null;
+    pointerDown = hasDragged = false;
+    if (hint) { hint.textContent = ''; hint.style.cursor = 'default'; hint.classList.remove('pressed'); }
+    window._grooveMouseUpActive = false;
+  }
+
+  // ── Zone click handler ────────────────────────────────────────────────
+  function handleZoneClick(zone) {
+    closeModal();
+
+    if (zone.discovered) {
+      const keystone = keystoneByCluster[zone.cluster];
+      if (!keystone) return;
+
+      setTimeout(async () => {
+        isTyping = true;
+        fadeOutInput();
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message:          `push ${zone.cluster}`,
+              sessionId,
+              unlockedClusters: grooveState.unlockedClusters,
+              clusterCounts:    {},
+              pushCluster:      zone.cluster,
+            }),
+          });
+          const data = await res.json();
+          if (data.song) await playGrooveTransmission(keystone, data.song, null);
+        } catch (e) { console.error('Replay error', e); }
+        isTyping = false;
+        setTimeout(fadeInInput, 600);
+      }, 400);
+
+    } else {
+      setTimeout(async () => {
+        const sysMsg = document.createElement('div');
+        sysMsg.className = 'groove-invoke-msg';
+        sysMsg.textContent = `// Invoke ${zone.label}`;
+        chatMessages.appendChild(sysMsg);
+        scrollToBottom();
+
+        fadeOutInput();
+        isTyping = true;
+        const typingIndicator = showTypingIndicator();
+
+        try {
+          const res = await fetch('/api/invoke-cluster', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cluster: zone.cluster, sessionId }),
+          });
+          const data = await res.json();
+          removeTypingIndicator(typingIndicator);
+          if (data.song) {
+            const cl = data.song.cluster;
+            if (cl) {
+              clusterPlayCounts[cl] = (clusterPlayCounts[cl] || 0) + 1;
+
+              // Check if this invoke just hit the groove threshold
+              // 2 previous plays + this one = time to surface the keystone
+              const isUnlocked = grooveState.unlockedClusters.includes(cl);
+              const count      = clusterPlayCounts[cl];
+              const keystone   = keystoneByCluster[cl];
+
+              if (!isUnlocked && count >= 2 && keystone) {
+                // Fetch keystone song and play groove transmission instead of normal song
+                try {
+                  const kRes = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      message:          `push ${cl}`,
+                      sessionId,
+                      unlockedClusters: [],
+                      clusterCounts:    {},
+                      pushCluster:      cl,
+                    }),
+                  });
+                  const kData = await kRes.json();
+                  if (kData.song) {
+                    await playGrooveTransmission(keystone, kData.song, null);
+                  } else {
+                    // Keystone fetch failed — show the regular invoke song as fallback
+                    await displaySong(data.song, data.response);
+                    sessionStats.songsPlayed++;
+                  }
+                } catch (ke) {
+                  console.error('Keystone fetch error', ke);
+                  await displaySong(data.song, data.response);
+                  sessionStats.songsPlayed++;
+                }
+                isTyping = false;
+                setTimeout(fadeInInput, 600);
+                return;
+              }
+            }
+
+            // Normal invoke — no threshold hit
+            await displaySong(data.song, data.response);
+            sessionStats.songsPlayed++;
+          } else if (data.response) {
+            await addMessageToChatWithTyping(data.response, 'assistant');
+          }
+        } catch (e) {
+          console.error('Invoke error', e);
+          removeTypingIndicator(typingIndicator);
+        }
+        isTyping = false;
+        setTimeout(fadeInInput, 600);
+      }, 400);
+    }
+  }
+
 })();
 

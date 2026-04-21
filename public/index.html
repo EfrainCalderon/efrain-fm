@@ -192,18 +192,142 @@
       ctx.restore();
 
       // Ring lines — drawn on top of everything
-      ctx.strokeStyle = dark ? 'rgba(245,242,238,0.13)' : 'rgba(14,16,18,0.14)';
-      ctx.lineWidth   = 0.75;
+      // Innermost N rings glow (N = number of clusters unlocked, from window._grooveGlowCount)
+      const glowCount = (window._grooveGlowCount || 0);
+
+      const darkMode = dark;
+      const glowColor  = darkMode ? 'rgba(245,242,238,0.7)'  : 'rgba(14,16,18,0.65)';
+      const glowShadow = darkMode ? 'rgba(245,242,238,0.9)'  : 'rgba(14,16,18,0.8)';
+      const voidColor  = darkMode ? 'hsl(210,8%,7%)'         : 'hsl(36,10%,88%)';
+      const ringColor  = dark ? 'rgba(245,242,238,0.13)' : 'rgba(14,16,18,0.14)';
+
+      const SWEEP_DURATION = 7000; // ms — arc sweep animation duration
+
       for (let i = 0; i < NUM_RINGS; i++) {
-        ctx.beginPath();
-        ctx.arc(cx, cy, ringR(step*(i+1), OFFSETS[i], now), 0, Math.PI * 2);
-        ctx.stroke();
+        const r = ringR(step*(i+1), OFFSETS[i], now);
+        const isGlow = i < glowCount;
+
+        if (isGlow) {
+          // Determine sweep progress — 0 to 1 over SWEEP_DURATION ms
+          // If no unlock time recorded (page load restore), progress = 1 immediately
+          let progress = 1;
+          if (ringUnlockTimes[i] !== undefined) {
+            const elapsed = performance.now() - ringUnlockTimes[i];
+            progress = Math.min(elapsed / SWEEP_DURATION, 1);
+            // Apply ease-in-out so it feels smooth
+            progress = progress < 0.5
+              ? 4 * progress * progress * progress
+              : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+          }
+
+          // Arc grows from the bottom (Math.PI * 0.5 = bottom of circle in canvas coords
+          // where cy is at the bottom of the viewport, so "bottom of ring" = top of screen)
+          // Actually: cx,cy is at footer level (bottom of visible area), so the top of each
+          // ring arc is the part pointing away from center = away from footer = toward top of screen.
+          // Canvas 0 angle = 3 o'clock, going clockwise.
+          // "Bottom of ring" relative to the disc center = the point closest to footer = angle Math.PI * 0.5 (6 o'clock / straight down toward cy)
+          // We want to start at that bottom point and sweep outward in both directions.
+          const startAngle = Math.PI * 0.5;           // bottom of ring (toward footer)
+          const sweep      = Math.PI * 2 * progress;  // grows from 0 to full circle
+          const halfSweep  = sweep / 2;
+
+          // Draw glow arc — 3 passes same as full glow but with arc instead of full circle
+          function drawGlowArc(shadowBlur, lineWidth, alpha) {
+            ctx.save();
+            ctx.shadowColor = glowShadow;
+            ctx.shadowBlur  = shadowBlur;
+            ctx.strokeStyle = glowColor;
+            ctx.lineWidth   = lineWidth;
+            ctx.globalAlpha = alpha;
+            ctx.lineCap     = 'round';
+            ctx.beginPath();
+            if (progress >= 1) {
+              ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            } else {
+              // Two arcs growing symmetrically from the bottom
+              ctx.arc(cx, cy, r, startAngle, startAngle + halfSweep, false);
+              ctx.moveTo(
+                cx + Math.cos(startAngle - halfSweep) * r,
+                cy + Math.sin(startAngle - halfSweep) * r
+              );
+              ctx.arc(cx, cy, r, startAngle - halfSweep, startAngle, false);
+            }
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          // Pass 1 — wide outer glow
+          drawGlowArc(28, 2, 0.6);
+          // Pass 2 — tighter inner glow
+          drawGlowArc(10, 1.5, 0.9);
+
+          // Pass 3 — void cutout (only paint the arc we've drawn, not the full ring)
+          ctx.save();
+          ctx.strokeStyle = voidColor;
+          ctx.lineWidth   = 2.5;
+          ctx.globalAlpha = 1;
+          ctx.lineCap     = 'round';
+          ctx.beginPath();
+          if (progress >= 1) {
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          } else {
+            ctx.arc(cx, cy, r, startAngle, startAngle + halfSweep, false);
+            ctx.moveTo(
+              cx + Math.cos(startAngle - halfSweep) * r,
+              cy + Math.sin(startAngle - halfSweep) * r
+            );
+            ctx.arc(cx, cy, r, startAngle - halfSweep, startAngle, false);
+          }
+          ctx.stroke();
+          ctx.restore();
+
+          // While sweeping, keep the unswept portion as a normal ring line
+          if (progress < 1) {
+            const remainSweep = Math.PI * 2 * (1 - progress);
+            const halfRemain  = remainSweep / 2;
+            ctx.save();
+            ctx.strokeStyle = ringColor;
+            ctx.lineWidth   = 0.75;
+            ctx.shadowBlur  = 0;
+            ctx.globalAlpha = 1;
+            ctx.beginPath();
+            // The unswept arc runs from end of right arm to end of left arm (going through the top)
+            ctx.arc(cx, cy, r, startAngle + halfSweep, startAngle - halfSweep + Math.PI * 2, false);
+            ctx.stroke();
+            ctx.restore();
+          }
+
+        } else {
+          ctx.strokeStyle = ringColor;
+          ctx.lineWidth   = 0.75;
+          ctx.shadowBlur  = 0;
+          ctx.globalAlpha = 1;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
       }
 
       requestAnimationFrame(frame);
     }
 
+    // Track per-ring unlock times for arc sweep animation.
+    // ringUnlockTimes[i] = performance.now() timestamp when ring i was first unlocked this session.
+    // Rings restored from localStorage on page load have no entry here — they draw instantly.
+    const ringUnlockTimes = {};
+
     frame();
+
+    // Listen for groove unlock events from script.js
+    window.addEventListener('grooveRingUnlock', (e) => {
+      const newCount = e.detail.count;
+      const prevCount = window._grooveGlowCount || 0;
+      // Record unlock time for any newly lit rings
+      for (let i = prevCount; i < newCount; i++) {
+        ringUnlockTimes[i] = performance.now();
+      }
+      window._grooveGlowCount = newCount;
+    });
 
   })();
   </script>
@@ -214,7 +338,36 @@
       <h1 id="site-title">
         <span class="logo-efr">efr</span><span class="logo-ai">ai</span><span class="logo-n">n</span><span class="logo-dot">.</span><span class="logo-fm">fm</span>
       </h1>
+      <!-- Radio button — only visible once at least 1 cluster is unlocked -->
+      <button id="groove-map-btn" aria-label="Open discoveries" title="Discoveries">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M16.72 7.28a6 6 0 0 1 0 8.49"/>
+          <path d="M19.54 4.46a10 10 0 0 1 0 14.14"/>
+          <path d="M7.28 16.72a6 6 0 0 1 0-8.49"/>
+          <path d="M4.46 19.54a10 10 0 0 1 0-14.14"/>
+        </svg>
+      </button>
     </header>
+
+    <!-- Groove Map Modal -->
+    <div id="groove-modal" aria-modal="true" role="dialog" aria-label="Discoveries">
+      <div id="groove-modal-inner">
+        <div id="groove-modal-header">
+          <span id="groove-modal-title">Discovered Grooves</span>
+          <button id="groove-modal-close" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div id="groove-rock-container">
+          <canvas id="groove-rock-canvas"></canvas>
+        </div>
+        <div id="groove-modal-hint"></div>
+      </div>
+    </div>
 
     <div id="chat-container">
       <div id="chat-messages">
@@ -248,6 +401,7 @@
     </footer>
 
   </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

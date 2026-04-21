@@ -31,6 +31,33 @@ const favoritesPath = path.join(__dirname, 'data', 'favorites.json');
 
 const sessions = new Map();
 
+// =====================
+// GROOVE GLOW CONFIG
+// Keystone songs that are withheld until a cluster is unlocked.
+// Each cluster has one keystone identified by title + artist (normalized).
+// The cluster label is used in the "Discovery: X" transmission header.
+// Audio file: /audio/C1NeutralMilkHotelEngine.m4a etc.
+// =====================
+const GROOVE_KEYSTONES = [
+  { cluster: 'C1', title: 'Engine (1993)', artist: 'Neutral Milk Hotel',  label: 'Outsider', audio: '/audio/C1NeutralMilkHotelEngine.m4a' },
+  { cluster: 'C2', title: 'Untrue',  artist: 'Burial',             label: 'Night',    audio: '/audio/C2BurialUntrue.m4a' },
+  { cluster: 'C3', title: 'Cat Claw', artist: 'The Kills',         label: 'Raw',      audio: '/audio/C3TheKillsCatClaw.m4a' },
+  { cluster: 'C4', title: 'Take the Veil Cerpin Taxt', artist: 'The Mars Volta', label: 'Cosmic', audio: '/audio/C4TheMarsVoltaTakeTheVeil.m4a' },
+  { cluster: 'C5', title: "That's How Strong My Love Is", artist: 'Otis Redding', label: 'Soul',  audio: '/audio/C5OtisReddingThatsHowStrong.m4a' },
+  { cluster: 'C6', title: 'Iota',    artist: 'Angel Olsen',        label: 'Loss',     audio: '/audio/C6AngelOlsenIota.m4a' },
+  { cluster: 'C7', title: 'Losing My Edge', artist: 'LCD Soundsystem', label: 'Art', audio: '/audio/C7LCDSoundSystemLosingMyEdge.m4a' },
+  { cluster: 'C8', title: 'Into the Mystic', artist: 'Van Morrison', label: 'Memory', audio: '/audio/C8VanMorrisonIntoTheMystic.m4a' },
+  { cluster: 'C9', title: 'Beautiful People', artist: 'Marilyn Manson', label: 'Static', audio: '/audio/C9MarilynMansonBeautifulPeople.m4a' },
+];
+
+// Quick lookup: normalized "title|||artist" → keystone config
+const KEYSTONE_LOOKUP = new Map(
+  GROOVE_KEYSTONES.map(k => [`${normalize(k.title)}|||${normalize(k.artist)}`, k])
+);
+
+// Cluster label lookup for log/response use
+const CLUSTER_LABEL = Object.fromEntries(GROOVE_KEYSTONES.map(k => [k.cluster, k.label]));
+
 function getSession(sessionId) {
   if (!sessions.has(sessionId)) {
     sessions.set(sessionId, {
@@ -874,8 +901,18 @@ function buildSongResponse(song, session, interrupt = null, bridge = null) {
     }
   }
 
+  // Check if this song is a groove keystone — if so, attach groove metadata.
+  // The frontend uses this to play the cluster audio transmission before showing the embed.
+  const keystoneKey = `${normalize(song.title)}|||${normalize(song.artist)}`;
+  const keystoneConfig = KEYSTONE_LOOKUP.get(keystoneKey);
+  const groove = keystoneConfig ? {
+    cluster:  keystoneConfig.cluster,
+    label:    keystoneConfig.label,
+    audio:    keystoneConfig.audio,
+  } : null;
+
   return {
-    response: song.commentary,
+    response: groove ? null : song.commentary, // keystones carry no commentary — the audio transmission speaks for itself
     bridgingResponse: bridge,
     song: {
       title: song.title,
@@ -883,7 +920,9 @@ function buildSongResponse(song, session, interrupt = null, bridge = null) {
       spotify_url: getSongUrl(song), // frontend still expects spotify_url key
       tag_title: song.tag_title || '',
       tag_url: song.tag_url || '',
+      cluster: song.cluster || null,  // used by frontend for groove cluster counting
     },
+    groove,   // null for normal songs, populated for keystone unlocks
     interrupt: int,
   };
 }
@@ -930,11 +969,36 @@ app.post('/api/favorite', async (req, res) => {
 // =====================
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, sessionId = 'default' } = req.body;
+    const { message, sessionId = 'default', unlockedClusters = [], clusterCounts = {}, pushCluster = null } = req.body;
     if (!message || !message.trim()) return res.json({ response: "Say something and I'll find you a song.", song: null });
     if (message.length > 500) return res.json({ response: "Keep it short — I just need a vibe, not an essay.", song: null });
 
     const session = getSession(sessionId);
+
+    // ── DEV COMMAND: /push C1 — force-serve a specific cluster's keystone ──
+    if (pushCluster) {
+      const keystone = GROOVE_KEYSTONES.find(k => k.cluster.toUpperCase() === pushCluster.toUpperCase());
+      if (keystone) {
+        const song = songsData.songs.find(s =>
+          normalize(s.title) === normalize(keystone.title) &&
+          normalize(s.artist) === normalize(keystone.artist)
+        );
+        if (song) return res.json(buildSongResponse(song, session));
+      }
+      return res.json({ response: `No keystone found for cluster ${pushCluster}.`, song: null });
+    }
+
+    // Helper: is this song a keystone that hasn't been unlocked yet?
+    // If so, skip it — the frontend hasn't reached the threshold for that cluster.
+    function isLockedKeystone(song) {
+      const key = `${normalize(song.title)}|||${normalize(song.artist)}`;
+      const kc = KEYSTONE_LOOKUP.get(key);
+      if (!kc) return false; // not a keystone
+      if (unlockedClusters.includes(kc.cluster)) return false; // already unlocked
+      const count = clusterCounts[kc.cluster] || 0;
+      return count < 2; // locked until 2 songs from that cluster have been played
+    }
+
     if (session.playedSongs.length >= songsData.songs.length) {
       return res.json({ response: "That's the whole collection — nothing left I haven't played you.", song: null });
     }
@@ -953,7 +1017,7 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: redirects[Math.floor(Math.random() * redirects.length)], song: null });
     }
 
-    const available = () => songsData.songs.filter(s => !session.playedSongs.includes(s.title));
+    const available = () => songsData.songs.filter(s => !session.playedSongs.includes(s.title) && !isLockedKeystone(s));
 
     const pickTopScoring = (pool) => {
       if (!pool.length) return null;
@@ -1381,6 +1445,99 @@ app.post('/api/chat', async (req, res) => {
     } else {
       res.status(500).json({ error: 'Something went wrong', details: error.message });
     }
+  }
+});
+
+// =====================
+// GROOVE GLOW KEYSTONES — public config for frontend
+// Returns title/artist/cluster/label/audio so the frontend can track cluster membership
+// =====================
+app.get('/api/groove-keystones', (req, res) => {
+  res.json(GROOVE_KEYSTONES.map(k => ({
+    cluster: k.cluster,
+    label:   k.label,
+    title:   k.title,
+    artist:  k.artist,
+    audio:   k.audio,
+  })));
+});
+
+// =====================
+// GROOVE GLOW LOG ENDPOINT
+// Logs per-visitor unlock events to stdout (visible in Render dashboard)
+// and appends to /api/groove-log.json if the directory is writable.
+// Format: { visitorId, cluster, label, inputThatTriggered, unlockedAt }
+// =====================
+const LOG_PATH = path.join(__dirname, 'api', 'groove-log.json');
+
+app.post('/api/log', (req, res) => {
+  try {
+    const { visitorId, cluster, label, input, firstSessionStart, allUnlocks } = req.body;
+    const entry = {
+      visitorId:         visitorId || 'unknown',
+      cluster,
+      label,
+      inputThatTriggered: input || '',
+      unlockedAt:        new Date().toISOString(),
+      firstSessionStart: firstSessionStart || null,
+      totalUnlocks:      allUnlocks ? allUnlocks.length : 0,
+    };
+
+    // Always log to stdout — visible in Render dashboard logs
+    console.log('[GROOVE UNLOCK]', JSON.stringify(entry));
+
+    // Try to append to file — will fail gracefully on ephemeral filesystem
+    try {
+      let log = [];
+      if (fs.existsSync(LOG_PATH)) {
+        log = JSON.parse(fs.readFileSync(LOG_PATH, 'utf8'));
+      }
+      log.push(entry);
+      fs.writeFileSync(LOG_PATH, JSON.stringify(log, null, 2));
+    } catch (fileErr) {
+      // Ephemeral filesystem — stdout is sufficient
+    }
+
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Log error:', e);
+    res.json({ ok: false });
+  }
+});
+
+// =====================
+// INVOKE CLUSTER — zone selector direct cluster pick
+// Picks a random commented song from the given cluster, bypassing trait scoring.
+// Called when user taps an undiscovered zone on the groove map rock.
+// =====================
+app.post('/api/invoke-cluster', async (req, res) => {
+  try {
+    const { cluster, sessionId = 'default' } = req.body;
+    if (!cluster) return res.json({ response: "No cluster specified.", song: null });
+
+    const session = getSession(sessionId);
+
+    // Prefer songs with commentary; fall back to any in cluster
+    const withCommentary = songsData.songs.filter(s =>
+      s.cluster === cluster &&
+      !session.playedSongs.includes(s.title) &&
+      s.commentary && s.commentary.trim() !== ''
+    );
+    const fallback = songsData.songs.filter(s =>
+      s.cluster === cluster &&
+      !session.playedSongs.includes(s.title)
+    );
+
+    const pool = withCommentary.length ? withCommentary : fallback;
+    if (!pool.length) {
+      return res.json({ response: "I've played everything from that zone.", song: null });
+    }
+
+    const song = pool[Math.floor(Math.random() * pool.length)];
+    return res.json(buildSongResponse(song, session));
+  } catch (e) {
+    console.error('Invoke cluster error:', e);
+    res.status(500).json({ response: "Something went wrong.", song: null });
   }
 });
 
