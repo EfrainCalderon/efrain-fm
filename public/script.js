@@ -466,7 +466,10 @@ async function displaySong(song, storyText) {
     if (useApple) {
       // Apple Music embed URL format: https://embed.music.apple.com/...
       // songs.json should store the embed URL directly
-      iframe.src = appleUrl;
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+        (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      const appleTheme = isDark ? 'dark' : 'light';
+      iframe.src = appleUrl.includes('?') ? `${appleUrl}&theme=${appleTheme}` : `${appleUrl}?theme=${appleTheme}`;
       iframe.allow = 'autoplay *; encrypted-media *; fullscreen *';
       iframe.style.borderRadius = '10px';
     } else {

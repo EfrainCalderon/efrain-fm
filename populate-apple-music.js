@@ -1,137 +1,146 @@
 // populate-apple-music.js
-// Hits the iTunes Search API for each song and populates apple_music embed URLs.
-// Run from your project root: node populate-apple-music.js
-// Safe to run multiple times — skips songs that already have an apple_music URL.
-//
-// How Apple Music embed URLs work:
-// Search returns a trackViewUrl like:
-//   https://music.apple.com/us/album/song-name/album-id?i=track-id
-// The embed URL is:
-//   https://embed.music.apple.com/us/album/album-id?i=track-id
+// Run from project root: node populate-apple-music.js
+// iTunes Search API hard limit: ~20 requests/minute.
+// This script runs at one request every 3 seconds = 20/min.
 
 const fs    = require('fs');
 const path  = require('path');
 const https = require('https');
 
-const SONGS_PATH  = path.join(__dirname, 'data', 'songs.json');
-const DELAY_MS    = 120; // ~8 req/sec, well under iTunes rate limit
-const COUNTRY     = 'us';
+const SONGS_PATH = path.join(__dirname, 'data', 'songs.json');
+const DELAY_MS   = 3000; // 3s = 20 req/min, right at the documented limit
+const COUNTRY    = 'us';
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function httpsGet(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+  return new Promise((resolve) => {
+    const req = https.get(url, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch (e) { reject(e); }
+        try { resolve({ status: res.statusCode, data: JSON.parse(data) }); }
+        catch (e) { resolve({ status: res.statusCode, data: null }); }
       });
-    }).on('error', reject);
+    });
+    req.on('error', () => resolve({ status: 0, data: null }));
+    req.setTimeout(10000, () => { req.destroy(); resolve({ status: 0, data: null }); });
   });
 }
 
 function buildEmbedUrl(trackViewUrl) {
-  // Convert: https://music.apple.com/us/album/name/ALBUMID?i=TRACKID
-  // To:      https://embed.music.apple.com/us/album/ALBUMID?i=TRACKID
   try {
-    const url    = new URL(trackViewUrl);
-    const parts  = url.pathname.split('/').filter(Boolean);
-    // parts: ['us', 'album', 'album-name', 'album-id']
+    const url      = new URL(trackViewUrl);
+    const parts    = url.pathname.split('/').filter(Boolean);
     const albumIdx = parts.indexOf('album');
     if (albumIdx === -1) return null;
-    const albumId  = parts[albumIdx + 2]; // skip 'album-name'
+    const albumId  = parts[albumIdx + 2];
     const trackId  = url.searchParams.get('i');
     if (!albumId || !trackId) return null;
     return `https://embed.music.apple.com/${COUNTRY}/album/${albumId}?i=${trackId}`;
-  } catch (e) {
-    return null;
+  } catch (e) { return null; }
+}
+
+function norm(str) {
+  return (str || '')
+    .toLowerCase()
+    .replace(/[''`]/g, "'")
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\b(the|a|an)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function matchScore(result, title, artist) {
+  const rTitle  = norm(result.trackName  || '');
+  const rArtist = norm(result.artistName || '');
+  const qTitle  = norm(title);
+  const qArtist = norm(artist);
+  let score = 0;
+  if (rTitle === qTitle) score += 10;
+  else if (rTitle.includes(qTitle) || qTitle.includes(rTitle)) score += 5;
+  if (rArtist === qArtist) score += 8;
+  else if (rArtist.includes(qArtist) || qArtist.includes(rArtist)) score += 4;
+  else if (qArtist.split(' ')[0] && rArtist.includes(qArtist.split(' ')[0])) score += 2;
+  return score;
+}
+
+function pickBest(results, title, artist) {
+  const scored = results
+    .map(r => ({ r, score: matchScore(r, title, artist) }))
+    .filter(({ score }) => score >= 8)
+    .sort((a, b) => b.score - a.score);
+  if (scored.length && scored[0].r.trackViewUrl) {
+    return buildEmbedUrl(scored[0].r.trackViewUrl);
   }
+  return null;
 }
 
 async function searchItunes(title, artist) {
   const query = encodeURIComponent(`${artist} ${title}`);
-  const url   = `https://itunes.apple.com/search?term=${query}&entity=song&country=${COUNTRY}&limit=5`;
+  const url   = `https://itunes.apple.com/search?term=${query}&entity=song&country=${COUNTRY}&limit=10`;
+  const { status, data } = await httpsGet(url);
 
-  try {
-    const data = await httpsGet(url);
-    if (!data.results || !data.results.length) return null;
-
-    // Find the best match — exact title + artist match preferred
-    const normTitle  = title.toLowerCase().trim();
-    const normArtist = artist.toLowerCase().trim();
-
-    const exact = data.results.find(r =>
-      r.trackName?.toLowerCase().trim() === normTitle &&
-      r.artistName?.toLowerCase().trim() === normArtist
-    );
-
-    const close = data.results.find(r =>
-      r.trackName?.toLowerCase().includes(normTitle.slice(0, 8)) &&
-      r.artistName?.toLowerCase().includes(normArtist.split(' ')[0].toLowerCase())
-    );
-
-    const result = exact || close || null;
-    if (!result || !result.trackViewUrl) return null;
-    return buildEmbedUrl(result.trackViewUrl);
-  } catch (e) {
-    return null;
+  if (status === 403 || status === 429) {
+    process.stdout.write(' [rate limited — waiting 60s]');
+    await sleep(60000);
+    const retry = await httpsGet(url);
+    if (!retry.data?.results?.length) return null;
+    return pickBest(retry.data.results, title, artist);
   }
+
+  if (!data?.results?.length) return null;
+  return pickBest(data.results, title, artist);
 }
 
 async function main() {
   const data  = JSON.parse(fs.readFileSync(SONGS_PATH, 'utf8'));
   const songs = data.songs;
 
+  // Process songs with no URL OR empty string (catches previous rate-limited runs)
   const toProcess = songs.filter(s => {
-    const am = s.streaming?.apple_music;
-    return !am || am.trim() === '';
+    const am = s.streaming?.apple_music || '';
+    return !am.includes('embed.music.apple.com');
   });
 
-  console.log(`Total songs: ${songs.length}`);
-  console.log(`Songs needing Apple Music URL: ${toProcess.length}`);
-  console.log(`Estimated time: ~${Math.ceil(toProcess.length * DELAY_MS / 1000 / 60)} minutes\n`);
+  const alreadyDone = songs.length - toProcess.length;
+  const estMins = Math.ceil(toProcess.length * DELAY_MS / 1000 / 60);
+
+  console.log(`Total songs:       ${songs.length}`);
+  console.log(`Already have URL:  ${alreadyDone}`);
+  console.log(`To process:        ${toProcess.length}`);
+  console.log(`Est. time:         ~${estMins} minutes\n`);
 
   let found = 0, notFound = 0;
 
   for (let i = 0; i < toProcess.length; i++) {
     const song = toProcess[i];
-    process.stdout.write(`[${i + 1}/${toProcess.length}] ${song.artist} — ${song.title} ... `);
+    process.stdout.write(`[${i + 1}/${toProcess.length}] ${song.artist} — ${song.title} ...`);
 
     const embedUrl = await searchItunes(song.title, song.artist);
-
-    // Find and update in the main songs array
-    const target = songs.find(s => s.id === song.id);
+    const target   = songs.find(s => s.id === song.id);
     if (target) {
       if (!target.streaming) target.streaming = {};
       target.streaming.apple_music = embedUrl || '';
     }
 
-    if (embedUrl) {
-      console.log(`✓`);
-      found++;
-    } else {
-      console.log(`—`);
-      notFound++;
-    }
+    if (embedUrl) { console.log(' ✓'); found++; }
+    else { console.log(' —'); notFound++; }
 
-    // Save progress every 50 songs so you don't lose work if it's interrupted
-    if ((i + 1) % 50 === 0) {
+    // Save every 25 songs so progress is never lost
+    if ((i + 1) % 25 === 0) {
       fs.writeFileSync(SONGS_PATH, JSON.stringify(data, null, 2));
-      console.log(`  [saved progress at ${i + 1} songs]\n`);
+      console.log(`\n  [saved — ${alreadyDone + found} total URLs so far]\n`);
     }
 
     await sleep(DELAY_MS);
   }
 
-  // Final save
   fs.writeFileSync(SONGS_PATH, JSON.stringify(data, null, 2));
-
   console.log(`\nDone.`);
-  console.log(`  Found: ${found}`);
+  console.log(`  Found:     ${found}`);
   console.log(`  Not found: ${notFound}`);
-  console.log(`  songs.json updated.`);
+  console.log(`  Total with Apple Music URL: ${alreadyDone + found} / ${songs.length}`);
 }
 
 main().catch(console.error);
