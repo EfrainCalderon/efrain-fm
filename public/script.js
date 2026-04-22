@@ -332,8 +332,8 @@ async function sendMessage() {
       if (!grooveHandled) {
         // Normal song — track cluster count for future groove unlock
         if (data.song && data.song.cluster) {
-          const cl = data.song.cluster;
-          clusterPlayCounts[cl] = (clusterPlayCounts[cl] || 0) + 1;
+          if (typeof window.recordClusterPlay === 'function') window.recordClusterPlay(data.song.cluster);
+          else clusterPlayCounts[data.song.cluster] = (clusterPlayCounts[data.song.cluster] || 0) + 1;
         }
         await displaySong(data.song, data.response);
         sessionStats.songsPlayed++;
@@ -1414,20 +1414,80 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   const mapBtn   = document.getElementById('groove-map-btn');
   const modal    = document.getElementById('groove-modal');
   const closeBtn = document.getElementById('groove-modal-close');
-  const hint     = document.getElementById('groove-modal-hint');
+  const card     = document.getElementById('groove-zone-card');
+  const cardPreTitle = document.getElementById('groove-card-pretitle');
+  const cardTitle    = document.getElementById('groove-card-title');
+  const cardStatus   = document.getElementById('groove-card-status');
+  const cardStats    = document.getElementById('groove-card-stats');
+  const cardCta      = document.getElementById('groove-card-cta');
+  const prevBtn      = document.getElementById('groove-prev');
+  const nextBtn      = document.getElementById('groove-next');
   if (!mapBtn || !modal) return;
 
-  let clickLocked = false; // prevents double-invoke
+  let clickLocked = false; // prevents double-invoke from CTA
+
+  // ── Session play counts — persisted in localStorage per session ───────
+  // All-time cluster play counts — persists in localStorage until user clears storage.
+  // Key: 'efrain_fm_cluster_plays' → { C1: 2, C3: 1, ... }
+  const CLUSTER_PLAYS_KEY = 'efrain_fm_cluster_plays';
+  function getAllTimePlays() {
+    try { return JSON.parse(localStorage.getItem(CLUSTER_PLAYS_KEY)) || {}; } catch { return {}; }
+  }
+  function saveAllTimePlays(counts) {
+    localStorage.setItem(CLUSTER_PLAYS_KEY, JSON.stringify(counts));
+  }
+  // Merge persisted all-time counts into the in-memory clusterPlayCounts on init
+  const persistedCounts = getAllTimePlays();
+  Object.assign(clusterPlayCounts, persistedCounts);
+
+  function recordClusterPlay(cluster) {
+    clusterPlayCounts[cluster] = (clusterPlayCounts[cluster] || 0) + 1;
+    saveAllTimePlays(clusterPlayCounts);
+  }
+  window.recordClusterPlay = recordClusterPlay;
 
   // ── Visibility ────────────────────────────────────────────────────────
   function syncButtonVisibility() {
     const count = grooveState.unlockedClusters.length;
     mapBtn.classList.toggle('visible', count > 0);
-    const titleEl = document.getElementById('groove-modal-title');
-    if (titleEl) titleEl.textContent = `${count} Groove${count === 1 ? '' : 's'} Unlocked`;
+    const subtitleEl = document.getElementById('groove-modal-subtitle');
+    if (subtitleEl) subtitleEl.textContent = `${count} of 9 Grooves discovered`;
   }
   syncButtonVisibility();
   window.addEventListener('grooveRingUnlock', syncButtonVisibility);
+
+  // ── Zone card update ──────────────────────────────────────────────────
+  const CLUSTER_INDEX = { C1: 1, C2: 2, C3: 3, C4: 4, C5: 5, C6: 6, C7: 7, C8: 8, C9: 9 };
+
+  function showZoneCard(zone) {
+    if (!card || !zone) return;
+    syncNavIdx(zone);
+    const idx      = CLUSTER_INDEX[zone.cluster] || '—';
+    const total    = zone.songs || 0;
+    const played   = clusterPlayCounts[zone.cluster] || 0;
+    cardPreTitle.textContent = `Region ${idx}`;
+    cardTitle.textContent    = zone.label;
+    cardStats.textContent    = played > 0
+      ? `${total} songs // ${played} discovered`
+      : `${total} songs`;
+
+    if (zone.discovered) {
+      cardStatus.textContent = '◆ Discovered';
+      cardStatus.className   = 'groove-card__status discovered';
+      cardCta.textContent    = 'Replay Keystone';
+      cardCta.className      = 'groove-card__cta discovered';
+    } else {
+      cardStatus.textContent = '◇ Locked';
+      cardStatus.className   = 'groove-card__status locked';
+      cardCta.textContent    = 'Invoke songs from this region';
+      cardCta.className      = 'groove-card__cta locked';
+    }
+    card.classList.add('visible');
+  }
+
+  function hideZoneCard() {
+    if (card) card.classList.remove('visible');
+  }
 
   // ── Modal open / close ────────────────────────────────────────────────
   function openModal() {
@@ -1460,24 +1520,115 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   let velX = 0, velY = 0;
   let autoRotate = true;
   let autoRotateTimer = null;
-  let hoveredZone = null;
+  let hoveredZone   = null;
   let frontmostZone = null;
+  let activeZone    = null; // zone explicitly selected by tap or caret nav
+  let targetRotY    = null; // if set, rock tweens toward this y-rotation
+  let navZoneIdx    = 0;   // current index into NAV_ORDER (C1–C9)
 
-  // Hint click — fires once at IIFE level, not inside initRock
-  // so it doesn't stack up on repeated modal opens
-  if (hint) {
-    hint.addEventListener('click', () => {
-      if (frontmostZone && !clickLocked) {
+  // CTA button — closes modal and fires the zone action
+  if (cardCta) {
+    cardCta.addEventListener('click', () => {
+      const zone = activeZone || hoveredZone || frontmostZone;
+      if (zone && !clickLocked) {
         clickLocked = true;
-        handleZoneClick(frontmostZone);
+        handleZoneClick(zone);
       }
     });
-    hint.addEventListener('mousedown', () => hint.classList.add('pressed'));
-    hint.addEventListener('mouseup',   () => hint.classList.remove('pressed'));
-    hint.addEventListener('mouseleave',() => hint.classList.remove('pressed'));
-    hint.addEventListener('touchstart',() => hint.classList.add('pressed'),   { passive: true });
-    hint.addEventListener('touchend',  () => hint.classList.remove('pressed'), { passive: true });
   }
+
+  // ── Caret navigation ──────────────────────────────────────────────────
+  // NAV_ORDER steps through regions 1–9 in number order.
+  // The rock tweens to wherever each region physically lives on the geometry.
+  const NAV_ORDER = ['C1','C2','C3','C4','C5','C6','C7','C8','C9'];
+
+  // Keyframes computed from actual mesh centroids after buildZonedRock runs.
+  let KEYFRAMES = {};
+
+  function computeKeyframes() {
+    // Hardcoded from actual mesh centroid data (seed 42, IcosahedronGeometry detail 2).
+    // rotY verified: worldZ = cx*sin(rotY)+cz*cos(rotY) is negative for all (facing camera).
+    // rotX from centroid cy for natural vertical tilt.
+    KEYFRAMES = {
+      C1: { rotY:  0.513, rotX:  0.210 },
+      C2: { rotY:  2.760, rotX:  0.171 },
+      C3: { rotY: -2.358, rotX: -0.076 },
+      C4: { rotY:  2.411, rotX: -0.231 },
+      C5: { rotY:  1.424, rotX: -0.009 },
+      C6: { rotY: -1.143, rotX:  0.084 },
+      C7: { rotY: -0.105, rotX: -0.151 },
+      C8: { rotY: -0.526, rotX: -0.394 },
+      C9: { rotY: -2.036, rotX:  0.305 },
+    };
+  }
+
+  function resumeAutoRotate() {
+    autoRotate = true;
+    // Don't clear activeZone — let it stay visually selected while cycling
+  }
+
+  function syncNavIdx(zone) {
+    const i = NAV_ORDER.indexOf(zone.cluster);
+    if (i !== -1) navZoneIdx = i;
+  }
+
+  // ── Fade helpers ──────────────────────────────────────────────────────
+  // ONE zone active at a time. startFadeOut always resets to default.
+  // startFadeIn only on the single chosen zone.
+
+  function startFadeIn(zm) {
+    if (!zm) return;
+    zm._fadeDir      = 'in';
+    zm._fadeProgress = (zm._fadeProgress != null && zm._fadeDir === 'in') ? zm._fadeProgress : 0;
+  }
+
+  function startFadeOut(zm) {
+    if (!zm) return;
+    zm._fadeDir      = 'out';
+    zm._fadeProgress = (zm._fadeProgress != null) ? zm._fadeProgress : 1;
+  }
+
+  function clearFade(zm) {
+    if (!zm) return;
+    zm._fadeDir = null;
+    zm._fadeProgress = null;
+  }
+
+  // Deactivate every zone except the given one (or all if null)
+  function deactivateAllExcept(keepZm) {
+    zoneMeshes.forEach(zm => {
+      if (zm !== keepZm) startFadeOut(zm);
+    });
+  }
+
+  function navToIndex(idx) {
+    if (!Object.keys(KEYFRAMES).length) return; // not yet computed
+    navZoneIdx = ((idx % NAV_ORDER.length) + NAV_ORDER.length) % NAV_ORDER.length;
+    const cluster = NAV_ORDER[navZoneIdx];
+    const zm = zoneMeshes.find(z => z.cluster === cluster);
+    if (!zm) return;
+
+    const kf = KEYFRAMES[cluster];
+    if (kf) {
+      targetRotY = kf.rotY;
+      group._navTargetX = kf.rotX;
+    }
+
+    autoRotate = false;
+    clearTimeout(autoRotateTimer);
+    autoRotateTimer = setTimeout(resumeAutoRotate, 3000);
+
+    deactivateAllExcept(zm);
+    hoveredZone   = null;
+    frontmostZone = null;
+    activeZone    = zm;
+    syncNavIdx(zm);
+    startFadeIn(zm);
+    showZoneCard(zm);
+  }
+
+  if (prevBtn) prevBtn.addEventListener('click', () => navToIndex(navZoneIdx - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => navToIndex(navZoneIdx + 1));
 
   const ZONES = [
     { cluster: 'C8', label: 'Memory',   songs: 110 },
@@ -1500,11 +1651,18 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     hoverDiscovered:   { color: 0x6a3c22, emissive: 0x220e04, specular: 0xd88848, shininess: 68 },
   };
 
+  function lerpHex(a, b, t) {
+    const ar = (a >> 16) & 0xff, ag = (a >> 8) & 0xff, ab = a & 0xff;
+    const br = (b >> 16) & 0xff, bg = (b >> 8) & 0xff, bb = b & 0xff;
+    return ((ar + (br - ar) * t) << 16) | ((ag + (bg - ag) * t) << 8) | (ab + (bb - ab) * t);
+  }
+
   function applyMatState(zm, state) {
     zm.mat.color.setHex(MAT[state].color);
     zm.mat.emissive.setHex(MAT[state].emissive);
     zm.mat.specular.setHex(MAT[state].specular);
     zm.mat.shininess = MAT[state].shininess;
+    clearFade(zm);
   }
 
   function defaultState(zm) {
@@ -1619,7 +1777,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       const mesh = new THREE.Mesh(zoneGeo, mat);
       mesh.scale.setScalar(0.964);
       group.add(mesh);
-      zoneMeshes.push({ mesh, mat, cluster: zone.cluster, label: zone.label, discovered: isDiscovered });
+      zoneMeshes.push({ mesh, mat, cluster: zone.cluster, label: zone.label, songs: zone.songs, discovered: isDiscovered });
     });
 
     // Inner void sphere — crack depth illusion
@@ -1657,6 +1815,14 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     group = new THREE.Group();
     scene.add(group);
     buildZonedRock();
+    computeKeyframes(); // must run after zoneMeshes are populated
+
+    // CSS glow — radial gradient div sitting behind the canvas in DOM space.
+    // Lives outside the WebGL context so it can bleed past canvas bounds freely.
+    const glowDiv = document.createElement('div');
+    glowDiv.id = 'groove-rock-glow';
+    glowDiv.style.cssText = 'position:absolute;inset:-30px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(245,242,238,0.22) 0%,rgba(232,228,222,0.10) 35%,rgba(220,216,210,0.04) 60%,transparent 78%);pointer-events:none;z-index:0;';
+    container.appendChild(glowDiv);
 
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
@@ -1673,16 +1839,14 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 
     function setHover(zone) {
       if (hoveredZone === zone) return;
-      if (hoveredZone) applyMatState(hoveredZone, defaultState(hoveredZone));
       hoveredZone = zone;
       if (zone) {
-        applyMatState(zone, zone.discovered ? 'hoverDiscovered' : 'hoverUndiscovered');
-        hint.textContent = zone.discovered
-          ? `// ${zone.label}`
-          : `// ${zone.label} — Invoke`;
+        deactivateAllExcept(zone);
+        activeZone = zone;
+        startFadeIn(zone);
+        showZoneCard(zone);
         canvas.style.cursor = 'pointer';
       } else {
-        hint.textContent = '';
         canvas.style.cursor = 'default';
       }
     }
@@ -1719,14 +1883,27 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     function onPointerUp(clientX, clientY) {
       if (!pointerDown) return;
       pointerDown = false;
-      if (!hasDragged && !clickLocked) {
+      if (!hasDragged) {
         const zone = getZoneAt(clientX, clientY);
         if (zone) {
-          clickLocked = true; // block any further clicks until modal fully closes
-          handleZoneClick(zone);
+          deactivateAllExcept(zone);
+          hoveredZone   = null;
+          frontmostZone = null;
+          autoRotate    = false;
+          clearTimeout(autoRotateTimer);
+          targetRotY    = null;
+          activeZone    = zone;
+          syncNavIdx(zone);
+          startFadeIn(zone);
+          showZoneCard(zone);
+        } else {
+          clearTimeout(autoRotateTimer);
+          autoRotateTimer = setTimeout(resumeAutoRotate, 1800);
         }
+      } else {
+        clearTimeout(autoRotateTimer);
+        autoRotateTimer = setTimeout(resumeAutoRotate, 1800);
       }
-      autoRotateTimer = setTimeout(() => { autoRotate = true; }, 1800);
     }
 
     // Mouse
@@ -1759,10 +1936,24 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     function animate() {
       animId = requestAnimationFrame(animate);
       if (autoRotate) {
-        // y-rotation sweeps all 9 zones past the front continuously.
-        // x eases to a fixed tilt so no zone hides at the poles.
-        group.rotation.y += 0.004;
+        // Slowed by ~35% from original 0.004
+        group.rotation.y += 0.0026;
         group.rotation.x += (0.18 - group.rotation.x) * 0.02;
+      } else if (targetRotY !== null) {
+        // Normalise accumulated rotation each frame so diff is always within [-PI, PI]
+        group.rotation.y = ((group.rotation.y + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+        let diff = targetRotY - group.rotation.y;
+        if (diff >  Math.PI) diff -= Math.PI * 2;
+        if (diff < -Math.PI) diff += Math.PI * 2;
+        group.rotation.y += diff * 0.08;
+        if (group._navTargetX !== undefined) {
+          group.rotation.x += (group._navTargetX - group.rotation.x) * 0.08;
+        }
+        if (Math.abs(diff) < 0.003) {
+          group.rotation.y = targetRotY; // snap exactly on arrival
+          targetRotY = null;
+          group._navTargetX = undefined;
+        }
       } else {
         velX *= 0.93; velY *= 0.93;
         group.rotation.y += velX;
@@ -1770,9 +1961,37 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       }
       renderer.render(scene, camera);
 
-      // Story 1 + 2: Find frontmost zone and apply selected visual state.
-      // When hovering on desktop, hover takes priority and frontmost is reset.
-      if (!hoveredZone) {
+      // ── Material fades (2s in, 1s out) ───────────────────────────────
+      const FADE_IN_SPEED  = 1 / (2 * 60);
+      const FADE_OUT_SPEED = 1 / (1 * 60);
+      zoneMeshes.forEach(zm => {
+        if (!zm._fadeDir) return;
+        const hover = zm.discovered ? 'hoverDiscovered' : 'hoverUndiscovered';
+        const def   = defaultState(zm);
+        if (zm._fadeDir === 'in') {
+          zm._fadeProgress = Math.min(1, (zm._fadeProgress || 0) + FADE_IN_SPEED);
+          const t = zm._fadeProgress;
+          zm.mat.color.setHex(lerpHex(MAT[def].color, MAT[hover].color, t));
+          zm.mat.emissive.setHex(lerpHex(MAT[def].emissive, MAT[hover].emissive, t));
+          zm.mat.specular.setHex(lerpHex(MAT[def].specular, MAT[hover].specular, t));
+          zm.mat.shininess = MAT[def].shininess + (MAT[hover].shininess - MAT[def].shininess) * t;
+          if (zm._fadeProgress >= 1) clearFade(zm);
+        } else if (zm._fadeDir === 'out') {
+          zm._fadeProgress = Math.max(0, (zm._fadeProgress || 1) - FADE_OUT_SPEED);
+          const t = zm._fadeProgress; // 1→0
+          zm.mat.color.setHex(lerpHex(MAT[def].color, MAT[hover].color, t));
+          zm.mat.emissive.setHex(lerpHex(MAT[def].emissive, MAT[hover].emissive, t));
+          zm.mat.specular.setHex(lerpHex(MAT[def].specular, MAT[hover].specular, t));
+          zm.mat.shininess = MAT[def].shininess + (MAT[hover].shininess - MAT[def].shininess) * t;
+          if (zm._fadeProgress <= 0) {
+            clearFade(zm);
+            applyMatState(zm, def); // snap to fully default at end
+          }
+        }
+      });
+
+      // ── Frontmost zone tracking (only when no explicit activeZone) ────
+      if (!hoveredZone && !activeZone) {
         let newFrontmost = null, bestZ = Infinity;
         const center = new THREE.Vector3();
         const proj   = new THREE.Vector3();
@@ -1781,36 +2000,27 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           zm.mesh.geometry.boundingBox.getCenter(center);
           center.applyMatrix4(zm.mesh.matrixWorld);
           proj.copy(center).project(camera);
-          // In NDC, z ranges -1 (near) to 1 (far). Lowest z = closest to camera.
-          // Also check the centroid is in front of the camera (proj.z < 1) and on screen.
           if (proj.z < 1 && Math.abs(proj.x) < 1.2 && proj.z < bestZ) {
             bestZ = proj.z;
             newFrontmost = zm;
           }
         });
-
         if (newFrontmost !== frontmostZone) {
-          if (frontmostZone) applyMatState(frontmostZone, defaultState(frontmostZone));
+          if (frontmostZone) startFadeOut(frontmostZone);
           frontmostZone = newFrontmost;
+          if (frontmostZone) {
+            startFadeIn(frontmostZone);
+            showZoneCard(frontmostZone);
+          } else {
+            hideZoneCard();
+          }
         }
-        // Apply selected state every frame — same visual as desktop hover
-        if (frontmostZone) {
-          applyMatState(frontmostZone, frontmostZone.discovered ? 'hoverDiscovered' : 'hoverUndiscovered');
-          hint.textContent = frontmostZone.discovered
-            ? `// ${frontmostZone.label}`
-            : `// ${frontmostZone.label} — Invoke`;
-          hint.style.cursor = 'pointer';
-        } else {
-          hint.textContent = '';
-          hint.style.cursor = 'default';
-        }
-      } else {
-        // Desktop hover active — reset any frontmost highlight
-        if (frontmostZone) {
-          applyMatState(frontmostZone, defaultState(frontmostZone));
+      } else if (hoveredZone) {
+        // Desktop hover — clear any frontmost
+        if (frontmostZone && frontmostZone !== hoveredZone) {
+          startFadeOut(frontmostZone);
           frontmostZone = null;
         }
-        hint.style.cursor = 'default';
       }
     }
     animate();
@@ -1823,8 +2033,12 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     zoneMeshes = [];
     hoveredZone = null;
     frontmostZone = null;
+    activeZone = null;
+    targetRotY = null;
     pointerDown = hasDragged = false;
-    if (hint) { hint.textContent = ''; hint.style.cursor = 'default'; hint.classList.remove('pressed'); }
+    hideZoneCard();
+    const glowDiv = document.getElementById('groove-rock-glow');
+    if (glowDiv) glowDiv.remove();
     window._grooveMouseUpActive = false;
   }
 
@@ -1881,7 +2095,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           if (data.song) {
             const cl = data.song.cluster;
             if (cl) {
-              clusterPlayCounts[cl] = (clusterPlayCounts[cl] || 0) + 1;
+              recordClusterPlay(cl);
 
               // Check if this invoke just hit the groove threshold
               // 2 previous plays + this one = time to surface the keystone

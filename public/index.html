@@ -354,18 +354,38 @@
     <div id="groove-modal" aria-modal="true" role="dialog" aria-label="Discoveries">
       <div id="groove-modal-inner">
         <div id="groove-modal-header">
-          <span id="groove-modal-title">Discovered Grooves</span>
-          <button id="groove-modal-close" aria-label="Close">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
+          <span id="groove-modal-title">Locked Grooves</span>
+          <span id="groove-modal-subtitle">0 of 9 Grooves discovered</span>
         </div>
+        <button id="groove-modal-close" aria-label="Close">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
         <div id="groove-rock-container">
           <canvas id="groove-rock-canvas"></canvas>
         </div>
-        <div id="groove-modal-hint"></div>
+        <!-- Card row: prev button, zone card, next button -->
+        <div id="groove-card-row">
+          <button id="groove-prev" aria-label="Previous region">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <div id="groove-zone-card">
+            <div class="groove-card__pretitle" id="groove-card-pretitle">Region —</div>
+            <div class="groove-card__title" id="groove-card-title">—</div>
+            <div class="groove-card__status locked" id="groove-card-status">Locked</div>
+            <div class="groove-card__stats" id="groove-card-stats">— songs</div>
+            <button class="groove-card__cta locked" id="groove-card-cta">Invoke songs from this region</button>
+          </div>
+          <button id="groove-next" aria-label="Next region">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
