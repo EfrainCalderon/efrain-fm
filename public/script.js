@@ -61,15 +61,18 @@ playerSegUpdateVisual(getPlayerPref());
 
 async function playerSegPick(val) {
   if (val === getPlayerPref()) return;
-  if (isTyping) return;
 
+  // Always register the switch immediately — even if chat is busy
   setPlayerPref(val);
   playerSegUpdateVisual(val);
+
+  // Don't print messages if chat is mid-response
+  if (isTyping) return;
 
   // Check once-per-calendar-day gate
   const today     = new Date().toDateString();
   const lastShown = localStorage.getItem(PLAYER_EXPLAIN_KEY);
-  if (lastShown === today) return; // already shown today
+  if (lastShown === today) return;
   localStorage.setItem(PLAYER_EXPLAIN_KEY, today);
 
   // Print the three messages through the same pipeline as system messages
