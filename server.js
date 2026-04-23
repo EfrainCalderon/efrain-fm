@@ -1600,10 +1600,26 @@ app.post('/api/log', async (req, res) => {
 // =====================
 app.post('/api/invoke-cluster', async (req, res) => {
   try {
-    const { cluster, sessionId = 'default' } = req.body;
+    const { cluster, sessionId = 'default', clusterCounts = {}, unlockedClusters = [] } = req.body;
     if (!cluster) return res.json({ response: "No cluster specified.", song: null });
 
     const session = getSession(sessionId);
+
+    // ── Keystone threshold check ─────────────────────────────────────────────
+    // If this cluster has hit 3 plays and isn't unlocked yet, return the keystone.
+    const sessionCount = clusterCounts[cluster] || 0;
+    const isUnlocked   = unlockedClusters.includes(cluster);
+    const keystone     = GROOVE_KEYSTONES.find(k => k.cluster === cluster);
+    if (!isUnlocked && sessionCount >= 3 && keystone) {
+      const keystoneSong = songsData.songs.find(s =>
+        normalize(s.title)  === normalize(keystone.title) &&
+        normalize(s.artist) === normalize(keystone.artist)
+      );
+      if (keystoneSong && !session.playedSongs.includes(keystoneSong.title)) {
+        return res.json(buildSongResponse(keystoneSong, session));
+      }
+    }
+    // ── End keystone check ───────────────────────────────────────────────────
 
     // Prefer songs with commentary; fall back to any in cluster
     const withCommentary = songsData.songs.filter(s =>

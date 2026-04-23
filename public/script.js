@@ -2244,7 +2244,12 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           const res = await fetch('/api/invoke-cluster', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cluster: zone.cluster, sessionId }),
+            body: JSON.stringify({
+              cluster:          zone.cluster,
+              sessionId,
+              clusterCounts:    clusterPlayCounts,
+              unlockedClusters: grooveState.unlockedClusters,
+            }),
           });
           const data = await res.json();
           removeTypingIndicator(typingIndicator);
