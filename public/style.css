@@ -352,13 +352,13 @@ body::after {
 #player-seg {
   display: flex;
   align-items: stretch;
-  height: 32px;
+  height: 30px;
 }
 
 #player-sp-btn,
 #player-ap-btn {
-  width: 40px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border: 1px solid rgba(245, 242, 238, 0.22);
   cursor: pointer;
   display: flex;
@@ -366,6 +366,7 @@ body::after {
   justify-content: center;
   padding: 0;
   transition: background 0.15s ease;
+  flex-shrink: 0;
 }
 
 #player-sp-btn {

@@ -28,9 +28,9 @@ function setPlayerPref(val) { localStorage.setItem(PLAYER_KEY, val); }
 const PLAYER_EXPLAIN_KEY = 'efrain_fm_player_explain_date';
 
 const PLAYER_MESSAGES = [
-  "I can share songs with Spotify or Apple Music embeds.",
-  "Apple Music lets you hear the full song if you sign in, but Spotify only allows previews.",
-  "Some songs aren't available on either platform, or I might really love a music video — in those cases you'll get YouTube links.",
+  "I can share songs with Spotify or Apple Music embeds. It won't change past embeds, but I'll send the next song whichever way you've selected.",
+  "Apple Music lets you hear the full song if you sign in, but Spotify only allows previews even if you're subscribed :(",
+  "Some songs aren't available on either platform, or I might really love a music video — in those cases you'll get a YouTube link.",
 ];
 
 function playerSegUpdateVisual(pref) {
@@ -296,8 +296,9 @@ function handleSecretCommand(command) {
       grooveState = { unlockedClusters: [], glowRingCount: 0 };
       saveGrooveState(grooveState);
       clusterPlayCounts = {};
+      localStorage.removeItem('efrain_fm_cluster_plays');
       updateRingGlowState(0, false);
-      console.log('Groove state reset. Reload to clear session cluster counts.');
+      console.log('Groove state reset.');
       return true;
 
     default:
@@ -755,6 +756,10 @@ async function playGrooveTransmission(keystoneConfig, song, commentary) {
   // Update groove state
   if (!grooveState.unlockedClusters.includes(keystoneConfig.cluster)) {
     grooveState.unlockedClusters.push(keystoneConfig.cluster);
+    // Count the keystone song as a play — it's in the collection and was served
+    if (typeof window.recordClusterPlay === 'function') {
+      window.recordClusterPlay(keystoneConfig.cluster);
+    }
   }
   grooveState.glowRingCount = grooveState.unlockedClusters.length;
   saveGrooveState(grooveState);
@@ -1621,14 +1626,30 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   let autoRotateTimer = null;
   let hoveredZone   = null;
   let frontmostZone = null;
-  let activeZone    = null; // zone explicitly selected by tap or caret nav
-  let targetRotY    = null; // if set, rock tweens toward this y-rotation
-  let navZoneIdx    = 0;   // current index into NAV_ORDER (C1–C9)
+  let activeZone    = null;
+  // Tween state — null when idle
+  let tweenTargetY  = null;
+  let tweenTargetX  = null;
+  let navZoneIdx    = 0;
+
+  // Auto-rotation speed (rad/frame). Increased ~15% from 0.0026.
+  const AUTO_ROT_SPEED = 0.003;
+  // Tween: ease-out factor. Starts fast, decelerates.
+  const TWEEN_FACTOR   = 0.10;
+  // Arrival threshold
+  const TWEEN_THRESH   = 0.005;
+  // Pulse: 3s cycle, drives emissive brightness ±30%
+  const PULSE_PERIOD   = 3; // seconds
+
+  // Normalise any angle to [-PI, PI]
+  function normAngle(a) {
+    return ((a + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+  }
 
   // CTA button — closes modal and fires the zone action
   if (cardCta) {
     cardCta.addEventListener('click', () => {
-      const zone = activeZone || hoveredZone || frontmostZone;
+      const zone = activeZone || frontmostZone;
       if (zone && !clickLocked) {
         clickLocked = true;
         handleZoneClick(zone);
@@ -1637,33 +1658,37 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   }
 
   // ── Caret navigation ──────────────────────────────────────────────────
-  // NAV_ORDER steps through regions 1–9 in number order.
-  // The rock tweens to wherever each region physically lives on the geometry.
   const NAV_ORDER = ['C1','C2','C3','C4','C5','C6','C7','C8','C9'];
 
-  // Keyframes computed from actual mesh centroids after buildZonedRock runs.
   let KEYFRAMES = {};
 
   function computeKeyframes() {
-    // Hardcoded from actual mesh centroid data (seed 42, IcosahedronGeometry detail 2).
-    // rotY verified: worldZ = cx*sin(rotY)+cz*cos(rotY) is negative for all (facing camera).
-    // rotX from centroid cy for natural vertical tilt.
+    // Solved by grid search using correct Three.js Euler XYZ order (Rx then Ry)
+    // and actual camera projection (FOV=38, z=7.2, aspect=1).
+    // All values verified to project zone centroid to (0,0) on screen.
     KEYFRAMES = {
-      C1: { rotY:  0.513, rotX:  0.210 },
-      C2: { rotY:  2.760, rotX:  0.171 },
-      C3: { rotY: -2.358, rotX: -0.076 },
-      C4: { rotY:  2.411, rotX: -0.231 },
-      C5: { rotY:  1.424, rotX: -0.009 },
-      C6: { rotY: -1.143, rotX:  0.084 },
-      C7: { rotY: -0.105, rotX: -0.151 },
-      C8: { rotY: -0.526, rotX: -0.394 },
-      C9: { rotY: -2.036, rotX:  0.305 },
+      C1: { rotY:  2.543, rotX: -0.795 },
+      C2: { rotY:  0.629, rotX: -0.760 },
+      C3: { rotY: -0.792, rotX: -0.044 },
+      C4: { rotY:  0.795, rotX:  0.445 },
+      C5: { rotY:  1.691, rotX: -0.121 },
+      C6: { rotY: -2.117, rotX: -0.348 },
+      C7: { rotY: -3.006, rotX:  0.202 },
+      C8: { rotY:  2.543, rotX:  1.230 },
+      C9: { rotY: -0.584, rotX: -1.040 },
     };
   }
 
   function resumeAutoRotate() {
     autoRotate = true;
-    // Don't clear activeZone — let it stay visually selected while cycling
+    tweenTargetY = null;
+    tweenTargetX = null;
+    velX = velY = 0;
+  }
+
+  function scheduleAutoRotate(ms) {
+    clearTimeout(autoRotateTimer);
+    autoRotateTimer = setTimeout(resumeAutoRotate, ms);
   }
 
   function syncNavIdx(zone) {
@@ -1671,10 +1696,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     if (i !== -1) navZoneIdx = i;
   }
 
-  // ── Fade helpers ──────────────────────────────────────────────────────
-  // ONE zone active at a time. startFadeOut always resets to default.
-  // startFadeIn only on the single chosen zone.
-
+  // ── Fade/pulse helpers ────────────────────────────────────────────────
   function startFadeIn(zm) {
     if (!zm) return;
     zm._fadeDir      = 'in';
@@ -1693,37 +1715,54 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     zm._fadeProgress = null;
   }
 
-  // Deactivate every zone except the given one (or all if null)
   function deactivateAllExcept(keepZm) {
     zoneMeshes.forEach(zm => {
-      if (zm !== keepZm) startFadeOut(zm);
+      if (zm !== keepZm) {
+        zm._pulsing = false;
+        zm._fadeDir = null;
+        zm._fadeProgress = null;
+        applyMatState(zm, defaultState(zm));
+      }
     });
   }
 
-  function navToIndex(idx) {
-    if (!Object.keys(KEYFRAMES).length) return; // not yet computed
-    navZoneIdx = ((idx % NAV_ORDER.length) + NAV_ORDER.length) % NAV_ORDER.length;
-    const cluster = NAV_ORDER[navZoneIdx];
-    const zm = zoneMeshes.find(z => z.cluster === cluster);
+  // Make a zone the active selection: snap to hover state instantly, no fade flash
+  function selectZone(zm) {
     if (!zm) return;
-
-    const kf = KEYFRAMES[cluster];
-    if (kf) {
-      targetRotY = kf.rotY;
-      group._navTargetX = kf.rotX;
-    }
-
-    autoRotate = false;
-    clearTimeout(autoRotateTimer);
-    autoRotateTimer = setTimeout(resumeAutoRotate, 3000);
-
     deactivateAllExcept(zm);
     hoveredZone   = null;
     frontmostZone = null;
     activeZone    = zm;
+    zm._pulsing   = true;
+    zm._fadeDir   = null;
+    zm._fadeProgress = null;
+    const hover = zm.discovered ? 'hoverDiscovered' : 'hoverUndiscovered';
+    applyMatState(zm, hover);
     syncNavIdx(zm);
-    startFadeIn(zm);
     showZoneCard(zm);
+  }
+
+  // Tween rock to face a keyframe position
+  function tweenToKeyframe(cluster) {
+    const kf = KEYFRAMES[cluster];
+    if (!kf || !group) return;
+    // Normalise current rotation before setting target so shortest arc is guaranteed
+    group.rotation.y = normAngle(group.rotation.y);
+    tweenTargetY = kf.rotY;
+    tweenTargetX = kf.rotX;
+    autoRotate   = false;
+    velX = velY  = 0;
+  }
+
+  function navToIndex(idx) {
+    if (!Object.keys(KEYFRAMES).length) return;
+    navZoneIdx = ((idx % NAV_ORDER.length) + NAV_ORDER.length) % NAV_ORDER.length;
+    const cluster = NAV_ORDER[navZoneIdx];
+    const zm = zoneMeshes.find(z => z.cluster === cluster);
+    if (!zm) return;
+    selectZone(zm);
+    tweenToKeyframe(cluster);
+    scheduleAutoRotate(3000);
   }
 
   if (prevBtn) prevBtn.addEventListener('click', () => navToIndex(navZoneIdx - 1));
@@ -1910,9 +1949,13 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     fill.position.set(3, -1, 1); scene.add(fill);
     const rim = new THREE.DirectionalLight(0x444444, 0.45);
     rim.position.set(0.5, -2, -3); scene.add(rim);
+    // Copper backlight — animates between gray and warm copper
+    const rimCopper = new THREE.DirectionalLight(0xc87941, 0.0);
+    rimCopper.position.set(0.5, -2, -3); scene.add(rimCopper);
 
     group = new THREE.Group();
     scene.add(group);
+    window._rockGroup = group; // diagnostic: lets you run group.rotation in console
     buildZonedRock();
     computeKeyframes(); // must run after zoneMeshes are populated
 
@@ -1939,26 +1982,19 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     function setHover(zone) {
       if (hoveredZone === zone) return;
       hoveredZone = zone;
-      if (zone) {
-        deactivateAllExcept(zone);
-        activeZone = zone;
-        startFadeIn(zone);
-        showZoneCard(zone);
-        canvas.style.cursor = 'pointer';
-      } else {
-        canvas.style.cursor = 'default';
-      }
+      canvas.style.cursor = zone ? 'pointer' : 'default';
     }
 
-    // ── Pointer events (mouse + touch unified) ────────────────────────
-    // mouseup on WINDOW so drag never gets stuck if pointer leaves canvas
+    // ── Pointer events ────────────────────────────────────────────────
     function onPointerDown(clientX, clientY) {
-      pointerDown  = true;
-      hasDragged   = false;
-      dragStartX   = clientX;
-      dragStartY   = clientY;
-      velX = velY  = 0;
-      autoRotate   = false;
+      pointerDown = true;
+      hasDragged  = false;
+      dragStartX  = clientX;
+      dragStartY  = clientY;
+      velX = velY = 0;
+      autoRotate  = false;
+      tweenTargetY = null;
+      tweenTargetX = null;
       clearTimeout(autoRotateTimer);
     }
 
@@ -1970,11 +2006,11 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       const dx = clientX - dragStartX;
       const dy = clientY - dragStartY;
       if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged = true;
+      // Normalise before applying drag so accumulated drift never builds up
+      group.rotation.y = normAngle(group.rotation.y + dx * 0.005);
+      group.rotation.x = Math.max(-1.6, Math.min(1.6, group.rotation.x + dy * 0.005));
       velX = dx * 0.005;
       velY = dy * 0.005;
-      group.rotation.y += velX;
-      // Clamp x rotation so rock never flips fully vertical
-      group.rotation.x = Math.max(-0.8, Math.min(0.8, group.rotation.x + velY));
       dragStartX = clientX;
       dragStartY = clientY;
     }
@@ -1985,23 +2021,22 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       if (!hasDragged) {
         const zone = getZoneAt(clientX, clientY);
         if (zone) {
-          deactivateAllExcept(zone);
-          hoveredZone   = null;
-          frontmostZone = null;
-          autoRotate    = false;
-          clearTimeout(autoRotateTimer);
-          targetRotY    = null;
-          activeZone    = zone;
-          syncNavIdx(zone);
-          startFadeIn(zone);
-          showZoneCard(zone);
+          if (zone === activeZone) {
+            // Tapping already-selected zone: reposition it to face camera, then resume
+            tweenToKeyframe(zone.cluster);
+            scheduleAutoRotate(3000);
+          } else {
+            selectZone(zone);
+            tweenToKeyframe(zone.cluster);
+            scheduleAutoRotate(3000);
+          }
         } else {
-          clearTimeout(autoRotateTimer);
-          autoRotateTimer = setTimeout(resumeAutoRotate, 1800);
+          // Tapped empty space — resume rotation
+          scheduleAutoRotate(2000);
         }
       } else {
-        clearTimeout(autoRotateTimer);
-        autoRotateTimer = setTimeout(resumeAutoRotate, 1800);
+        // After drag — short pause then resume
+        scheduleAutoRotate(2000);
       }
     }
 
@@ -2034,74 +2069,103 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     // Render loop
     function animate() {
       animId = requestAnimationFrame(animate);
-      if (autoRotate) {
-        // Slowed by ~35% from original 0.004
-        group.rotation.y += 0.0026;
-        group.rotation.x += (0.18 - group.rotation.x) * 0.02;
-      } else if (targetRotY !== null) {
-        // Fast smooth tween — normalise every frame so accumulated rotation never interferes
-        group.rotation.y = ((group.rotation.y + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
-        let diff = targetRotY - group.rotation.y;
-        if (diff >  Math.PI) diff -= Math.PI * 2;
-        if (diff < -Math.PI) diff += Math.PI * 2;
-        group.rotation.y += diff * 0.15;
-        if (group._navTargetX !== undefined) {
-          group.rotation.x += (group._navTargetX - group.rotation.x) * 0.15;
+      const now = performance.now() / 1000; // seconds
+
+      // ── Always normalise rotation.y to [-PI, PI] ──────────────────
+      // This is the key fix: accumulated drift can never build up, so
+      // tween targets (which are in [-PI, PI]) are always reachable via
+      // the shortest arc regardless of how much the user has dragged.
+      group.rotation.y = normAngle(group.rotation.y);
+
+      if (tweenTargetY !== null) {
+        // Ease-out tween on both axes
+        let diffY = tweenTargetY - group.rotation.y;
+        if (diffY >  Math.PI) diffY -= Math.PI * 2;
+        if (diffY < -Math.PI) diffY += Math.PI * 2;
+        group.rotation.y += diffY * TWEEN_FACTOR;
+        if (tweenTargetX !== null) {
+          group.rotation.x += (tweenTargetX - group.rotation.x) * TWEEN_FACTOR;
         }
-        if (Math.abs(diff) < 0.004) {
-          group.rotation.y = targetRotY;
-          if (group._navTargetX !== undefined) {
-            group.rotation.x = group._navTargetX;
-            group._navTargetX = undefined;
-          }
-          targetRotY = null;
+        // Arrived?
+        if (Math.abs(diffY) < TWEEN_THRESH &&
+            (tweenTargetX === null || Math.abs(tweenTargetX - group.rotation.x) < TWEEN_THRESH)) {
+          group.rotation.y = tweenTargetY;
+          if (tweenTargetX !== null) group.rotation.x = tweenTargetX;
+          tweenTargetY = null;
+          tweenTargetX = null;
         }
+      } else if (autoRotate) {
+        group.rotation.y += AUTO_ROT_SPEED;
+        group.rotation.x += (0.15 - group.rotation.x) * 0.015;
       } else {
-        velX *= 0.93; velY *= 0.93;
+        // Post-drag momentum decay
+        velX *= 0.92; velY *= 0.92;
         group.rotation.y += velX;
-        group.rotation.x = Math.max(-0.8, Math.min(0.8, group.rotation.x + velY));
+        group.rotation.x = Math.max(-1.6, Math.min(1.6, group.rotation.x + velY));
       }
+
       renderer.render(scene, camera);
+
+      // ── Rim light copper pulse — 10s cycle, gray ↔ copper ────────────
+      const rimT = (Math.sin((now / 10) * Math.PI * 2) + 1) / 2; // 0→1→0
+      rim.intensity       = 0.45 * (1 - rimT);   // gray fades out
+      rimCopper.intensity = 0.55 * rimT;          // copper fades in
 
       // ── Material fades (2s in, 1s out) ───────────────────────────────
       const FADE_IN_SPEED  = 1 / (2 * 60);
       const FADE_OUT_SPEED = 1 / (1 * 60);
       zoneMeshes.forEach(zm => {
-        if (!zm._fadeDir) return;
         const hover = zm.discovered ? 'hoverDiscovered' : 'hoverUndiscovered';
         const def   = defaultState(zm);
-        if (zm._fadeDir === 'in') {
-          zm._fadeProgress = Math.min(1, (zm._fadeProgress || 0) + FADE_IN_SPEED);
-          const t = zm._fadeProgress;
-          zm.mat.color.setHex(lerpHex(MAT[def].color, MAT[hover].color, t));
-          zm.mat.emissive.setHex(lerpHex(MAT[def].emissive, MAT[hover].emissive, t));
-          zm.mat.specular.setHex(lerpHex(MAT[def].specular, MAT[hover].specular, t));
-          zm.mat.shininess = MAT[def].shininess + (MAT[hover].shininess - MAT[def].shininess) * t;
-          if (zm._fadeProgress >= 1) clearFade(zm);
-        } else if (zm._fadeDir === 'out') {
-          zm._fadeProgress = Math.max(0, (zm._fadeProgress || 1) - FADE_OUT_SPEED);
-          const t = zm._fadeProgress; // 1→0
-          zm.mat.color.setHex(lerpHex(MAT[def].color, MAT[hover].color, t));
-          zm.mat.emissive.setHex(lerpHex(MAT[def].emissive, MAT[hover].emissive, t));
-          zm.mat.specular.setHex(lerpHex(MAT[def].specular, MAT[hover].specular, t));
-          zm.mat.shininess = MAT[def].shininess + (MAT[hover].shininess - MAT[def].shininess) * t;
-          if (zm._fadeProgress <= 0) {
-            clearFade(zm);
-            applyMatState(zm, def); // snap to fully default at end
+
+        // Fade in / out
+        if (zm._fadeDir) {
+          if (zm._fadeDir === 'in') {
+            zm._fadeProgress = Math.min(1, (zm._fadeProgress || 0) + FADE_IN_SPEED);
+            const t = zm._fadeProgress;
+            zm.mat.color.setHex(lerpHex(MAT[def].color, MAT[hover].color, t));
+            zm.mat.emissive.setHex(lerpHex(MAT[def].emissive, MAT[hover].emissive, t));
+            zm.mat.specular.setHex(lerpHex(MAT[def].specular, MAT[hover].specular, t));
+            zm.mat.shininess = MAT[def].shininess + (MAT[hover].shininess - MAT[def].shininess) * t;
+            if (zm._fadeProgress >= 1) clearFade(zm);
+          } else if (zm._fadeDir === 'out') {
+            zm._fadeProgress = Math.max(0, (zm._fadeProgress || 1) - FADE_OUT_SPEED);
+            const t = zm._fadeProgress;
+            zm.mat.color.setHex(lerpHex(MAT[def].color, MAT[hover].color, t));
+            zm.mat.emissive.setHex(lerpHex(MAT[def].emissive, MAT[hover].emissive, t));
+            zm.mat.specular.setHex(lerpHex(MAT[def].specular, MAT[hover].specular, t));
+            zm.mat.shininess = MAT[def].shininess + (MAT[hover].shininess - MAT[def].shininess) * t;
+            if (zm._fadeProgress <= 0) {
+              clearFade(zm);
+              applyMatState(zm, def);
+            }
           }
+        }
+
+        // ── Pulse on active/selected zone ─────────────────────────────
+        // Only runs once fade-in is complete (no _fadeDir active).
+        if (zm._pulsing && zm === activeZone && !zm._fadeDir) {
+          const sine   = (Math.sin((now / PULSE_PERIOD) * Math.PI * 2) + 1) / 2;
+          const bright = 0.7 + sine * 0.3;
+          const baseEmissive = MAT[hover].emissive;
+          const r = ((baseEmissive >> 16) & 0xff) * bright | 0;
+          const g = ((baseEmissive >>  8) & 0xff) * bright | 0;
+          const b = ( baseEmissive        & 0xff) * bright | 0;
+          zm.mat.emissive.setRGB(r / 255, g / 255, b / 255);
         }
       });
 
-      // ── Frontmost zone tracking (only when no explicit activeZone) ────
-      if (!hoveredZone && !activeZone) {
+      // ── Frontmost zone tracking ───────────────────────────────────────
+      // Only active when nothing is explicitly selected (activeZone is null).
+      // Per spec: card does NOT update during auto-rotation.
+      if (!activeZone) {
         let newFrontmost = null, bestZ = Infinity;
         const center = new THREE.Vector3();
-        const proj   = new THREE.Vector3();
         zoneMeshes.forEach(zm => {
           zm.mesh.geometry.computeBoundingBox();
           zm.mesh.geometry.boundingBox.getCenter(center);
           center.applyMatrix4(zm.mesh.matrixWorld);
-          proj.copy(center).project(camera);
+          const proj = center.clone().project(camera);
           if (proj.z < 1 && Math.abs(proj.x) < 1.2 && proj.z < bestZ) {
             bestZ = proj.z;
             newFrontmost = zm;
@@ -2110,22 +2174,29 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
         if (newFrontmost !== frontmostZone) {
           if (frontmostZone) startFadeOut(frontmostZone);
           frontmostZone = newFrontmost;
-          if (frontmostZone) {
-            startFadeIn(frontmostZone);
-            showZoneCard(frontmostZone);
-          } else {
-            hideZoneCard();
-          }
-        }
-      } else if (hoveredZone) {
-        // Desktop hover — clear any frontmost
-        if (frontmostZone && frontmostZone !== hoveredZone) {
-          startFadeOut(frontmostZone);
-          frontmostZone = null;
+          if (frontmostZone) startFadeIn(frontmostZone);
         }
       }
     }
     animate();
+
+    // ── Default selection on open ─────────────────────────────────────
+    const defaultCluster = grooveState.unlockedClusters.length
+      ? grooveState.unlockedClusters[grooveState.unlockedClusters.length - 1]
+      : 'C1';
+    const defaultZm = zoneMeshes.find(z => z.cluster === defaultCluster);
+    if (defaultZm) {
+      const kf = KEYFRAMES[defaultCluster];
+      if (kf) {
+        group.rotation.y = kf.rotY;
+        group.rotation.x = kf.rotX;
+      }
+      tweenTargetY = null;
+      tweenTargetX = null;
+      autoRotate = false;
+      selectZone(defaultZm);
+      scheduleAutoRotate(1200);
+    }
   }
 
   function destroyRock() {
@@ -2133,15 +2204,14 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     if (renderer) { renderer.dispose(); renderer = null; }
     scene = camera = group = animId = null;
     zoneMeshes = [];
-    hoveredZone = null;
-    frontmostZone = null;
-    activeZone = null;
-    targetRotY = null;
+    hoveredZone = frontmostZone = activeZone = null;
+    tweenTargetY = tweenTargetX = null;
     pointerDown = hasDragged = false;
+    velX = velY = 0;
+    clearTimeout(autoRotateTimer);
     hideZoneCard();
     const glowDiv = document.getElementById('groove-rock-glow');
     if (glowDiv) glowDiv.remove();
-    window._grooveMouseUpActive = false;
   }
 
   // ── Zone click handler ────────────────────────────────────────────────
