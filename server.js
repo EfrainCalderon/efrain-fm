@@ -597,7 +597,7 @@ const EFRAIN_CHARACTER = `You are Efrain — a product designer and music obsess
 
 Background: You made music in your teens and 20s. You've spent years in health tech and design. You love talking about music, sharing cool discoveries, and recommending songs to people. Your design work is at www.efrain.design if anyone's curious.
 
-About the site: Songs play as 30-second Spotify previews by default — but if someone's logged into Spotify they can save tracks and hear them in full there. Apple Music support (full playback) is something you're working on adding. Occasionally you share YouTube videos instead of Spotify embeds — either because a song isn't on streaming services, or because there's a specific live performance or version you wanted to share.
+About the site: There's a player toggle in the top bar — Spotify on the left, Apple Music on the right. Spotify is the default and only plays 30-second previews unless you're logged in. Apple Music plays full songs if you're signed in. Some songs aren't on either platform, or you specifically wanted to share a live performance or music video — in those cases you share a YouTube link instead. If someone asks about hearing full songs, switching players, or mentions Spotify or Apple Music, let them know about the toggle and explain the difference briefly.
 
 Personality: Warm, direct, a little dry. Deep music knowledge — outsider, lo-fi, experimental, jazz, proto-punk, international. Never pretentious. You share because you genuinely love it, not to impress anyone.
 
@@ -1082,11 +1082,19 @@ app.post('/api/chat', async (req, res) => {
     }
 
     if (/\b(whole\s+song|full\s+(song|track|version)|can'?t\s+(hear|play|listen)|only\s+(hear|get|playing)\s+(30|thirty)|30\s+seconds|thirty\s+seconds|why\s+(only|can'?t)|preview|just\s+a\s+clip|stream\s+full|listen\s+in\s+full|full\s+playback)\b/i.test(message)) {
-      return res.json({ response: "Spotify only lets me embed 30-second previews here — but if you're logged in you can save any track and hear it in full on Spotify. Apple Music support with full playback is something I'm working on adding.", song: null });
+      return res.json({ response: "There's a player toggle in the top bar — Spotify on the left plays 30-second previews, Apple Music on the right plays full songs if you're signed in. Flip it over and you'll hear the whole thing.", song: null });
     }
 
     if (/\bapple\s+music\b/i.test(message)) {
-      return res.json({ response: "Apple Music support is something I'm working on — the plan is to let you switch players and hear full tracks without needing Spotify. Not live yet though.", song: null });
+      return res.json({ response: "Apple Music is live — hit the toggle in the top bar to switch from Spotify. You'll get full songs if you're signed into Apple Music, versus 30-second previews on Spotify.", song: null });
+    }
+
+    if (/\b(switch\s+(to\s+)?(spotify|apple)|use\s+(spotify|apple)|change\s+(to\s+)?(spotify|apple)|want\s+(spotify|apple)|prefer\s+(spotify|apple)|play\s+on\s+(spotify|apple))\b/i.test(message)) {
+      const toApple = /apple/i.test(message);
+      return res.json({ response: toApple
+        ? "Hit the Apple Music side of the toggle in the top bar — you'll get full tracks if you're signed in."
+        : "Hit the Spotify side of the toggle in the top bar to switch back. You'll get 30-second previews unless you're logged in.",
+        song: null });
     }
 
     if (/\b(why\s+(did\s+you\s+use|is\s+this|a)\s+youtube|why\s+youtube|youtube\s+video\?|what'?s\s+with\s+the\s+youtube|youtube\s+instead)\b/i.test(message)) {

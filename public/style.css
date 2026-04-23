@@ -322,7 +322,6 @@ body::after {
   transition: color 0.2s ease, background 0.2s ease;
   align-items: center;
   justify-content: center;
-  margin-left: auto;
 }
 
 #groove-map-btn.visible {
@@ -338,6 +337,51 @@ body::after {
   color: var(--link-hover);
   background: var(--live-tag-hover-bg);
 }
+
+/* =====================
+   PLAYER SEGMENTED CONTROL
+   ===================== */
+
+#header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+#player-seg {
+  display: flex;
+  align-items: stretch;
+  height: 32px;
+}
+
+#player-sp-btn,
+#player-ap-btn {
+  width: 40px;
+  height: 32px;
+  border: 1px solid rgba(245, 242, 238, 0.22);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+#player-sp-btn {
+  border-radius: 6px 0 0 6px;
+  border-right: 0.5px solid rgba(245, 242, 238, 0.22);
+  background: rgba(235, 232, 228, 0.95);
+}
+
+#player-ap-btn {
+  border-radius: 0 6px 6px 0;
+  border-left: 0.5px solid rgba(245, 242, 238, 0.12);
+  background: rgba(20, 22, 26, 0.95);
+}
+
+#player-sp-btn.inactive { background: rgba(20, 22, 26, 0.95); }
+#player-ap-btn.active   { background: rgba(235, 232, 228, 0.95); }
 
 /* =====================
    GROOVE MAP MODAL
@@ -493,8 +537,8 @@ body::after {
 #groove-zone-card {
   flex: 1;
   min-width: 0;
-  background: rgba(245, 242, 238, 0.05);
-  border: 1px solid rgba(245, 242, 238, 0.09);
+  background: rgba(18, 20, 24, 0.96);
+  border: 1px solid rgba(245, 242, 238, 0.12);
   border-radius: 16px;
   padding: 16px;
   opacity: 0;
@@ -510,6 +554,15 @@ body::after {
   pointer-events: auto;
 }
 
+#groove-zone-card.locked {
+  opacity: 1;
+}
+
+#groove-zone-card.visible.locked {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .groove-card__pretitle {
   font-family: 'Inter', sans-serif;
   font-size: 11px;
@@ -519,6 +572,7 @@ body::after {
   color: rgba(245, 242, 238, 0.35);
 }
 
+/* Default title — locked state */
 .groove-card__title {
   font-family: 'Inter', sans-serif;
   font-size: 22px;
@@ -528,35 +582,68 @@ body::after {
   line-height: 1.1;
 }
 
-.groove-card__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+/* Discovered title — copper metallic gradient */
+#groove-zone-card:not(.locked) .groove-card__title {
+  background: linear-gradient(
+    105deg,
+    #7a4418 0%,
+    #c87941 28%,
+    #e8a055 50%,
+    #c07038 72%,
+    #7a4418 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Progress bar ── */
+.groove-card__progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Default track — locked state */
+.groove-card__progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid rgba(245, 242, 238, 0.18);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Discovered track — copper tint border */
+#groove-zone-card:not(.locked) .groove-card__progress-track {
+  border-color: rgba(200, 121, 65, 0.35);
+}
+
+/* Default fill — white, used for locked unlock-progress */
+.groove-card__progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: rgba(245, 242, 238, 0.55);
+  transition: width 0.4s ease;
+  min-width: 0;
+}
+
+/* Discovered fill — copper metallic gradient */
+#groove-zone-card:not(.locked) .groove-card__progress-fill {
+  background: linear-gradient(
+    90deg,
+    #7a4418 0%,
+    #c87941 35%,
+    #e8a055 55%,
+    #c07038 75%,
+    #8a5020 100%
+  );
+}
+
+.groove-card__progress-label {
   font-family: 'Inter', sans-serif;
   font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-radius: 20px;
-  padding: 4px 10px;
-  align-self: flex-start;
-}
-
-.groove-card__status.locked {
-  color: rgba(245, 242, 238, 0.5);
-  background: rgba(245, 242, 238, 0.08);
-  border: 1px solid rgba(245, 242, 238, 0.1);
-}
-
-.groove-card__status.discovered {
-  color: rgba(245, 242, 238, 0.85);
-  background: rgba(245, 242, 238, 0.12);
-  border: 1px solid rgba(245, 242, 238, 0.18);
-}
-
-.groove-card__stats {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
   font-weight: 400;
   color: rgba(245, 242, 238, 0.4);
 }
@@ -565,7 +652,7 @@ body::after {
   width: 100%;
   padding: 10px 16px;
   border-radius: 12px;
-  border: 1px solid transparent;
+  border: 1px solid rgba(245, 242, 238, 0.1);
   cursor: pointer;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
@@ -573,26 +660,12 @@ body::after {
   transition: background 0.15s ease, transform 0.1s ease;
   margin-top: 2px;
   box-sizing: border-box;
-}
-
-.groove-card__cta.locked {
   background: rgba(245, 242, 238, 0.12);
   color: rgba(245, 242, 238, 0.9);
-  border-color: rgba(245, 242, 238, 0.1);
 }
 
-.groove-card__cta.locked:hover {
+.groove-card__cta:hover {
   background: rgba(245, 242, 238, 0.18);
-}
-
-.groove-card__cta.discovered {
-  background: rgba(245, 242, 238, 0.14);
-  color: rgba(245, 242, 238, 0.95);
-  border-color: rgba(245, 242, 238, 0.18);
-}
-
-.groove-card__cta.discovered:hover {
-  background: rgba(245, 242, 238, 0.22);
 }
 
 .groove-card__cta:active {

@@ -23,6 +23,74 @@ function getPlayerPref() { return localStorage.getItem(PLAYER_KEY) || 'spotify';
 function setPlayerPref(val) { localStorage.setItem(PLAYER_KEY, val); }
 
 // =====================
+// PLAYER SEGMENTED CONTROL
+// =====================
+const PLAYER_EXPLAIN_KEY = 'efrain_fm_player_explain_date';
+
+const PLAYER_MESSAGES = [
+  "I can share songs with Spotify or Apple Music embeds.",
+  "Apple Music lets you hear the full song if you sign in, but Spotify only allows previews.",
+  "Some songs aren't available on either platform, or I might really love a music video — in those cases you'll get YouTube links.",
+];
+
+function playerSegUpdateVisual(pref) {
+  const spBtn   = document.getElementById('player-sp-btn');
+  const apBtn   = document.getElementById('player-ap-btn');
+  const spPath  = document.getElementById('player-sp-path');
+  const apPath  = document.getElementById('player-ap-path');
+  if (!spBtn || !apBtn) return;
+  if (pref === 'apple') {
+    spBtn.classList.add('inactive');
+    apBtn.classList.add('active');
+    if (spPath) spPath.setAttribute('fill', 'rgba(245,242,238,0.88)');
+    if (apPath) apPath.setAttribute('fill', 'hsl(210,8%,9%)');
+    spBtn.style.background = 'rgba(20,22,26,0.95)';
+    apBtn.style.background = 'rgba(235,232,228,0.95)';
+  } else {
+    spBtn.classList.remove('inactive');
+    apBtn.classList.remove('active');
+    if (spPath) spPath.setAttribute('fill', 'hsl(210,8%,9%)');
+    if (apPath) apPath.setAttribute('fill', 'rgba(245,242,238,0.88)');
+    spBtn.style.background = 'rgba(235,232,228,0.95)';
+    apBtn.style.background = 'rgba(20,22,26,0.95)';
+  }
+}
+
+// Initialise visual state from localStorage on page load
+playerSegUpdateVisual(getPlayerPref());
+
+async function playerSegPick(val) {
+  if (val === getPlayerPref()) return;
+  if (isTyping) return;
+
+  setPlayerPref(val);
+  playerSegUpdateVisual(val);
+
+  // Check once-per-calendar-day gate
+  const today     = new Date().toDateString();
+  const lastShown = localStorage.getItem(PLAYER_EXPLAIN_KEY);
+  if (lastShown === today) return; // already shown today
+  localStorage.setItem(PLAYER_EXPLAIN_KEY, today);
+
+  // Print the three messages through the same pipeline as system messages
+  isTyping = true;
+  fadeOutInput();
+
+  for (let i = 0; i < PLAYER_MESSAGES.length; i++) {
+    const typingIndicator = showTypingIndicator();
+    await new Promise(r => setTimeout(r, 600));
+    removeTypingIndicator(typingIndicator);
+    await addMessageToChatWithTyping(PLAYER_MESSAGES[i], 'assistant');
+    if (i < PLAYER_MESSAGES.length - 1) {
+      await new Promise(r => setTimeout(r, 400));
+    }
+  }
+
+  isTyping = false;
+  setTimeout(fadeInInput, 600);
+}
+
+// =====================
 // GROOVE GLOW STATE
 // Tracks per-visitor cluster unlock state in localStorage.
 // clusterCounts: how many non-keystone songs from each cluster have been played this session.
@@ -330,10 +398,34 @@ async function sendMessage() {
 
       const grooveHandled = await handleGrooveSong(data);
       if (!grooveHandled) {
-        // Normal song — track cluster count for future groove unlock
         if (data.song && data.song.cluster) {
           if (typeof window.recordClusterPlay === 'function') window.recordClusterPlay(data.song.cluster);
           else clusterPlayCounts[data.song.cluster] = (clusterPlayCounts[data.song.cluster] || 0) + 1;
+
+          // Client-side groove threshold check for normal chat path.
+          // Server may also send data.groove — but if it doesn't, check here.
+          const cl        = data.song.cluster;
+          const count     = clusterPlayCounts[cl];
+          const isUnlocked = grooveState.unlockedClusters.includes(cl);
+          const keystone  = keystoneByCluster[cl];
+          // Keystone fires on the 4th play — count >= 4 after increment.
+          if (!isUnlocked && count >= 4 && keystone) {
+            try {
+              const kRes = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  message: `push ${cl}`, sessionId,
+                  unlockedClusters: [], clusterCounts: {}, pushCluster: cl,
+                }),
+              });
+              const kData = await kRes.json();
+              if (kData.song) {
+                await playGrooveTransmission(keystone, kData.song, null);
+                return; // keystone handled — skip normal displaySong
+              }
+            } catch (ke) { console.error('Keystone fetch error (chat path)', ke); }
+          }
         }
         await displaySong(data.song, data.response);
         sessionStats.songsPlayed++;
@@ -1414,21 +1506,19 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   const mapBtn   = document.getElementById('groove-map-btn');
   const modal    = document.getElementById('groove-modal');
   const closeBtn = document.getElementById('groove-modal-close');
-  const card     = document.getElementById('groove-zone-card');
+  const card         = document.getElementById('groove-zone-card');
   const cardPreTitle = document.getElementById('groove-card-pretitle');
   const cardTitle    = document.getElementById('groove-card-title');
-  const cardStatus   = document.getElementById('groove-card-status');
-  const cardStats    = document.getElementById('groove-card-stats');
+  const cardFill     = document.getElementById('groove-card-fill');
+  const cardLabel    = document.getElementById('groove-card-label');
   const cardCta      = document.getElementById('groove-card-cta');
   const prevBtn      = document.getElementById('groove-prev');
   const nextBtn      = document.getElementById('groove-next');
   if (!mapBtn || !modal) return;
 
-  let clickLocked = false; // prevents double-invoke from CTA
+  let clickLocked = false;
 
-  // ── Session play counts — persisted in localStorage per session ───────
-  // All-time cluster play counts — persists in localStorage until user clears storage.
-  // Key: 'efrain_fm_cluster_plays' → { C1: 2, C3: 1, ... }
+  // ── All-time cluster play counts ──────────────────────────────────────
   const CLUSTER_PLAYS_KEY = 'efrain_fm_cluster_plays';
   function getAllTimePlays() {
     try { return JSON.parse(localStorage.getItem(CLUSTER_PLAYS_KEY)) || {}; } catch { return {}; }
@@ -1436,7 +1526,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   function saveAllTimePlays(counts) {
     localStorage.setItem(CLUSTER_PLAYS_KEY, JSON.stringify(counts));
   }
-  // Merge persisted all-time counts into the in-memory clusterPlayCounts on init
   const persistedCounts = getAllTimePlays();
   Object.assign(clusterPlayCounts, persistedCounts);
 
@@ -1451,37 +1540,44 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     const count = grooveState.unlockedClusters.length;
     mapBtn.classList.toggle('visible', count > 0);
     const subtitleEl = document.getElementById('groove-modal-subtitle');
-    if (subtitleEl) subtitleEl.textContent = `${count} of 9 Grooves discovered`;
+    if (subtitleEl) {
+      subtitleEl.textContent = count >= 9 ? 'All 9 unlocked' : `${count} of 9 unlocked`;
+    }
   }
   syncButtonVisibility();
   window.addEventListener('grooveRingUnlock', syncButtonVisibility);
 
-  // ── Zone card update ──────────────────────────────────────────────────
-  const CLUSTER_INDEX = { C1: 1, C2: 2, C3: 3, C4: 4, C5: 5, C6: 6, C7: 7, C8: 8, C9: 9 };
+  // ── Zone card ─────────────────────────────────────────────────────────
+  const CLUSTER_INDEX    = { C1: 1, C2: 2, C3: 3, C4: 4, C5: 5, C6: 6, C7: 7, C8: 8, C9: 9 };
+  const UNLOCK_THRESHOLD = 4;
 
   function showZoneCard(zone) {
     if (!card || !zone) return;
     syncNavIdx(zone);
-    const idx      = CLUSTER_INDEX[zone.cluster] || '—';
-    const total    = zone.songs || 0;
-    const played   = clusterPlayCounts[zone.cluster] || 0;
-    cardPreTitle.textContent = `Region ${idx}`;
+    const idx    = CLUSTER_INDEX[zone.cluster] || '—';
+    const total  = zone.songs || 0;
+    const played = clusterPlayCounts[zone.cluster] || 0;
+
+    cardPreTitle.textContent = `Cluster ${idx}`;
     cardTitle.textContent    = zone.label;
-    cardStats.textContent    = played > 0
-      ? `${total} songs // ${played} discovered`
-      : `${total} songs`;
 
     if (zone.discovered) {
-      cardStatus.textContent = '◆ Discovered';
-      cardStatus.className   = 'groove-card__status discovered';
-      cardCta.textContent    = 'Replay Keystone';
-      cardCta.className      = 'groove-card__cta discovered';
+      card.classList.remove('locked');
+      const pct = total > 0 ? Math.min(100, Math.round((played / total) * 100)) : 0;
+      if (cardFill) { cardFill.style.width = `${pct}%`; cardFill.classList.remove('unlock'); }
+      if (cardLabel) cardLabel.textContent = `${played} of ${total} songs discovered`;
+      if (cardCta)   cardCta.textContent   = 'Replay groove';
     } else {
-      cardStatus.textContent = '◇ Locked';
-      cardStatus.className   = 'groove-card__status locked';
-      cardCta.textContent    = 'Invoke songs from this region';
-      cardCta.className      = 'groove-card__cta locked';
+      card.classList.add('locked');
+      const playsLeft = Math.max(0, UNLOCK_THRESHOLD - played);
+      const unlockPct = Math.min(100, Math.round((played / UNLOCK_THRESHOLD) * 100));
+      if (cardFill) { cardFill.style.width = `${unlockPct}%`; cardFill.classList.add('unlock'); }
+      if (cardLabel) cardLabel.textContent = playsLeft > 0
+        ? `Discover ${playsLeft} more song${playsLeft === 1 ? '' : 's'} to unlock`
+        : 'Ready to unlock';
+      if (cardCta)   cardCta.textContent   = `Discover ${zone.label} song`;
     }
+
     card.classList.add('visible');
   }
 
@@ -1940,19 +2036,22 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
         group.rotation.y += 0.0026;
         group.rotation.x += (0.18 - group.rotation.x) * 0.02;
       } else if (targetRotY !== null) {
-        // Normalise accumulated rotation each frame so diff is always within [-PI, PI]
+        // Fast smooth tween — normalise every frame so accumulated rotation never interferes
         group.rotation.y = ((group.rotation.y + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
         let diff = targetRotY - group.rotation.y;
         if (diff >  Math.PI) diff -= Math.PI * 2;
         if (diff < -Math.PI) diff += Math.PI * 2;
-        group.rotation.y += diff * 0.08;
+        group.rotation.y += diff * 0.15;
         if (group._navTargetX !== undefined) {
-          group.rotation.x += (group._navTargetX - group.rotation.x) * 0.08;
+          group.rotation.x += (group._navTargetX - group.rotation.x) * 0.15;
         }
-        if (Math.abs(diff) < 0.003) {
-          group.rotation.y = targetRotY; // snap exactly on arrival
+        if (Math.abs(diff) < 0.004) {
+          group.rotation.y = targetRotY;
+          if (group._navTargetX !== undefined) {
+            group.rotation.x = group._navTargetX;
+            group._navTargetX = undefined;
+          }
           targetRotY = null;
-          group._navTargetX = undefined;
         }
       } else {
         velX *= 0.93; velY *= 0.93;
@@ -2103,7 +2202,8 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
               const count      = clusterPlayCounts[cl];
               const keystone   = keystoneByCluster[cl];
 
-              if (!isUnlocked && count >= 2 && keystone) {
+              // Keystone fires on the 4th play — count >= 4 after increment.
+              if (!isUnlocked && count >= 4 && keystone) {
                 // Fetch keystone song and play groove transmission instead of normal song
                 try {
                   const kRes = await fetch('/api/chat', {
