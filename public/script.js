@@ -1541,7 +1541,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 
   // ── Zone card ─────────────────────────────────────────────────────────
   const CLUSTER_INDEX    = { C1: 1, C2: 2, C3: 3, C4: 4, C5: 5, C6: 6, C7: 7, C8: 8, C9: 9 };
-  const UNLOCK_THRESHOLD = 4;
+  const UNLOCK_THRESHOLD = 3;
 
   function showZoneCard(zone) {
     if (!card || !zone) return;
