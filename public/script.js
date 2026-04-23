@@ -121,8 +121,16 @@ let grooveState = loadGrooveState();
 if (!grooveState.unlockedClusters) grooveState.unlockedClusters = [];
 if (!grooveState.glowRingCount)    grooveState.glowRingCount    = 0;
 
-// Session-only state (resets on page reload — intentional)
-let clusterPlayCounts = {}; // { C1: 2, C3: 1, ... } for this session only
+// Persistent cluster play counts (survives page reload — intentional for unlock continuity)
+// Shape: { C1: 2, C3: 1, ... }
+const CLUSTER_COUNTS_KEY = 'efrain_fm_cluster_counts';
+function loadClusterCounts() {
+  try { return JSON.parse(localStorage.getItem(CLUSTER_COUNTS_KEY)) || {}; } catch { return {}; }
+}
+function saveClusterCounts() {
+  localStorage.setItem(CLUSTER_COUNTS_KEY, JSON.stringify(clusterPlayCounts));
+}
+let clusterPlayCounts = loadClusterCounts();
 
 // Visitor ID — generated once, persists forever
 function getVisitorId() {
@@ -296,7 +304,7 @@ function handleSecretCommand(command) {
       grooveState = { unlockedClusters: [], glowRingCount: 0 };
       saveGrooveState(grooveState);
       clusterPlayCounts = {};
-      localStorage.removeItem('efrain_fm_cluster_plays');
+      saveClusterCounts();
       updateRingGlowState(0, false);
       console.log('Groove state reset.');
       return true;
@@ -403,33 +411,9 @@ async function sendMessage() {
       const grooveHandled = await handleGrooveSong(data);
       if (!grooveHandled) {
         if (data.song && data.song.cluster) {
-          if (typeof window.recordClusterPlay === 'function') window.recordClusterPlay(data.song.cluster);
-          else clusterPlayCounts[data.song.cluster] = (clusterPlayCounts[data.song.cluster] || 0) + 1;
-
-          // Client-side groove threshold check for normal chat path.
-          // Server may also send data.groove — but if it doesn't, check here.
-          const cl        = data.song.cluster;
-          const count     = clusterPlayCounts[cl];
-          const isUnlocked = grooveState.unlockedClusters.includes(cl);
-          const keystone  = keystoneByCluster[cl];
-          // Keystone fires on the 4th play — count >= 4 after increment.
-          if (!isUnlocked && count >= 4 && keystone) {
-            try {
-              const kRes = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  message: `push ${cl}`, sessionId,
-                  unlockedClusters: [], clusterCounts: {}, pushCluster: cl,
-                }),
-              });
-              const kData = await kRes.json();
-              if (kData.song) {
-                await playGrooveTransmission(keystone, kData.song, null);
-                return; // keystone handled — skip normal displaySong
-              }
-            } catch (ke) { console.error('Keystone fetch error (chat path)', ke); }
-          }
+          // Increment and persist — server reads this on the next request to decide threshold
+          clusterPlayCounts[data.song.cluster] = (clusterPlayCounts[data.song.cluster] || 0) + 1;
+          saveClusterCounts();
         }
         await displaySong(data.song, data.response);
         sessionStats.songsPlayed++;
@@ -2267,49 +2251,20 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           if (data.song) {
             const cl = data.song.cluster;
             if (cl) {
-              recordClusterPlay(cl);
-
-              // Check if this invoke just hit the groove threshold
-              // 2 previous plays + this one = time to surface the keystone
-              const isUnlocked = grooveState.unlockedClusters.includes(cl);
-              const count      = clusterPlayCounts[cl];
-              const keystone   = keystoneByCluster[cl];
-
-              // Keystone fires on the 4th play — count >= 4 after increment.
-              if (!isUnlocked && count >= 4 && keystone) {
-                // Fetch keystone song and play groove transmission instead of normal song
-                try {
-                  const kRes = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      message:          `push ${cl}`,
-                      sessionId,
-                      unlockedClusters: [],
-                      clusterCounts:    {},
-                      pushCluster:      cl,
-                    }),
-                  });
-                  const kData = await kRes.json();
-                  if (kData.song) {
-                    await playGrooveTransmission(keystone, kData.song, null);
-                  } else {
-                    // Keystone fetch failed — show the regular invoke song as fallback
-                    await displaySong(data.song, data.response);
-                    sessionStats.songsPlayed++;
-                  }
-                } catch (ke) {
-                  console.error('Keystone fetch error', ke);
-                  await displaySong(data.song, data.response);
-                  sessionStats.songsPlayed++;
-                }
-                isTyping = false;
-                setTimeout(fadeInInput, 600);
-                return;
-              }
+              // Increment and persist — server reads this on the next request
+              clusterPlayCounts[cl] = (clusterPlayCounts[cl] || 0) + 1;
+              saveClusterCounts();
             }
 
-            // Normal invoke — no threshold hit
+            // Server handles keystone threshold — if it returned groove metadata, handle it
+            const grooveHandled = await handleGrooveSong(data);
+            if (grooveHandled) {
+              isTyping = false;
+              setTimeout(fadeInInput, 600);
+              return;
+            }
+
+            // Normal invoke
             await displaySong(data.song, data.response);
             sessionStats.songsPlayed++;
           } else if (data.response) {

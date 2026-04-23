@@ -1006,7 +1006,7 @@ app.post('/api/chat', async (req, res) => {
       if (!kc) return false; // not a keystone
       if (unlockedClusters.includes(kc.cluster)) return false; // already unlocked
       const count = clusterCounts[kc.cluster] || 0;
-      return count < 2; // locked until 2 songs from that cluster have been played
+      return count < 3; // locked until 3 songs from that cluster have been played
     }
 
     if (session.playedSongs.length >= songsData.songs.length) {
@@ -1450,6 +1450,50 @@ app.post('/api/chat', async (req, res) => {
     if (!avMatches.length) {
       return res.json({ response: "Think I've played everything along those lines — is there another direction you want to go?", song: null });
     }
+
+    // ── Keystone force-return ────────────────────────────────────────────────
+    // After 3 plays from a cluster this session, the next song from that cluster
+    // that would have been returned instead triggers its keystone.
+    // This makes unlock deterministic — not dependent on scoring luck.
+    const topMatchForKeystone = avMatches.reduce((best, s) => s.score > best.score ? s : best, avMatches[0]);
+    if (topMatchForKeystone && topMatchForKeystone.cluster) {
+      const cl          = topMatchForKeystone.cluster;
+      const sessionCount = clusterCounts[cl] || 0;
+      const isUnlocked  = unlockedClusters.includes(cl);
+      const keystone    = GROOVE_KEYSTONES.find(k => k.cluster === cl);
+      if (!isUnlocked && sessionCount >= 3 && keystone) {
+        const keystoneSong = songsData.songs.find(s =>
+          normalize(s.title)  === normalize(keystone.title) &&
+          normalize(s.artist) === normalize(keystone.artist)
+        );
+        if (keystoneSong && !session.playedSongs.includes(keystoneSong.title)) {
+          return res.json(buildSongResponse(keystoneSong, session, null, bridge));
+        }
+      }
+    }
+
+    // ── 6-song fallback unlock ───────────────────────────────────────────────
+    // If the user has received 6+ songs and still hasn't unlocked anything,
+    // surface the keystone for whichever cluster they've played the most songs
+    // from this session. Rewards actual listening behavior vs. random assignment.
+    // Only fires once (after first unlock, unlockedClusters.length > 0 so this is skipped).
+    if (session.songCount >= 6 && unlockedClusters.length === 0 && Object.keys(clusterCounts).length > 0) {
+      const mostPlayedCluster = Object.entries(clusterCounts).reduce(
+        (best, [cl, n]) => n > best[1] ? [cl, n] : best,
+        ['', 0]
+      )[0];
+      const fallbackKeystone = mostPlayedCluster && GROOVE_KEYSTONES.find(k => k.cluster === mostPlayedCluster);
+      if (fallbackKeystone) {
+        const fallbackSong = songsData.songs.find(s =>
+          normalize(s.title)  === normalize(fallbackKeystone.title) &&
+          normalize(s.artist) === normalize(fallbackKeystone.artist)
+        );
+        if (fallbackSong && !session.playedSongs.includes(fallbackSong.title)) {
+          return res.json(buildSongResponse(fallbackSong, session, null, bridge));
+        }
+      }
+    }
+    // ── End keystone logic ───────────────────────────────────────────────────
 
     const top = Math.max(...avMatches.map(s => s.score));
     const topPicks = avMatches.filter(s => s.score >= top * 0.85); // top 15% range, not just exact top
