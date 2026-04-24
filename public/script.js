@@ -1663,9 +1663,8 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   let velX = 0, velY = 0;
   let autoRotate = true;
   let autoRotateTimer = null;
-  let hoveredZone   = null;
-  let frontmostZone = null;
-  let activeZone    = null;
+  let hoveredZone = null;
+  let activeZone  = null;
   // Tween state — null when idle
   let tweenTargetY  = null;
   let tweenTargetX  = null;
@@ -1688,10 +1687,9 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   // CTA button — closes modal and fires the zone action
   if (cardCta) {
     cardCta.addEventListener('click', () => {
-      const zone = activeZone || frontmostZone;
-      if (zone && !clickLocked) {
+      if (activeZone && !clickLocked) {
         clickLocked = true;
-        handleZoneClick(zone);
+        handleZoneClick(activeZone);
       }
     });
   }
@@ -1736,18 +1734,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   }
 
   // ── Fade/pulse helpers ────────────────────────────────────────────────
-  function startFadeIn(zm) {
-    if (!zm) return;
-    zm._fadeDir      = 'in';
-    zm._fadeProgress = (zm._fadeProgress != null && zm._fadeDir === 'in') ? zm._fadeProgress : 0;
-  }
-
-  function startFadeOut(zm) {
-    if (!zm) return;
-    zm._fadeDir      = 'out';
-    zm._fadeProgress = (zm._fadeProgress != null) ? zm._fadeProgress : 1;
-  }
-
   function clearFade(zm) {
     if (!zm) return;
     zm._fadeDir = null;
@@ -1760,6 +1746,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
         zm._pulsing = false;
         zm._fadeDir = null;
         zm._fadeProgress = null;
+        zm._selectedStateApplied = false;
         applyMatState(zm, defaultState(zm));
       }
     });
@@ -1770,7 +1757,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     if (!zm) return;
     deactivateAllExcept(zm);
     hoveredZone   = null;
-    frontmostZone = null;
     activeZone    = zm;
     zm._pulsing   = true;
     zm._fadeDir   = null;
@@ -1801,7 +1787,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     if (!zm) return;
     selectZone(zm);
     tweenToKeyframe(cluster);
-    scheduleAutoRotate(3000);
+    scheduleAutoRotate(700);
   }
 
   if (prevBtn) prevBtn.addEventListener('click', () => navToIndex(navZoneIdx - 1));
@@ -1826,6 +1812,8 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     discovered:        { color: 0x4a2a18, emissive: 0x1a0a02, specular: 0xc87941, shininess: 60 },
     hoverUndiscovered: { color: 0x3a3d2e, emissive: 0x0e100a, specular: 0x6a7850, shininess: 22 },
     hoverDiscovered:   { color: 0x6a3c22, emissive: 0x220e04, specular: 0xd88848, shininess: 68 },
+    // Selected + discovered: noticeably brighter than resting copper, static
+    selectedDiscovered: { color: 0x7a4828, emissive: 0x9a4a10, specular: 0xd88848, shininess: 68 },
   };
 
   function lerpHex(a, b, t) {
@@ -1954,6 +1942,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       const mesh = new THREE.Mesh(zoneGeo, mat);
       mesh.scale.setScalar(0.964);
       group.add(mesh);
+
       zoneMeshes.push({ mesh, mat, cluster: zone.cluster, label: zone.label, songs: zone.songs, discovered: isDiscovered });
     });
 
@@ -2063,19 +2052,19 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           if (zone === activeZone) {
             // Tapping already-selected zone: reposition it to face camera, then resume
             tweenToKeyframe(zone.cluster);
-            scheduleAutoRotate(3000);
+            scheduleAutoRotate(700);
           } else {
             selectZone(zone);
             tweenToKeyframe(zone.cluster);
-            scheduleAutoRotate(3000);
+            scheduleAutoRotate(700);
           }
         } else {
           // Tapped empty space — resume rotation
-          scheduleAutoRotate(2000);
+          scheduleAutoRotate(700);
         }
       } else {
         // After drag — short pause then resume
-        scheduleAutoRotate(2000);
+        scheduleAutoRotate(700);
       }
     }
 
@@ -2181,41 +2170,32 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           }
         }
 
-        // ── Pulse on active/selected zone ─────────────────────────────
-        // Only runs once fade-in is complete (no _fadeDir active).
+        // ── Selected zone state ───────────────────────────────────────
         if (zm._pulsing && zm === activeZone && !zm._fadeDir) {
-          const sine   = (Math.sin((now / PULSE_PERIOD) * Math.PI * 2) + 1) / 2;
-          const bright = 0.7 + sine * 0.3;
-          const baseEmissive = MAT[hover].emissive;
-          const r = ((baseEmissive >> 16) & 0xff) * bright | 0;
-          const g = ((baseEmissive >>  8) & 0xff) * bright | 0;
-          const b = ( baseEmissive        & 0xff) * bright | 0;
-          zm.mat.emissive.setRGB(r / 255, g / 255, b / 255);
+          if (zm.discovered) {
+            // Discovered + selected: apply brighter static copper, once on entry
+            if (!zm._selectedStateApplied) {
+              zm.mat.color.setHex(MAT.selectedDiscovered.color);
+              zm.mat.emissive.setHex(MAT.selectedDiscovered.emissive);
+              zm.mat.specular.setHex(MAT.selectedDiscovered.specular);
+              zm.mat.shininess = MAT.selectedDiscovered.shininess;
+              zm._selectedStateApplied = true;
+            }
+          } else {
+            // Undiscovered + selected: keep existing pulse behaviour
+            const sine   = (Math.sin((now / PULSE_PERIOD) * Math.PI * 2) + 1) / 2;
+            const bright = 0.7 + sine * 0.3;
+            const baseEmissive = MAT[hover].emissive;
+            const r = ((baseEmissive >> 16) & 0xff) * bright | 0;
+            const g = ((baseEmissive >>  8) & 0xff) * bright | 0;
+            const b = ( baseEmissive        & 0xff) * bright | 0;
+            zm.mat.emissive.setRGB(r / 255, g / 255, b / 255);
+          }
+        } else if (!zm._pulsing || zm !== activeZone) {
+          zm._selectedStateApplied = false;
         }
       });
 
-      // ── Frontmost zone tracking ───────────────────────────────────────
-      // Only active when nothing is explicitly selected (activeZone is null).
-      // Per spec: card does NOT update during auto-rotation.
-      if (!activeZone) {
-        let newFrontmost = null, bestZ = Infinity;
-        const center = new THREE.Vector3();
-        zoneMeshes.forEach(zm => {
-          zm.mesh.geometry.computeBoundingBox();
-          zm.mesh.geometry.boundingBox.getCenter(center);
-          center.applyMatrix4(zm.mesh.matrixWorld);
-          const proj = center.clone().project(camera);
-          if (proj.z < 1 && Math.abs(proj.x) < 1.2 && proj.z < bestZ) {
-            bestZ = proj.z;
-            newFrontmost = zm;
-          }
-        });
-        if (newFrontmost !== frontmostZone) {
-          if (frontmostZone) startFadeOut(frontmostZone);
-          frontmostZone = newFrontmost;
-          if (frontmostZone) startFadeIn(frontmostZone);
-        }
-      }
     }
     animate();
 
@@ -2232,9 +2212,8 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       }
       tweenTargetY = null;
       tweenTargetX = null;
-      autoRotate = false;
+      autoRotate = true;
       selectZone(defaultZm);
-      scheduleAutoRotate(1200);
     }
   }
 
@@ -2243,7 +2222,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     if (renderer) { renderer.dispose(); renderer = null; }
     scene = camera = group = animId = null;
     zoneMeshes = [];
-    hoveredZone = frontmostZone = activeZone = null;
+    hoveredZone = activeZone = null;
     tweenTargetY = tweenTargetX = null;
     pointerDown = hasDragged = false;
     velX = velY = 0;

@@ -1399,11 +1399,19 @@ app.post('/api/chat', async (req, res) => {
           song: null, interrupt
         });
       }
-      // Collection has the genre but may not match the full combo (e.g. "danceable hip-hop").
-      // Score with genre gate active — if best score is still 0, the combo doesn't exist.
-      const comboScored = scoreSongs(songsData.songs, keywords, preferVideo, butWeightOverrides);
-      const comboBest = Math.max(0, ...comboScored.map(s => s.score));
-      if (comboBest === 0) {
+      // Collection has the genre — check if the full combo (e.g. "danceable hip-hop") exists.
+      // Use .some() with the genre gate logic instead of a full scoreSongs pass.
+      const comboExists = songsData.songs.some(s => {
+        const traits = s.traits || {};
+        const hasAllRequired = requestedGenres.every(t => {
+          if (traits[t] !== undefined && traits[t] >= 0.5) return true;
+          if (t === 'genre:dance' && traits['char:danceable'] >= 0.5) return true;
+          if (t === 'genre:k-pop' && traits['origin:korea'] >= 0.5) return true;
+          return false;
+        });
+        return hasAllRequired;
+      });
+      if (!comboExists) {
         const labels = requestedGenres.map(genreLabel).join(' + ');
         const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
         const interrupt = genreOptions.length >= 2
