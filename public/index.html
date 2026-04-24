@@ -119,10 +119,21 @@
     window.addEventListener('resize', resize);
     resize();
 
-    // ── render loop ───────────────────────────────────────────────────────
-    const t0 = performance.now();
+    // ── render loop (throttled to ~24fps, paused when tab is hidden) ──────
+    // Rings breathe over 10s, stars rotate over 18min — 60fps is wasted here.
+    const TARGET_FPS   = 24;
+    const FRAME_MS     = 1000 / TARGET_FPS;
+    const t0           = performance.now();
+    let lastFrameTime  = 0;
+    let rafId          = null;
 
-    function frame() {
+    function frame(timestamp) {
+      rafId = requestAnimationFrame(frame);
+
+      // Throttle: skip this call if not enough time has passed
+      if (timestamp - lastFrameTime < FRAME_MS) return;
+      lastFrameTime = timestamp;
+
       const dark = isDarkMode();
       const now  = (performance.now() - t0) / 1000;
       const W    = window.innerWidth;
@@ -308,7 +319,6 @@
         }
       }
 
-      requestAnimationFrame(frame);
     }
 
     // Track per-ring unlock times for arc sweep animation.
@@ -316,7 +326,17 @@
     // Rings restored from localStorage on page load have no entry here — they draw instantly.
     const ringUnlockTimes = {};
 
-    frame();
+    // ── Visibility pause/resume ────────────────────────────────────────────
+    // Stops the loop entirely when the tab is hidden (phone locked, tab switched, etc.)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      } else {
+        if (!rafId) rafId = requestAnimationFrame(frame);
+      }
+    });
+
+    rafId = requestAnimationFrame(frame);
 
     // Listen for groove unlock events from script.js
     window.addEventListener('grooveRingUnlock', (e) => {
