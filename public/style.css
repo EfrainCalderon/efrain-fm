@@ -349,40 +349,6 @@ body::after {
   margin-left: auto;
 }
 
-#player-seg {
-  display: flex;
-  align-items: stretch;
-  height: 30px;
-}
-
-#player-sp-btn,
-#player-ap-btn {
-  width: 30px;
-  height: 30px;
-  border: 1px solid rgba(245, 242, 238, 0.22);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: background 0.15s ease;
-  flex-shrink: 0;
-}
-
-#player-sp-btn {
-  border-radius: 6px 0 0 6px;
-  border-right: 0.5px solid rgba(245, 242, 238, 0.22);
-  background: rgba(235, 232, 228, 0.95);
-}
-
-#player-ap-btn {
-  border-radius: 0 6px 6px 0;
-  border-left: 0.5px solid rgba(245, 242, 238, 0.12);
-  background: rgba(20, 22, 26, 0.95);
-}
-
-#player-sp-btn.inactive { background: rgba(20, 22, 26, 0.95); }
-#player-ap-btn.active   { background: rgba(235, 232, 228, 0.95); }
 
 /* =====================
    GROOVE MAP MODAL

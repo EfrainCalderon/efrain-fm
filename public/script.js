@@ -15,82 +15,137 @@ let pendingFavoriteInput = false;
 
 // =====================
 // PLAYER PREFERENCE
-// Toggles between 'spotify' and 'apple' via /player command.
-// Persists in localStorage. Default is spotify.
+// Set via inline chat picker on first visit (or if unset on return).
+// Persists in localStorage. Default is 'apple' (longer previews).
 // =====================
 const PLAYER_KEY = 'efrain_fm_player';
-function getPlayerPref() { return localStorage.getItem(PLAYER_KEY) || 'spotify'; }
+function getPlayerPref() { return localStorage.getItem(PLAYER_KEY) || 'apple'; }
 function setPlayerPref(val) { localStorage.setItem(PLAYER_KEY, val); }
 
 // =====================
-// PLAYER SEGMENTED CONTROL
+// PLAYER PICKER
+// showPlayerPicker  — first-time setup, three options, called after intro audio ends
+// showPlayerSwitchPrompt — mid-session, two options, called when user mentions a platform
 // =====================
-const PLAYER_EXPLAIN_KEY = 'efrain_fm_player_explain_date';
-
-const PLAYER_MESSAGES = [
-  "I can share songs with Spotify or Apple Music embeds. It won't change past embeds, but I'll send the next song whichever way you've selected.",
-  "Apple Music lets you hear the full song if you sign in, but Spotify only allows previews even if you're subscribed :(",
-  "Some songs aren't available on either platform, or I might really love a music video — in those cases you'll get a YouTube link.",
-];
-
-function playerSegUpdateVisual(pref) {
-  const spBtn   = document.getElementById('player-sp-btn');
-  const apBtn   = document.getElementById('player-ap-btn');
-  const spPath  = document.getElementById('player-sp-path');
-  const apPath  = document.getElementById('player-ap-path');
-  if (!spBtn || !apBtn) return;
-  if (pref === 'apple') {
-    spBtn.classList.add('inactive');
-    apBtn.classList.add('active');
-    if (spPath) spPath.setAttribute('fill', 'rgba(245,242,238,0.88)');
-    if (apPath) apPath.setAttribute('fill', 'hsl(210,8%,9%)');
-    spBtn.style.background = 'rgba(20,22,26,0.95)';
-    apBtn.style.background = 'rgba(235,232,228,0.95)';
-  } else {
-    spBtn.classList.remove('inactive');
-    apBtn.classList.remove('active');
-    if (spPath) spPath.setAttribute('fill', 'hsl(210,8%,9%)');
-    if (apPath) apPath.setAttribute('fill', 'rgba(245,242,238,0.88)');
-    spBtn.style.background = 'rgba(235,232,228,0.95)';
-    apBtn.style.background = 'rgba(20,22,26,0.95)';
-  }
-}
-
-// Initialise visual state from localStorage on page load
-playerSegUpdateVisual(getPlayerPref());
-
-async function playerSegPick(val) {
-  if (val === getPlayerPref()) return;
-
-  // Always register the switch immediately — even if chat is busy
-  setPlayerPref(val);
-  playerSegUpdateVisual(val);
-
-  // Don't print messages if chat is mid-response
-  if (isTyping) return;
-
-  // Check once-per-calendar-day gate
-  const today     = new Date().toDateString();
-  const lastShown = localStorage.getItem(PLAYER_EXPLAIN_KEY);
-  if (lastShown === today) return;
-  localStorage.setItem(PLAYER_EXPLAIN_KEY, today);
-
-  // Print the three messages through the same pipeline as system messages
+async function showPlayerPicker(promptText) {
   isTyping = true;
   fadeOutInput();
 
-  for (let i = 0; i < PLAYER_MESSAGES.length; i++) {
-    const typingIndicator = showTypingIndicator();
-    await new Promise(r => setTimeout(r, 600));
-    removeTypingIndicator(typingIndicator);
-    await addMessageToChatWithTyping(PLAYER_MESSAGES[i], 'assistant');
-    if (i < PLAYER_MESSAGES.length - 1) {
-      await new Promise(r => setTimeout(r, 400));
-    }
-  }
+  const typingIndicator = showTypingIndicator();
+  await new Promise(r => setTimeout(r, 700));
+  removeTypingIndicator(typingIndicator);
+  await addMessageToChatWithTyping(
+    promptText || "You can request any kind of music and I'll share songs from my collection. Which do you use to listen to music?",
+    'assistant'
+  );
 
-  isTyping = false;
-  setTimeout(fadeInInput, 600);
+  const footer = document.querySelector('footer') || document.getElementById('chat-footer');
+  const interruptEl = document.createElement('div');
+  interruptEl.id = 'interrupt-bar';
+
+  const btnRow = document.createElement('div');
+  btnRow.id = 'interrupt-buttons';
+
+  const options = [
+    { label: 'Spotify',        val: 'spotify' },
+    { label: 'Apple Music',    val: 'apple'   },
+    { label: 'Something else', val: 'apple'   }, // save apple — longer previews
+  ];
+
+  options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'interrupt-btn';
+    btn.textContent = opt.label;
+    btn.style.animationDelay = `${i * 70}ms`;
+    btn.addEventListener('click', async () => {
+      // Dismiss buttons
+      interruptEl.classList.remove('visible');
+      await new Promise(r => setTimeout(r, 350));
+      interruptEl.remove();
+
+      setPlayerPref(opt.val);
+
+      // Follow-up confirmation message
+      isTyping = true;
+      const t = showTypingIndicator();
+      await new Promise(r => setTimeout(r, 500));
+      removeTypingIndicator(t);
+
+      let reply;
+      if (opt.label === 'Spotify') {
+        reply = "Cool, I'll use Spotify. Heads up — they only let me share 30-second previews, but you can click on the song to hear on Spotify.";
+      } else if (opt.label === 'Apple Music') {
+        reply = "Awesome — I'll show Apple Music versions. You can listen to the full song if you sign in. What would you like to hear?";
+      } else {
+        reply = "Got it — I'll use Apple Music to share songs because its previews are longer than Spotify.";
+      }
+
+      await addMessageToChatWithTyping(reply, 'assistant');
+      isTyping = false;
+      setTimeout(fadeInInput, 600);
+    });
+    btnRow.appendChild(btn);
+  });
+
+  interruptEl.appendChild(btnRow);
+  footer.appendChild(interruptEl);
+  requestAnimationFrame(() => requestAnimationFrame(() => interruptEl.classList.add('visible')));
+  // Note: input stays hidden — fadeInInput fires inside the button click handler
+}
+
+async function showPlayerSwitchPrompt() {
+  if (isTyping) return;
+  isTyping = true;
+  fadeOutInput();
+
+  const typingIndicator = showTypingIndicator();
+  await new Promise(r => setTimeout(r, 600));
+  removeTypingIndicator(typingIndicator);
+  await addMessageToChatWithTyping("Which would you like to switch to?", 'assistant');
+
+  const footer = document.querySelector('footer') || document.getElementById('chat-footer');
+  const interruptEl = document.createElement('div');
+  interruptEl.id = 'interrupt-bar';
+
+  const btnRow = document.createElement('div');
+  btnRow.id = 'interrupt-buttons';
+
+  const options = [
+    { label: 'Spotify',     val: 'spotify' },
+    { label: 'Apple Music', val: 'apple'   },
+  ];
+
+  options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'interrupt-btn';
+    btn.textContent = opt.label;
+    btn.style.animationDelay = `${i * 70}ms`;
+    btn.addEventListener('click', async () => {
+      interruptEl.classList.remove('visible');
+      await new Promise(r => setTimeout(r, 350));
+      interruptEl.remove();
+
+      setPlayerPref(opt.val);
+
+      isTyping = true;
+      const t = showTypingIndicator();
+      await new Promise(r => setTimeout(r, 500));
+      removeTypingIndicator(t);
+
+      const reply = opt.val === 'spotify'
+        ? "Switched to Spotify for any songs you request next. Just a heads up — previews are 30 seconds here."
+        : "Switched to Apple Music for any songs you request next. Sign in and you can hear full songs.";
+
+      await addMessageToChatWithTyping(reply, 'assistant');
+      isTyping = false;
+      setTimeout(fadeInInput, 600);
+    });
+    btnRow.appendChild(btn);
+  });
+
+  interruptEl.appendChild(btnRow);
+  footer.appendChild(interruptEl);
+  requestAnimationFrame(() => requestAnimationFrame(() => interruptEl.classList.add('visible')));
 }
 
 // =====================
@@ -236,7 +291,7 @@ function handleSecretCommand(command) {
       const pref = args.toLowerCase().trim();
       if (pref === 'apple') {
         setPlayerPref('apple');
-        console.log('Player set to Apple Music. Songs with Apple Music URLs will use that player.');
+        console.log('Player set to Apple Music.');
       } else if (pref === 'spotify') {
         setPlayerPref('spotify');
         console.log('Player set to Spotify.');
@@ -358,6 +413,16 @@ async function sendMessage() {
   userInput.value = '';
   userInput.style.height = '48px';
   sessionStats.messagesExchanged++;
+
+  // Detect player-switch intent before hitting the server
+  const msgLowerTrim = message.toLowerCase().trim();
+  const isPlayerSwitch =
+    /change player|switch player|switch to|listen on|use spotify|use apple|on spotify|on apple music|spotify please|apple music please/.test(msgLowerTrim) ||
+    (msgLowerTrim === 'spotify' || msgLowerTrim === 'apple music');
+  if (isPlayerSwitch) {
+    showPlayerSwitchPrompt();
+    return;
+  }
   window._lastGrooveInput = message; // captured for groove unlock logging
 
   fadeOutInput();
@@ -1372,16 +1437,17 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   // ── RETURN VISIT ───────────────────────────────────────────────────────
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
-    // Skip intro entirely — go straight to ready state
     document.body.classList.remove('intro-active');
-    // Don't show start button at all; restore input immediately
     fadeInInput();
-    // Inject the completed embed with the persisted title
     injectCompletedEmbed(saved);
-    // Photos already seen — show immediately
     buildPhotoGrid(true);
+    const needsPlayerPick = !localStorage.getItem(PLAYER_KEY);
     setTimeout(() => {
-      addMessageToChatWithTyping("Thanks for coming back. What are you looking for?", 'assistant');
+      if (needsPlayerPick) {
+        showPlayerPicker("Welcome back — I made some changes and can now share music in new ways. Which do you use to listen to music?");
+      } else {
+        addMessageToChatWithTyping("Thanks for coming back. What are you looking for?", 'assistant');
+      }
     }, 1400);
     return;
   }
@@ -1421,19 +1487,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 
     const voiceAudio = embed.querySelector('audio');
     if (voiceAudio) {
-      const scheduleRestore = () => {
-        const dur = voiceAudio.duration;
-        if (!isFinite(dur)) return;
-        const restoreDelay = Math.max((dur - 1.5) * 1000, 0);
-        setTimeout(() => fadeInInput(), restoreDelay);
-      };
-
-      if (isFinite(voiceAudio.duration)) {
-        scheduleRestore();
-      } else {
-        voiceAudio.addEventListener('loadedmetadata', scheduleRestore, { once: true });
-      }
-
+      // No early fadeInInput here — showPlayerPicker handles input restoration
       voiceAudio.addEventListener('ended', () => {
         const secs    = Math.round(voiceAudio.duration);
         const titleEl = embed.querySelector('.voice-embed__title');
@@ -1441,9 +1495,10 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           const fullTitle = `TRANSMISSION //<br>WELCOME MSG, ON AIR <span class="voice-embed__date">${mm}-${dd}-${yy}</span><span class="voice-embed__time"> ${h12}:${mins} ${ampm} [${secs}s]</span>`;
           titleEl.innerHTML = fullTitle;
           titleEl.dataset.durationSet = '1';
-          // Persist for return visits — store as HTML string
           localStorage.setItem(STORAGE_KEY, fullTitle);
         }
+        // Show player picker after a short breath
+        setTimeout(() => showPlayerPicker(), 800);
       });
     }
 
