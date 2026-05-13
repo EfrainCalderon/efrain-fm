@@ -12,7 +12,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /Users/efrain/Documents/efrain-fm && git status --porcelain | grep -q . && git add -A && MSG=$(git diff --cached --name-only | sed 's|.*/||' | sort -u | tr '\\n' ' ' | xargs) && git commit -m \"update: $MSG\" && git push origin main 2>/dev/null || true",
+            "command": "cd /Users/efrain/Documents/efrain-fm && git status --porcelain | grep -q . && git add -A && MSG=$(node scripts/commit-msg.js) && git commit -m \"$MSG\" && git push origin main 2>/dev/null || true",
             "timeout": 30
           }
         ]
