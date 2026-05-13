@@ -55,10 +55,14 @@ const KEYSTONE_LOOKUP = new Map(
   GROOVE_KEYSTONES.map(k => [`${normalize(k.title)}|||${normalize(k.artist)}`, k])
 );
 
-function getSession(sessionId) {
+const MAX_SESSIONS = 500;
+
+function getSession(sessionId, initialPlayedTitles = []) {
   if (!sessions.has(sessionId)) {
+    if (sessions.size >= MAX_SESSIONS) sessions.delete(sessions.keys().next().value);
     sessions.set(sessionId, {
-      playedSongs: [], lastSongTraits: null, lastSongArtist: null, lastSong: null,
+      playedSongs: new Set(initialPlayedTitles),
+      lastSongTraits: null, lastSongArtist: null, lastSong: null,
       songCount: 0, askedMoreOf: false, lastInterruptSong: 0,
       _pendingRelatedSong: null, _pendingBridge: null,
     });
@@ -68,6 +72,24 @@ function getSession(sessionId) {
 
 function normalize(str) {
   return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+// =====================
+// BUT-MODIFIER RESOLUTION
+// Resolves a raw "but X" term to a trait ID via TRAIT_ALIASES so comparisons are
+// exact rather than substring-based. Falls back to null if nothing matches.
+// =====================
+function resolveButTerm(term) {
+  const lower = term.trim().toLowerCase();
+  if (TRAIT_ALIASES[lower]) return TRAIT_ALIASES[lower];
+  let best = null, bestLen = 0;
+  for (const [alias, traitId] of Object.entries(TRAIT_ALIASES)) {
+    if ((lower.includes(alias) || alias.includes(lower)) && alias.length > bestLen) {
+      best = traitId;
+      bestLen = alias.length;
+    }
+  }
+  return best;
 }
 
 // =====================
@@ -283,11 +305,14 @@ function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = n
   if (butWeightOverrides) {
     for (const [traitId, _] of traitTargets) {
       const traitLabel = traitId.split(':')[1] || traitId;
-      if (butWeightOverrides.reduce && (butWeightOverrides.reduce.includes(traitLabel) || traitLabel.includes(butWeightOverrides.reduce))) {
-        traitTargets.set(traitId, traitTargets.get(traitId) * 0.3); // heavily reduce
+      const matches = (term) => term.includes(':')
+        ? traitId === term
+        : (term.includes(traitLabel) || traitLabel.includes(term));
+      if (butWeightOverrides.reduce && matches(butWeightOverrides.reduce)) {
+        traitTargets.set(traitId, traitTargets.get(traitId) * 0.3);
       }
-      if (butWeightOverrides.boost && (butWeightOverrides.boost.includes(traitLabel) || traitLabel.includes(butWeightOverrides.boost))) {
-        traitTargets.set(traitId, Math.min(traitTargets.get(traitId) * 1.5, 1.5)); // boost
+      if (butWeightOverrides.boost && matches(butWeightOverrides.boost)) {
+        traitTargets.set(traitId, Math.min(traitTargets.get(traitId) * 1.5, 1.5));
       }
     }
   }
@@ -466,10 +491,13 @@ function findSongsByArtist(message) {
 // =====================
 // KEYWORD EXTRACTION
 // =====================
-async function extractKeywords(userMessage) {
-  const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001', max_tokens: 200,
-    system: `You are a music search assistant. Convert any request — including moods, situations, metaphors, and feelings — into music trait keywords. Return ONLY a JSON array, no explanation.
+const EXTRACT_KEYWORDS_SYSTEM = [{ type: 'text', cache_control: { type: 'ephemeral' }, text:
+`You are a music search assistant. Convert any request — including moods, situations, metaphors, and feelings — into music trait keywords.
+
+Return a JSON object: { "keywords": [...], "interpretation": "..." }
+
+"keywords": 3–8 trait vocabulary terms or artist/song names (see vocabulary below).
+"interpretation": include ONLY when the query uses abstract, situational, or concrete non-music words that required meaningful translation — things like "children singing", "library", "forest fire", "driving at 3am", "apocalypse". The value is a brief natural phrase that completes "here's something ___" (e.g. "playful and joyful", "dark and cinematic", "warm and nostalgic"). Set to null or omit for any straightforward genre, mood, artist, or era request ("sad songs", "some jazz", "80s pop", "something dark").
 
 MAP TO THESE TRAIT VOCABULARY TERMS WHERE POSSIBLE:
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
@@ -507,18 +535,32 @@ SITUATIONAL MAPPINGS:
 RULES:
 - Prefer trait vocabulary terms over raw words whenever possible
 - For artist names or song titles, return them as plain strings
-- Return 3–8 items
-- Return ONLY the JSON array, no preamble or explanation
-- If the input is gibberish, a random string of characters, or clearly not a word in any language, return []. Do NOT return [] for real words, genre names, mood words, artist names, or any legitimate request — even if it is very short or vague`,
+- Return ONLY the JSON object, no preamble or explanation
+- If the input is gibberish, a random string of characters, or clearly not a word in any language, return { "keywords": [] }. Do NOT return empty keywords for real words, genre names, mood words, artist names, or any legitimate request — even if it is very short or vague`
+}];
+
+async function extractKeywords(userMessage) {
+  const response = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001', max_tokens: 250,
+    system: EXTRACT_KEYWORDS_SYSTEM,
     messages: [{ role: 'user', content: userMessage }]
   });
   try {
     const text = response.content[0].text.trim();
-    const match = text.match(/\[[\s\S]*\]/);
-    if (!match) return [];
-    const raw = JSON.parse(match[0]).map(k => k.toLowerCase().trim());
-    return raw.filter(k => k.length >= 2);
-  } catch (e) { console.log('Keyword parse error:', e.message); return []; }
+    // Try object format first
+    const objMatch = text.match(/\{[\s\S]*\}/);
+    if (objMatch) {
+      const parsed = JSON.parse(objMatch[0]);
+      const keywords = (parsed.keywords || []).map(k => k.toLowerCase().trim()).filter(k => k.length >= 2);
+      return { keywords, interpretation: parsed.interpretation || null };
+    }
+    // Fallback: Haiku returned a plain array
+    const arrMatch = text.match(/\[[\s\S]*\]/);
+    if (arrMatch) {
+      return { keywords: JSON.parse(arrMatch[0]).map(k => k.toLowerCase().trim()).filter(k => k.length >= 2), interpretation: null };
+    }
+    return { keywords: [], interpretation: null };
+  } catch (e) { console.log('Keyword parse error:', e.message); return { keywords: [], interpretation: null }; }
 }
 
 // =====================
@@ -557,10 +599,8 @@ function detectLikeArtist(message) {
   return null;
 }
 
-async function extractArtistTraits(artistName) {
-  const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001', max_tokens: 200,
-    system: `You are a music search assistant. Describe the sonic characteristics of a given artist using ONLY trait vocabulary terms from this list. Return ONLY a JSON array of 4–7 traits, no explanation.
+const EXTRACT_ARTIST_TRAITS_SYSTEM = [{ type: 'text', cache_control: { type: 'ephemeral' }, text:
+`You are a music search assistant. Describe the sonic characteristics of a given artist using ONLY trait vocabulary terms from this list. Return ONLY a JSON array of 4–7 traits, no explanation.
 
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
 Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning"
@@ -579,7 +619,13 @@ Examples:
 - "Joanna Newsom" → ["genre:indie-folk", "char:literate", "char:eccentric", "texture:lush", "char:intimate", "era:modern"]
 
 If you don't recognize the artist, return an empty array [].
-Return ONLY the JSON array.`,
+Return ONLY the JSON array.`
+}];
+
+async function extractArtistTraits(artistName) {
+  const response = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001', max_tokens: 200,
+    system: EXTRACT_ARTIST_TRAITS_SYSTEM,
     messages: [{ role: 'user', content: `Artist: "${artistName}"` }]
   });
   try {
@@ -603,11 +649,13 @@ Personality: Warm, direct, a little dry. Deep music knowledge — outsider, lo-f
 
 Important: Don't mention this being a portfolio piece, case study, or that you're looking for work. It's just a project you made because you wanted to. Keep responses SHORT — 2-3 sentences max. Steer music-adjacent questions back toward asking what they want to hear. Plain text only, no markdown. NEVER invent or describe features that don't exist — if something doesn't work a certain way, just redirect to what you can do (play songs from your collection). NEVER say things like "that search isn't set up yet" or "that feature isn't available."`;
 
+const EFRAIN_SYSTEM = [{ type: 'text', text: EFRAIN_CHARACTER, cache_control: { type: 'ephemeral' } }];
+
 async function generateConversationalResponse(userMessage, lastSong) {
   const songContext = lastSong ? `The last song you shared was "${lastSong.title}" by ${lastSong.artist}.` : '';
   const r = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001', max_tokens: 120,
-    system: EFRAIN_CHARACTER,
+    system: EFRAIN_SYSTEM,
     messages: [{ role: 'user', content: `${userMessage}${songContext ? '\n\n' + songContext : ''}` }]
   });
   return r.content[0].text;
@@ -656,7 +704,7 @@ function findRelatedSong(lastSong, playedTitles) {
 
   let best = null, bestOverlap = 0;
   for (const song of songsData.songs) {
-    if (playedTitles.includes(song.title)) continue;
+    if (playedTitles.has(song.title)) continue;
     if (normalize(song.artist) === normalize(lastSong.artist)) continue; // never suggest same artist
     const sTrait = song.traits || {};
     // Only count overlap on meaningful traits, not generic crossover traits
@@ -700,7 +748,7 @@ const COLLECTION_TRAIT_OPTIONS = [
   { label: 'Korean', trait: 'origin:korea' },
 ];
 
-function getDynamicOptions(justPlayedSong, playedTitles = []) {
+function getDynamicOptions(justPlayedSong, playedTitles = new Set()) {
   const songTraits = justPlayedSong.traits || {};
 
   const contrasting = COLLECTION_TRAIT_OPTIONS.filter(opt => {
@@ -708,7 +756,7 @@ function getDynamicOptions(justPlayedSong, playedTitles = []) {
     if (songTraits[opt.trait] >= 0.7) return false;
     // Check if archive has enough unplayed songs with this trait
     const matchCount = songsData.songs.filter(s => {
-      if (playedTitles.includes(s.title)) return false;
+      if (playedTitles.has(s.title)) return false;
       return (s.traits || {})[opt.trait] >= 0.5;
     }).length;
     return matchCount >= 2;
@@ -786,7 +834,7 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
   }
   const r = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001', max_tokens: 100,
-    system: EFRAIN_CHARACTER,
+    system: EFRAIN_SYSTEM,
     messages: [{ role: 'user', content: `Visitor's favorite: "${userInput}"\n${matchContext}\n\n1-2 sentences MAX. React like a person, not a critic.` }]
   });
   return r.content[0].text;
@@ -832,11 +880,8 @@ function isConversational(msg) {
 // Returns: 'REACTION_POSITIVE' | 'REACTION_NEGATIVE' | 'SEARCH'
 // Biased toward SEARCH — only returns a reaction classification when confident.
 // =====================
-async function classifyShortMessage(message, lastSong) {
-  const songContext = lastSong ? `The last song played was "${lastSong.title}" by ${lastSong.artist}.` : '';
-  const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001', max_tokens: 10,
-    system: `You classify short music chat messages. Given a message and the last song played, decide if the message is a reaction to the last song or a new search request.
+const CLASSIFY_SYSTEM = [{ type: 'text', cache_control: { type: 'ephemeral' }, text:
+`You classify short music chat messages. Given a message and the last song played, decide if the message is a reaction to the last song or a new search request.
 
 REACTION_POSITIVE: clear positive feedback about the last song ("love this", "this is incredible", "obsessed", "what a tune", "this one's special")
 REACTION_NEGATIVE: clear negative feedback about the last song ("not for me", "not feeling it", "this isn't working", "too slow for me")
@@ -844,7 +889,14 @@ SEARCH: anything requesting a different song, genre, mood, artist, or vibe — i
 
 When in doubt, return SEARCH. Only return a reaction classification when the message is clearly about the last song and not asking for anything new.
 
-Reply with exactly one of: REACTION_POSITIVE, REACTION_NEGATIVE, SEARCH`,
+Reply with exactly one of: REACTION_POSITIVE, REACTION_NEGATIVE, SEARCH`
+}];
+
+async function classifyShortMessage(message, lastSong) {
+  const songContext = lastSong ? `The last song played was "${lastSong.title}" by ${lastSong.artist}.` : '';
+  const response = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001', max_tokens: 10,
+    system: CLASSIFY_SYSTEM,
     messages: [{ role: 'user', content: `${songContext}\nMessage: "${message}"` }]
   });
   const result = response.content[0].text.trim().toUpperCase();
@@ -875,8 +927,8 @@ function getStreamingUrls(song) {
 // =====================
 // SONG RESPONSE BUILDER
 // =====================
-function buildSongResponse(song, session, interrupt = null, bridge = null) {
-  session.playedSongs.push(song.title);
+function buildSongResponse(song, session, interrupt = null, bridge = null, preface = null) {
+  session.playedSongs.add(song.title);
   session.lastSong = song;
   session.lastSongTraits = song.traits || {};
   session.lastSongArtist = song.artist;
@@ -889,7 +941,7 @@ function buildSongResponse(song, session, interrupt = null, bridge = null) {
       const bridgeDest = songsData.songs.find(s =>
         normalize(s.title) === normalize(bridgeMatch.to) &&
         normalize(s.artist) === normalize(bridgeMatch.toArtist) &&
-        !session.playedSongs.includes(s.title)
+        !session.playedSongs.has(s.title)
       );
       if (bridgeDest) {
         session._pendingBridge = bridgeMatch.bridge;
@@ -920,7 +972,7 @@ function buildSongResponse(song, session, interrupt = null, bridge = null) {
   } : null;
 
   return {
-    response: groove ? null : song.commentary, // keystones carry no commentary — the audio transmission speaks for itself
+    response: groove ? null : (preface || song.commentary || null), // keystones carry no commentary — the audio transmission speaks for itself
     bridgingResponse: bridge,
     song: {
       title:        song.title,
@@ -951,16 +1003,16 @@ app.post('/api/favorite', async (req, res) => {
     saveFavorite(songTitle || input, artistName);
     const collectionMatch = findFavoriteInCollection(input);
 
-    if (collectionMatch && session.playedSongs.includes(collectionMatch.match.title)) {
+    if (collectionMatch && session.playedSongs.has(collectionMatch.match.title)) {
       const responseText = await generateFavoriteResponse(input, { match: collectionMatch.match, alreadyPlayed: true });
       return res.json({ response: responseText, song: null });
     }
 
     const responseText = await generateFavoriteResponse(input, collectionMatch);
     let song = null;
-    if (collectionMatch && !session.playedSongs.includes(collectionMatch.match.title)) {
+    if (collectionMatch && !session.playedSongs.has(collectionMatch.match.title)) {
       const s = collectionMatch.match;
-      session.playedSongs.push(s.title);
+      session.playedSongs.add(s.title);
       session.lastSong = s;
       session.lastSongTraits = s.traits || {};
       session.lastSongArtist = s.artist;
@@ -979,11 +1031,11 @@ app.post('/api/favorite', async (req, res) => {
 // =====================
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, sessionId = 'default', unlockedClusters = [], clusterCounts = {}, pushCluster = null } = req.body;
+    const { message, sessionId = 'default', unlockedClusters = [], clusterCounts = {}, pushCluster = null, playedSongTitles = [] } = req.body;
     if (!message || !message.trim()) return res.json({ response: "Say something and I'll find you a song.", song: null });
     if (message.length > 500) return res.json({ response: "Keep it short — I just need a vibe, not an essay.", song: null });
 
-    const session = getSession(sessionId);
+    const session = getSession(sessionId, playedSongTitles);
 
     // ── DEV COMMAND: /push C1 — force-serve a specific cluster's keystone ──
     if (pushCluster) {
@@ -1009,7 +1061,7 @@ app.post('/api/chat', async (req, res) => {
       return count < 3; // locked until 3 songs from that cluster have been played
     }
 
-    if (session.playedSongs.length >= songsData.songs.length) {
+    if (session.playedSongs.size >= songsData.songs.length) {
       return res.json({ response: "That's the whole collection — nothing left I haven't played you.", song: null });
     }
 
@@ -1027,7 +1079,7 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ response: redirects[Math.floor(Math.random() * redirects.length)], song: null });
     }
 
-    const available = () => songsData.songs.filter(s => !session.playedSongs.includes(s.title) && !isLockedKeystone(s));
+    const available = () => songsData.songs.filter(s => !session.playedSongs.has(s.title) && !isLockedKeystone(s));
 
     const pickTopScoring = (pool) => {
       if (!pool.length) return null;
@@ -1050,7 +1102,7 @@ app.post('/api/chat', async (req, res) => {
       const bridgeText = session._pendingBridge || null;
       session._pendingRelatedSong = null;
       session._pendingBridge = null;
-      if (related && !session.playedSongs.includes(related.title)) {
+      if (related && !session.playedSongs.has(related.title)) {
         return res.json(buildSongResponse(related, session, null, bridgeText));
       }
     }
@@ -1181,7 +1233,7 @@ app.post('/api/chat', async (req, res) => {
     if (playMeMatch) {
       const requestedTitle = normalize(playMeMatch[1].trim());
       const exactSong = songsData.songs.find(s =>
-        !session.playedSongs.includes(s.title) &&
+        !session.playedSongs.has(s.title) &&
         normalize(s.title) === requestedTitle
       );
       if (exactSong) return res.json(buildSongResponse(exactSong, session));
@@ -1232,7 +1284,7 @@ app.post('/api/chat', async (req, res) => {
     // Artist lookup
     const artistSongs = findSongsByArtist(message);
     if (artistSongs) {
-      const av = artistSongs.filter(s => !session.playedSongs.includes(s.title));
+      const av = artistSongs.filter(s => !session.playedSongs.has(s.title));
       if (av.length) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
     }
 
@@ -1244,8 +1296,8 @@ app.post('/api/chat', async (req, res) => {
       .trim() || message;
 
     // Keyword extraction (API call)
-    const keywords = await extractKeywords(strippedMessage);
-    console.log('Keywords:', keywords);
+    const { keywords, interpretation } = await extractKeywords(strippedMessage);
+    console.log('Keywords:', keywords, interpretation ? `| heard as: "${interpretation}"` : '');
 
     const preferVideo = isVideoRequest(message);
     const conversational = isConversational(message);
@@ -1290,6 +1342,11 @@ app.post('/api/chat', async (req, res) => {
       return res.json(buildSongResponse(avSongs[Math.floor(Math.random() * avSongs.length)], session, null, bridge));
     }
 
+    // Build preface for queries that needed interpretation (abstract/situational)
+    const preface = interpretation
+      ? `Not sure I have anything specifically for "${strippedMessage}", but here's something ${interpretation}.`
+      : null;
+
     // No keywords extracted — input was gibberish, typo, or unrecognizable
     // Haiku is instructed to return [] for nonsense; this is the safety net for anything that slips through
     if (keywords.length === 0) {
@@ -1310,7 +1367,12 @@ app.post('/api/chat', async (req, res) => {
     let butWeightOverrides = null;
     const butMatch = strippedMessage.match(/^(.+?)\s+but\s+(.+)$/i);
     if (butMatch) {
-      butWeightOverrides = { reduce: butMatch[1].trim().toLowerCase(), boost: butMatch[2].trim().toLowerCase() };
+      const rawReduce = butMatch[1].trim().toLowerCase();
+      const rawBoost  = butMatch[2].trim().toLowerCase();
+      butWeightOverrides = {
+        reduce: resolveButTerm(rawReduce) || rawReduce,
+        boost:  resolveButTerm(rawBoost)  || rawBoost,
+      };
       console.log('But-modifier:', butWeightOverrides);
     }
 
@@ -1361,7 +1423,7 @@ app.post('/api/chat', async (req, res) => {
 
     if (titleKeywords.length > 0) {
       const specificSong = songsData.songs.find(s =>
-        !session.playedSongs.includes(s.title) &&
+        !session.playedSongs.has(s.title) &&
         titleKeywords.some(k => {
           const normTitle = normalize(s.title);
           const normK = normalize(k);
@@ -1451,8 +1513,8 @@ app.post('/api/chat', async (req, res) => {
       // Not enough options — fall through and serve best available
     }
 
-    const avSongs = available();
-    const avScored = scoreSongs(avSongs, keywords, preferVideo, butWeightOverrides);
+    const avTitleSet = new Set(available().map(s => s.title));
+    const avScored = allScored.filter(s => avTitleSet.has(s.title));
     const avMatches = avScored.filter(s => s.score >= MIN_SCORE);
 
     if (!avMatches.length) {
@@ -1474,7 +1536,7 @@ app.post('/api/chat', async (req, res) => {
           normalize(s.title)  === normalize(keystone.title) &&
           normalize(s.artist) === normalize(keystone.artist)
         );
-        if (keystoneSong && !session.playedSongs.includes(keystoneSong.title)) {
+        if (keystoneSong && !session.playedSongs.has(keystoneSong.title)) {
           return res.json(buildSongResponse(keystoneSong, session, null, bridge));
         }
       }
@@ -1496,7 +1558,7 @@ app.post('/api/chat', async (req, res) => {
           normalize(s.title)  === normalize(fallbackKeystone.title) &&
           normalize(s.artist) === normalize(fallbackKeystone.artist)
         );
-        if (fallbackSong && !session.playedSongs.includes(fallbackSong.title)) {
+        if (fallbackSong && !session.playedSongs.has(fallbackSong.title)) {
           return res.json(buildSongResponse(fallbackSong, session, null, bridge));
         }
       }
@@ -1505,7 +1567,7 @@ app.post('/api/chat', async (req, res) => {
 
     const top = Math.max(...avMatches.map(s => s.score));
     const topPicks = avMatches.filter(s => s.score >= top * 0.85); // top 15% range, not just exact top
-    return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session, null, bridge));
+    return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session, null, bridge, preface));
 
   } catch (error) {
     console.error('Error:', error);
@@ -1623,7 +1685,7 @@ app.post('/api/invoke-cluster', async (req, res) => {
         normalize(s.title)  === normalize(keystone.title) &&
         normalize(s.artist) === normalize(keystone.artist)
       );
-      if (keystoneSong && !session.playedSongs.includes(keystoneSong.title)) {
+      if (keystoneSong && !session.playedSongs.has(keystoneSong.title)) {
         return res.json(buildSongResponse(keystoneSong, session));
       }
     }
@@ -1632,12 +1694,12 @@ app.post('/api/invoke-cluster', async (req, res) => {
     // Prefer songs with commentary; fall back to any in cluster
     const withCommentary = songsData.songs.filter(s =>
       s.cluster === cluster &&
-      !session.playedSongs.includes(s.title) &&
+      !session.playedSongs.has(s.title) &&
       s.commentary && s.commentary.trim() !== ''
     );
     const fallback = songsData.songs.filter(s =>
       s.cluster === cluster &&
-      !session.playedSongs.includes(s.title)
+      !session.playedSongs.has(s.title)
     );
 
     const pool = withCommentary.length ? withCommentary : fallback;

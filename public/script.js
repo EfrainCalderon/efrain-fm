@@ -158,6 +158,18 @@ async function showPlayerSwitchPrompt() {
 const GROOVE_STORAGE_KEY   = 'efrain_fm_groove';
 const VISITOR_ID_KEY       = 'efrain_fm_visitor_id';
 const SESSION_START_KEY    = 'efrain_fm_first_session';
+const PLAYED_TITLES_KEY    = 'efrain_fm_played';
+
+function loadPlayedTitles() {
+  try { return JSON.parse(localStorage.getItem(PLAYED_TITLES_KEY)) || []; } catch { return []; }
+}
+function savePlayedTitle(title) {
+  const played = loadPlayedTitles();
+  if (!played.includes(title)) {
+    played.push(title);
+    localStorage.setItem(PLAYED_TITLES_KEY, JSON.stringify(played));
+  }
+}
 
 // Persistent state (survives page close)
 function loadGrooveState() {
@@ -438,9 +450,10 @@ async function sendMessage() {
       : {
           message,
           sessionId,
-          unlockedClusters: grooveState.unlockedClusters,
-          clusterCounts:    clusterPlayCounts,
-          pushCluster:      null,
+          unlockedClusters:  grooveState.unlockedClusters,
+          clusterCounts:     clusterPlayCounts,
+          playedSongTitles:  loadPlayedTitles(),
+          pushCluster:       null,
         };
 
     const wasFavoriteInput = pendingFavoriteInput;
@@ -481,6 +494,7 @@ async function sendMessage() {
           saveClusterCounts();
         }
         await displaySong(data.song, data.response);
+        savePlayedTitle(data.song.title);
         sessionStats.songsPlayed++;
       }
     } else if (data.response) {
@@ -576,6 +590,12 @@ function removeTypingIndicator(indicator) {
   }
 }
 
+function toYouTubeEmbedUrl(url) {
+  if (url.includes('watch?v=')) return url.replace('watch?v=', 'embed/').split('&')[0];
+  if (url.includes('youtu.be/')) return url.replace('youtu.be/', 'youtube.com/embed/');
+  return url;
+}
+
 async function displaySong(song, storyText) {
   const songContainer = document.createElement('div');
   songContainer.classList.add('message', 'song');
@@ -639,10 +659,7 @@ async function displaySong(song, storyText) {
       ytWrapper.classList.add('loaded');
     });
 
-    let embedUrl = ytUrl;
-    if (embedUrl.includes('watch?v=')) embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-    else if (embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
-    ytIframe.src = embedUrl;
+    ytIframe.src = toYouTubeEmbedUrl(ytUrl);
     ytIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     ytIframe.allowFullscreen = true;
 
@@ -661,10 +678,7 @@ async function displaySong(song, storyText) {
       ytWrapper.classList.add('loaded');
     });
 
-    let embedUrl = spotifyUrl;
-    if (embedUrl.includes('watch?v=')) embedUrl = embedUrl.replace('watch?v=', 'embed/').split('&')[0];
-    else if (embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
-    ytIframe.src = embedUrl;
+    ytIframe.src = toYouTubeEmbedUrl(spotifyUrl);
     ytIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
     ytIframe.allowFullscreen = true;
 
@@ -797,6 +811,7 @@ async function playGrooveTransmission(keystoneConfig, song, commentary) {
 
   // Print the song embed
   await displaySong(song, commentary);
+  savePlayedTitle(song.title);
   sessionStats.songsPlayed++;
 
   // Short pause, then light the ring
