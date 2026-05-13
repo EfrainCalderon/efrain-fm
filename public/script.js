@@ -1288,9 +1288,14 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 
   // ── Playback ──────────────────────────────────────────────────────
   function startPlayback() {
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     audio.currentTime = 0;
-    audio.play().catch(() => {});
+    const doPlay = () => audio.play().catch(() => {});
+    // Resume must complete before play — a suspended context routes audio silently
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().then(doPlay, doPlay);
+    } else {
+      doPlay();
+    }
   }
 
   function play() {
