@@ -493,6 +493,9 @@ async function sendMessage() {
           clusterPlayCounts[data.song.cluster] = (clusterPlayCounts[data.song.cluster] || 0) + 1;
           saveClusterCounts();
         }
+        if (data.preface) {
+          await addMessageToChatWithTyping(data.preface, 'assistant');
+        }
         await displaySong(data.song, data.response);
         savePlayedTitle(data.song.title);
         sessionStats.songsPlayed++;

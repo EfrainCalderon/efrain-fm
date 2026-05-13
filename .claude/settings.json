@@ -1,7 +1,22 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git -C /Users/efrain/Documents/efrain-fm push origin main)"
+      "Bash(git *)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/efrain/Documents/efrain-fm && git status --porcelain | grep -q . && git add -A && git commit -m 'updates' && git push origin main 2>/dev/null || true",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }

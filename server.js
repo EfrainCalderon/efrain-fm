@@ -972,7 +972,8 @@ function buildSongResponse(song, session, interrupt = null, bridge = null, prefa
   } : null;
 
   return {
-    response: groove ? null : (preface || song.commentary || null), // keystones carry no commentary — the audio transmission speaks for itself
+    response: groove ? null : (song.commentary || null), // keystones carry no commentary — the audio transmission speaks for itself
+    preface: preface || null,
     bridgingResponse: bridge,
     song: {
       title:        song.title,
