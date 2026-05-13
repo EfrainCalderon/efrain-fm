@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/efrain/Documents/efrain-fm push origin main)"
+    ]
+  }
+}
