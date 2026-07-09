@@ -19,9 +19,8 @@
   <meta name="twitter:description" content="A personal music discovery interface. Ask me for a song.">
   <meta name="twitter:image" content="https://efrain.fm/og-image.png">
   <link rel="stylesheet" href="style.css">
-  <!-- Match Safari browser chrome to header/footer color, responsive to dark/light mode -->
-  <meta name="theme-color" content="#2C2D2D" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#CECECA" media="(prefers-color-scheme: light)">
+  <!-- Match Safari browser chrome to header/footer color — dark mode only -->
+  <meta name="theme-color" content="#2C2D2D">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -95,14 +94,6 @@
       ctx.closePath();
     }
 
-    // ── theme detection (respects /theme commands + system pref) ──────────
-    function isDarkMode() {
-      const theme = document.documentElement.getAttribute('data-theme');
-      if (theme === 'dark')  return true;
-      if (theme === 'light') return false;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-
     // ── canvas setup ──────────────────────────────────────────────────────
     const canvas = document.getElementById('bg-rings');
     const ctx    = canvas.getContext('2d');
@@ -134,7 +125,6 @@
       if (timestamp - lastFrameTime < FRAME_MS) return;
       lastFrameTime = timestamp;
 
-      const dark = isDarkMode();
       const now  = (performance.now() - t0) / 1000;
       const W    = window.innerWidth;
       const H    = window.innerHeight;
@@ -143,7 +133,7 @@
       ctx.clearRect(0, 0, W, H);
 
       // Background
-      const bg = dark ? 'hsl(210,8%,7%)' : 'hsl(36,10%,88%)';
+      const bg = 'hsl(210,8%,7%)';
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, W, H);
 
@@ -175,8 +165,7 @@
       ctx.clip('evenodd');
 
       const globalRot = -now * ROT_SPEED;
-      // Dark: warm white stars. Light: dark slate stars (same opacity logic)
-      // Read star color from CSS — same token system as text, rings, everything else
+      // Warm white stars — read from CSS, same token system as text, rings, everything else
       const starCol = getComputedStyle(document.documentElement).getPropertyValue('--star-color').trim();
 
       for (const s of stars) {
@@ -206,11 +195,10 @@
       // Innermost N rings glow (N = number of clusters unlocked, from window._grooveGlowCount)
       const glowCount = (window._grooveGlowCount || 0);
 
-      const darkMode = dark;
-      const glowColor  = darkMode ? 'rgba(245,242,238,0.7)'  : 'rgba(14,16,18,0.65)';
-      const glowShadow = darkMode ? 'rgba(245,242,238,0.9)'  : 'rgba(14,16,18,0.8)';
-      const voidColor  = darkMode ? 'hsl(210,8%,7%)'         : 'hsl(36,10%,88%)';
-      const ringColor  = dark ? 'rgba(245,242,238,0.13)' : 'rgba(14,16,18,0.14)';
+      const glowColor  = 'rgba(245,242,238,0.7)';
+      const glowShadow = 'rgba(245,242,238,0.9)';
+      const voidColor  = 'hsl(210,8%,7%)';
+      const ringColor  = 'rgba(245,242,238,0.13)';
 
       const SWEEP_DURATION = 7000; // ms — arc sweep animation duration
 

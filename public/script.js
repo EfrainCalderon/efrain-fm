@@ -279,16 +279,6 @@ function handleSecretCommand(command) {
   const args = parts.slice(1).join(' ');
 
   switch(cmd) {
-    case '/theme':
-      if (args === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-      } else if (args === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      } else if (args === 'auto') {
-        document.documentElement.removeAttribute('data-theme');
-      }
-      return true;
-
     case '/reset':
       chatMessages.innerHTML = '';
       sessionStats = { songsPlayed: 0, messagesExchanged: 0, startTime: new Date() };
@@ -314,7 +304,7 @@ function handleSecretCommand(command) {
     }
 
     case '/help':
-      console.log('Commands: /theme [light|dark|auto], /reset, /debug, /push [c1-c9], /groove-reset, /player [apple|spotify], /help');
+      console.log('Commands: /reset, /debug, /push [c1-c9], /groove-reset, /player [apple|spotify], /help');
       return true;
 
     case '/push': {
@@ -634,10 +624,7 @@ async function displaySong(song, storyText) {
     if (useApple) {
       // Apple Music embed URL format: https://embed.music.apple.com/...
       // songs.json should store the embed URL directly
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-        (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      const appleTheme = isDark ? 'dark' : 'light';
-      iframe.src = appleUrl.includes('?') ? `${appleUrl}&theme=${appleTheme}` : `${appleUrl}?theme=${appleTheme}`;
+      iframe.src = appleUrl.includes('?') ? `${appleUrl}&theme=dark` : `${appleUrl}?theme=dark`;
       iframe.allow = 'autoplay *; encrypted-media *; fullscreen *';
       iframe.style.borderRadius = '10px';
     } else {
