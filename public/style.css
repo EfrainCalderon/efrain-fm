@@ -776,6 +776,18 @@ body::after {
   opacity: 1;
 }
 
+/* Inline link inside a chat bubble (e.g. "isn't Wikipedia") — matches the surrounding
+   bubble text exactly, distinguished only by an underline, not a separate link color. */
+.inline-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inline-link:hover {
+  opacity: 0.8;
+}
+
 #chat-messages::after {
   content: "";
   display: table;

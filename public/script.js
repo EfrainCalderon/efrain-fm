@@ -501,7 +501,7 @@ async function sendMessage() {
       addSongInfoToChat(data.songInfo);
     } else if (data.response) {
       removeTypingIndicator(typingIndicator);
-      await addMessageToChatWithTyping(data.response, 'assistant');
+      await addMessageToChatWithTyping(data.response, 'assistant', data.responseLink || null);
     } else if (data.interrupt) {
       // No response text — interrupt will render the message itself, keep indicator until then
       removeTypingIndicator(typingIndicator);
@@ -548,12 +548,27 @@ function addMessageToChat(message, sender) {
   scrollToBottom();
 }
 
-async function addMessageToChatWithTyping(message, sender) {
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// linkInfo: optional { word, url } — after typing finishes, swaps the first plain-text
+// occurrence of `word` into a real link. Kept out of the typed string itself so the
+// animation never shows raw markup mid-type; it becomes clickable only once fully typed.
+async function addMessageToChatWithTyping(message, sender, linkInfo = null) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message', sender);
   chatMessages.appendChild(messageDiv);
   scrollToBottom();
   await typeText(messageDiv, message);
+  if (linkInfo && linkInfo.word && linkInfo.url) {
+    const escapedWord = linkInfo.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`\\b${escapedWord}\\b`);
+    messageDiv.innerHTML = escapeHtml(messageDiv.textContent).replace(
+      re,
+      `<a href="${linkInfo.url}" target="_blank" rel="noopener noreferrer" class="inline-link">${escapeHtml(linkInfo.word)}</a>`
+    );
+  }
 }
 
 // Factual song info — deliberately NOT typed out like a chat message (that effect implies

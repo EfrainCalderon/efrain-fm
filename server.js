@@ -68,7 +68,7 @@ function getSession(sessionId, initialPlayedTitles = []) {
       // True only for the one turn right after a factual-info reply — lets an ambiguous
       // follow-up ("tell me more") continue the info thread instead of being read as
       // "give me a new song." Cleared the instant any new song is actually served.
-      _infoThreadActive: false, _lastSongInfoText: null,
+      _infoThreadActive: false, _lastSongInfoText: null, _infoExhaustedFor: null,
     });
   }
   return sessions.get(sessionId);
@@ -1056,6 +1056,7 @@ function buildSongResponse(song, session, interrupt = null, bridge = null, prefa
   session.songCount++;
   // A real new song is being served — any "continue the info thread" state is now stale.
   session._infoThreadActive = false;
+  session._infoExhaustedFor = null;
 
   let int = interrupt;
   if (!int) {
@@ -1266,6 +1267,13 @@ app.post('/api/chat', async (req, res) => {
 
     if ((isSongInfoRequest(message) || continuingInfoThread) && session.lastSong) {
       const s = session.lastSong;
+
+      // Already told them we're tapped out on THIS song — don't re-run the Haiku call (risk
+      // of restating or inventing something new just because it's being asked fresh again).
+      if (session._infoExhaustedFor === s.title) {
+        return res.json({ response: "Let's move on...", song: null });
+      }
+
       // Reaction is a zero-cost canned reply (no API call) — only one Haiku call happens
       // here regardless of whether praise is also present, rather than two round trips.
       let reaction = null;
@@ -1288,16 +1296,21 @@ app.post('/api/chat', async (req, res) => {
       // reference-note card. Clears the thread so a follow-up "tell me more" reverts to its
       // normal meaning ("give me a new song") rather than asking the dry well again.
       session._infoThreadActive = false;
+      session._infoExhaustedFor = s.title;
       const outOfInfoReplies = [
-        `That's about all I've got on ${s.title} — I'm not Wikipedia.`,
-        "This isn't Google, my dude — pick the right tool for this.",
-        "This is a deep dive into my collection, not Jeopardy, bud.",
-        `Pulled what I've got on ${s.title}. For the rest you'd want an actual encyclopedia.`,
-        "I've tapped out on facts for this one — ask me for another song instead, that I can do all day.",
-        "That's the whole file I've got. I share music, I'm not a research assistant.",
+        { text: `That's about all I've got on ${s.title} — This isn't Wikipedia.`, linkWord: 'Wikipedia', linkUrl: 'https://www.wikipedia.org' },
+        { text: `This isn't Google, my dude — open a new tab.`, linkWord: 'Google', linkUrl: 'https://www.google.com' },
+        { text: "This is a musical journey through my collection, not Jeopardy, bud." },
+        { text: `Pulled what I've got on ${s.title}. For the rest you'd want an actual encyclopedia.` },
+        { text: "System's tapped out on facts for this one... but what other kind of song can I find you?" },
+        { text: "That's the story, morning glory." },
       ];
-      const outOfInfo = outOfInfoReplies[Math.floor(Math.random() * outOfInfoReplies.length)];
-      return res.json({ response: reaction ? `${reaction} ${outOfInfo}` : outOfInfo, song: null });
+      const chosen = outOfInfoReplies[Math.floor(Math.random() * outOfInfoReplies.length)];
+      return res.json({
+        response: reaction ? `${reaction} ${chosen.text}` : chosen.text,
+        responseLink: chosen.linkWord ? { word: chosen.linkWord, url: chosen.linkUrl } : null,
+        song: null,
+      });
     }
 
     if (isNegativeReaction(message)) {
