@@ -711,26 +711,47 @@ async function generateConversationalResponse(userMessage, lastSong) {
 // Deliberately NOT in Efrain's first-person voice — this is reference info, not a personal
 // anecdote. Explicitly told to admit uncertainty rather than invent details, since a lot of
 // this collection is genuinely obscure and Haiku's real knowledge of any given track may be thin.
+// Returns structured JSON (hasMore/info) rather than prose so the caller can reliably tell
+// "here's real info" apart from "nothing left" instead of regex-sniffing the wording —
+// the "nothing left" case gets handled entirely differently (an Efrain-voice deflection,
+// not another reference-note card), so this needs to be a hard signal, not a guess.
 const SONG_INFO_SYSTEM = [{ type: 'text', cache_control: { type: 'ephemeral' }, text:
 `Give brief, factual background on a song or artist — genre context, era, notable history, why it's known. Write in a neutral, informative voice, like a short reference note — NOT first person, NOT a personal anecdote or opinion.
 
+Return a JSON object: { "hasMore": true/false, "info": "..." }
+- "hasMore": true only if you have genuine, reliable facts to share that aren't already covered (see below). false if you don't have anything left that's both true and not already mentioned.
+- "info": the factual text (1-3 sentences) when hasMore is true. Omit or leave empty when hasMore is false.
+
 Rules:
-- 1-3 sentences. Be concise.
-- Only state things you're confident are true. If you don't have reliable, specific knowledge about this particular song or artist, say briefly that there isn't much notable to add — do NOT invent dates, chart positions, meanings, or backstory you're not sure about.
+- Be concise.
+- Only state things you're confident are true — do NOT invent dates, chart positions, meanings, or backstory you're not sure about.
 - No opinions, no "this is a great song" type commentary.
-- Plain text only, no markdown.`
+- Plain text only, no markdown.
+- Return ONLY the JSON object, no preamble or explanation.`
 }];
 
 async function generateSongInfo(song, previousInfo = null) {
   const followUp = previousInfo
-    ? `\n\nYou already told them this — every fact in it is off-limits to restate, including reworded: "${previousInfo}"\n\nThey're asking for more. Only respond with facts that are NOT already covered above, even partially or reworded. Rephrasing something already said does not count as new. If you don't have anything left that's both true and not already mentioned, say in one short sentence that you've covered what you know — do not pad, elaborate on, or restate the existing facts to sound like there's more.`
+    ? `\n\nYou already told them this — every fact in it is off-limits to restate, including reworded: "${previousInfo}"\n\nThey're asking for more. Only set hasMore true if you have facts that are NOT already covered above, even partially or reworded — rephrasing something already said does not count as new.`
     : '';
   const r = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001', max_tokens: 150,
     system: SONG_INFO_SYSTEM,
     messages: [{ role: 'user', content: `Song: "${song.title}" by ${song.artist}${song.year ? ` (${song.year})` : ''}${followUp}` }]
   });
-  return r.content[0].text.trim();
+  try {
+    const text = r.content[0].text.trim();
+    const objMatch = text.match(/\{[\s\S]*\}/);
+    if (objMatch) {
+      const parsed = JSON.parse(objMatch[0]);
+      return { hasMore: !!parsed.hasMore, info: (parsed.info || '').trim() };
+    }
+    // Parse failure — fall back to showing the raw text rather than silently dropping it.
+    return { hasMore: true, info: text };
+  } catch (e) {
+    console.log('Song info parse error:', e.message);
+    return { hasMore: false, info: '' };
+  }
 }
 
 function generateNoMatchResponse(userMessage) {
@@ -1257,10 +1278,26 @@ app.post('/api/chat', async (req, res) => {
         ];
         reaction = bridgeReplies[Math.floor(Math.random() * bridgeReplies.length)];
       }
-      const info = await generateSongInfo(s, continuingInfoThread ? session._lastSongInfoText : null);
-      session._infoThreadActive = true;
-      session._lastSongInfoText = info;
-      return res.json({ response: reaction, songInfo: info, song: null });
+      const result = await generateSongInfo(s, continuingInfoThread ? session._lastSongInfoText : null);
+      if (result.hasMore) {
+        session._infoThreadActive = true;
+        session._lastSongInfoText = result.info;
+        return res.json({ response: reaction, songInfo: result.info, song: null });
+      }
+      // Nothing left to add — hand back to Efrain's own voice instead of printing another
+      // reference-note card. Clears the thread so a follow-up "tell me more" reverts to its
+      // normal meaning ("give me a new song") rather than asking the dry well again.
+      session._infoThreadActive = false;
+      const outOfInfoReplies = [
+        `That's about all I've got on ${s.title} — I'm not Wikipedia.`,
+        "This isn't Google, my dude — pick the right tool for this.",
+        "This is a deep dive into my collection, not Jeopardy, bud.",
+        `Pulled what I've got on ${s.title}. For the rest you'd want an actual encyclopedia.`,
+        "I've tapped out on facts for this one — ask me for another song instead, that I can do all day.",
+        "That's the whole file I've got. I share music, I'm not a research assistant.",
+      ];
+      const outOfInfo = outOfInfoReplies[Math.floor(Math.random() * outOfInfoReplies.length)];
+      return res.json({ response: reaction ? `${reaction} ${outOfInfo}` : outOfInfo, song: null });
     }
 
     if (isNegativeReaction(message)) {
