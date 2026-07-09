@@ -329,21 +329,14 @@ function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = n
     let score = 0;
 
     // Genre/origin hard gate: if user asked for specific genres/origins, the song
-    // must have ALL of them — not just one. "Experimental hip-hop" requires both,
-    // not just whichever one the song happens to have.
-    // Exception: origin traits don't gate against genre traits and vice versa —
-    // "Brazilian jazz" requires origin:brazil AND genre:jazz on the same song.
-    // Equivalences: genre:dance is satisfied by char:danceable (K-pop songs are
-    // danceable but not tagged genre:dance). genre:k-pop is satisfied by origin:korea.
-    if (requiredGenreTargets.length > 0) {
-      const hasAllRequired = requiredGenreTargets.every(t => {
-        if (traits[t] !== undefined && traits[t] >= 0.5) return true;
-        // Equivalences — alternate ways a song can satisfy a genre requirement
-        if (t === 'genre:dance' && traits['char:danceable'] >= 0.5) return true;
-        if (t === 'genre:k-pop' && traits['origin:korea'] >= 0.5) return true;
-        return false;
-      });
-      if (!hasAllRequired) return { ...song, score: 0 };
+    // must satisfy each requested category (genre, origin) — but only needs to match
+    // ONE trait value within a category, not every one. "Experimental hip-hop" requires
+    // both categories present; "Brazilian jazz" requires origin:brazil AND genre:jazz.
+    // But a broad ask like "international" or "Japanese" can expand into several
+    // same-category values (multiple origins, or origin + several genre guesses) —
+    // those are alternatives, not a simultaneous requirement. See matchesRequiredGenres.
+    if (requiredGenreTargets.length > 0 && !matchesRequiredGenres(traits, requiredGenreTargets)) {
+      return { ...song, score: 0 };
     }
 
     // Primary scoring: sum weighted trait matches
@@ -427,6 +420,56 @@ function genreLabel(traitId) {
     'origin:spain': 'Spanish', 'origin:colombia': 'Colombian', 'origin:jamaica': 'Jamaican',
   };
   return map[traitId] || traitId.replace(/^(genre|origin):/, '');
+}
+
+// Checks whether a song satisfies a set of required genre/origin traits.
+// Traits are grouped by category (genre vs origin) and a song only needs to match
+// AT LEAST ONE trait per category present, not every individual value — categories
+// are ANDed together, values within a category are ORed. This lets "Brazilian jazz"
+// correctly require origin:brazil AND genre:jazz together, while a broad request like
+// "international" (which Haiku may expand into several origin: values) or "Japanese"
+// (which may expand into origin:japan + multiple genre: guesses) doesn't demand a
+// single song match every value within the same category at once.
+function matchesRequiredGenres(traits, requiredGenres) {
+  const byCategory = {};
+  for (const t of requiredGenres) {
+    const category = t.split(':')[0];
+    (byCategory[category] || (byCategory[category] = [])).push(t);
+  }
+  return Object.values(byCategory).every(group => group.some(t => {
+    if (traits[t] !== undefined && traits[t] >= 0.5) return true;
+    // Equivalences — alternate ways a song can satisfy a genre requirement
+    if (t === 'genre:dance' && traits['char:danceable'] >= 0.5) return true;
+    if (t === 'genre:k-pop' && traits['origin:korea'] >= 0.5) return true;
+    return false;
+  }));
+}
+
+// Human-readable, capped list of genre/origin labels for "I don't have X" messages.
+// Mirrors matchesRequiredGenres' grouping: values within a category (genre or origin)
+// are alternatives ("or"), joined across categories as a requirement ("and") — so
+// "Brazilian jazz" reads as "Brazilian and jazz", while a broad "international" request
+// that expanded into many same-category origins reads as one capped "or" list instead
+// of a dozen terms strung together.
+function formatGenreLabelList(requiredGenres) {
+  const byCategory = {};
+  for (const t of requiredGenres) {
+    const category = t.split(':')[0];
+    (byCategory[category] || (byCategory[category] = [])).push(t);
+  }
+  const groups = Object.values(byCategory);
+  const groupPhrases = groups.map(group => {
+    const labels = group.map(genreLabel);
+    let phrase;
+    if (labels.length <= 3) {
+      phrase = labels.length <= 1 ? labels[0] : labels.slice(0, -1).join(', ') + ' or ' + labels[labels.length - 1];
+    } else {
+      const remaining = labels.length - 3;
+      phrase = `${labels.slice(0, 3).join(', ')}, or ${remaining} other${remaining > 1 ? 's' : ''} like that`;
+    }
+    return (groups.length > 1 && labels.length > 1) ? `(${phrase})` : phrase;
+  });
+  return groupPhrases.join(' and ');
 }
 
 const COMMENTARY_STOPWORDS = new Set([
@@ -1452,7 +1495,7 @@ app.post('/api/chat', async (req, res) => {
         return requestedGenres.some(t => traits[t] !== undefined && traits[t] >= 0.5);
       });
       if (!collectionHasAny) {
-        const labels = requestedGenres.map(genreLabel).join(' / ');
+        const labels = formatGenreLabelList(requestedGenres);
         const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
         const interrupt = genreOptions.length >= 2
           ? { type: 'genre_suggest', message: `I don't really have ${labels} in here. Try one of these instead.`, options: genreOptions }
@@ -1464,21 +1507,12 @@ app.post('/api/chat', async (req, res) => {
       }
       // Collection has the genre — check if the full combo (e.g. "danceable hip-hop") exists.
       // Use .some() with the genre gate logic instead of a full scoreSongs pass.
-      const comboExists = songsData.songs.some(s => {
-        const traits = s.traits || {};
-        const hasAllRequired = requestedGenres.every(t => {
-          if (traits[t] !== undefined && traits[t] >= 0.5) return true;
-          if (t === 'genre:dance' && traits['char:danceable'] >= 0.5) return true;
-          if (t === 'genre:k-pop' && traits['origin:korea'] >= 0.5) return true;
-          return false;
-        });
-        return hasAllRequired;
-      });
+      const comboExists = songsData.songs.some(s => matchesRequiredGenres(s.traits || {}, requestedGenres));
       if (!comboExists) {
-        const labels = requestedGenres.map(genreLabel).join(' + ');
+        const labels = formatGenreLabelList(requestedGenres);
         const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
         const interrupt = genreOptions.length >= 2
-          ? { type: 'genre_suggest', message: `I don't think I have anything that's ${labels} and everything else you're after. Try one of these instead.`, options: genreOptions }
+          ? { type: 'genre_suggest', message: `I don't think I have anything that's ${labels}. Try one of these instead.`, options: genreOptions }
           : null;
         return res.json({
           response: interrupt ? null : `Can't think of anything that fits all of that. What would you like to try?`,
