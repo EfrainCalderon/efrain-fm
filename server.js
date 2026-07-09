@@ -704,6 +704,28 @@ async function generateConversationalResponse(userMessage, lastSong) {
   return r.content[0].text;
 }
 
+// Deliberately NOT in Efrain's first-person voice — this is reference info, not a personal
+// anecdote. Explicitly told to admit uncertainty rather than invent details, since a lot of
+// this collection is genuinely obscure and Haiku's real knowledge of any given track may be thin.
+const SONG_INFO_SYSTEM = [{ type: 'text', cache_control: { type: 'ephemeral' }, text:
+`Give brief, factual background on a song or artist — genre context, era, notable history, why it's known. Write in a neutral, informative voice, like a short reference note — NOT first person, NOT a personal anecdote or opinion.
+
+Rules:
+- 1-3 sentences. Be concise.
+- Only state things you're confident are true. If you don't have reliable, specific knowledge about this particular song or artist, say briefly that there isn't much notable to add — do NOT invent dates, chart positions, meanings, or backstory you're not sure about.
+- No opinions, no "this is a great song" type commentary.
+- Plain text only, no markdown.`
+}];
+
+async function generateSongInfo(song) {
+  const r = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001', max_tokens: 150,
+    system: SONG_INFO_SYSTEM,
+    messages: [{ role: 'user', content: `Song: "${song.title}" by ${song.artist}${song.year ? ` (${song.year})` : ''}` }]
+  });
+  return r.content[0].text.trim();
+}
+
 function generateNoMatchResponse(userMessage) {
   const quick = [
     [/\bpolka\b/i, "No polka in here, sorry."],
@@ -886,6 +908,15 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
 // =====================
 // REACTION DETECTION
 // =====================
+
+// Detects an explicit request for factual info about the CURRENTLY PLAYING song/artist —
+// distinct from isMoreRequest ("give me a new song"). Requires an explicit object ("this
+// song", "it", "the artist") so it never matches bare "tell me more" (which stays claimed by
+// the existing session._pendingRelatedSong handler) or bare "more" (isMoreRequest below).
+function isSongInfoRequest(msg) {
+  return /\b(tell me (more )?about (this|that) (song|track|one|artist)\b|tell me (more )?about it\b|what'?s (this|that) (song|track)\s+about\b|what'?(s| is) the (story|history|background) (behind|with|of) (this|that)|more (info|information) (on|about) (this|that) (song|track|one|artist)|(background|history) (on|of|behind) (this|that) (song|track|one|artist))\b/i.test(msg);
+}
+
 function isMoreRequest(msg) {
   if (/\b(more|yes|another|again|keep going|similar|same vibe|like that|like this|something else|more please|more of that|yes more|love it|love this|keep it|that kind)\b/i.test(msg)) {
     return true;
@@ -1185,6 +1216,29 @@ app.post('/api/chat', async (req, res) => {
     if (msgLower === 'no' || msgLower === "i don't" || msgLower === 'not sure' || msgLower === 'idk') {
       const replies = ["No worries — what do you want to hear next?", "All good. What are you in the mood for?", "That's fine. Keep asking."];
       return res.json({ response: replies[Math.floor(Math.random() * replies.length)], song: null });
+    }
+
+    // Factual info about the current song — must run before isNegativeReaction/isAffirmation
+    // so a dual-intent message ("I love this song, tell me more about it") gets BOTH a
+    // reaction and the info, not just the reaction. Also must run before isMoreRequest
+    // further below, since that treats bare "more" as "give me a new song" and would
+    // otherwise misfire on "tell me more about this song".
+    if (isSongInfoRequest(message) && session.lastSong) {
+      const s = session.lastSong;
+      // Reaction is a zero-cost canned reply (no API call) — only one Haiku call happens
+      // here regardless of whether praise is also present, rather than two round trips.
+      let reaction = null;
+      if (isAffirmation(message)) {
+        const bridgeReplies = [
+          `Yeah, ${s.title} is a good one.`,
+          `Right? ${s.artist} doesn't miss.`,
+          `Glad that one landed.`,
+          `${s.title} holds up every time.`,
+        ];
+        reaction = bridgeReplies[Math.floor(Math.random() * bridgeReplies.length)];
+      }
+      const info = await generateSongInfo(s);
+      return res.json({ response: reaction, songInfo: info, song: null });
     }
 
     if (isNegativeReaction(message)) {

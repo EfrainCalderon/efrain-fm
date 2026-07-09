@@ -490,6 +490,15 @@ async function sendMessage() {
         savePlayedTitle(data.song.title);
         sessionStats.songsPlayed++;
       }
+    } else if (data.songInfo) {
+      removeTypingIndicator(typingIndicator);
+      // Reaction (if any) reads as Efrain talking, typed out as usual — the factual info
+      // that follows is deliberately a different register, so it renders as its own
+      // non-bubble block rather than another chat message.
+      if (data.response) {
+        await addMessageToChatWithTyping(data.response, 'assistant');
+      }
+      addSongInfoToChat(data.songInfo);
     } else if (data.response) {
       removeTypingIndicator(typingIndicator);
       await addMessageToChatWithTyping(data.response, 'assistant');
@@ -545,6 +554,17 @@ async function addMessageToChatWithTyping(message, sender) {
   chatMessages.appendChild(messageDiv);
   scrollToBottom();
   await typeText(messageDiv, message);
+}
+
+// Factual song info — deliberately NOT typed out like a chat message (that effect implies
+// someone is live-typing to you). Fades in as a printed reference note instead.
+function addSongInfoToChat(text) {
+  const infoDiv = document.createElement('div');
+  infoDiv.classList.add('song-info');
+  infoDiv.textContent = text;
+  chatMessages.appendChild(infoDiv);
+  scrollToBottom();
+  requestAnimationFrame(() => infoDiv.classList.add('visible'));
 }
 
 function showTypingIndicator() {
