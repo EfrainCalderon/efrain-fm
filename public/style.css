@@ -743,6 +743,8 @@ body::after {
   border-radius: 18px;
   max-width: 75%;
   line-height: 1.5;
+  display: inline-block;
+  word-wrap: break-word;
   clear: both;
 }
 
