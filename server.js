@@ -887,7 +887,26 @@ async function generateFavoriteResponse(userInput, collectionMatch) {
 // REACTION DETECTION
 // =====================
 function isMoreRequest(msg) {
-  return /\b(more|yes|another|again|keep going|similar|same vibe|like that|more please|more of that|yes more|love it|love this|keep it|that kind)\b/i.test(msg);
+  if (/\b(more|yes|another|again|keep going|similar|same vibe|like that|like this|something else|more please|more of that|yes more|love it|love this|keep it|that kind)\b/i.test(msg)) {
+    return true;
+  }
+  // Explicit references to the last song ("the last song you played", "this song",
+  // "that track") paired with an unambiguous continuation cue — "something like the
+  // last song", "another one like this track". Deliberately excludes bare "more" here
+  // so "tell me more about this song" (an info request, not a new-song request) doesn't
+  // misfire — "more" alone is already covered by the check above for other phrasings.
+  const referencesLastSong = /\b(last|previous)\s+(song|track|one)\b|\b(this|that)\s+(song|track|one)\b/i.test(msg);
+  const continuationCue = /\b(like|similar|another|else)\b/i.test(msg);
+  return referencesLastSong && continuationCue;
+}
+
+// Whether a message names any concrete musical descriptor (genre word or a meaningful
+// trait alias) as opposed to vague phrasing with nothing to search on ("something else",
+// "keep going"). Used to distinguish "we don't have that genre" (honest no-match) from
+// "there was nothing to extract, this was probably about the last song" (fallback).
+function hasMusicalDescriptor(message) {
+  return [...GENRE_WORDS].some(w => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(message)) ||
+    Object.keys(TRAIT_ALIASES).some(a => a.length >= 5 && new RegExp(`\\b${a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(message));
 }
 
 function isVideoRequest(msg) {
@@ -1132,12 +1151,19 @@ app.post('/api/chat', async (req, res) => {
       return picks[Math.floor(Math.random() * picks.length)];
     };
 
-    if (msgLower === 'keep this vibe' && session.lastSongTraits) {
-      // Convert traits back to keyword-like format for scoring
+    // Scores the collection against every trait of the last played song and returns a top
+    // pick, excluding the same artist. Shared by every "more like this / keep going" entry
+    // point — explicit phrase matches below, and the no-match fallback further down.
+    const moreLikeLastSong = () => {
+      if (!session.lastSongTraits) return null;
       const traitKeywords = Object.keys(session.lastSongTraits);
       const scored = scoreSongs(available(), traitKeywords).filter(s => s.score > 0);
       const diff = scored.filter(s => s.artist !== session.lastSongArtist);
-      const song = pickTopScoring(diff.length ? diff : scored);
+      return pickTopScoring(diff.length ? diff : scored);
+    };
+
+    if (msgLower === 'keep this vibe' && session.lastSongTraits) {
+      const song = moreLikeLastSong();
       if (song) return res.json(buildSongResponse(song, session));
     }
 
@@ -1213,10 +1239,7 @@ app.post('/api/chat', async (req, res) => {
     // Conditions: message is short (≤8 words) AND last song exists AND doesn't look like a search.
     const wordCount = message.trim().split(/\s+/).length;
     const looksLikeSearch = (
-      // Contains a known genre or mood word
-      [...GENRE_WORDS].some(w => new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(message)) ||
-      // Contains a trait alias of 5+ chars (catches "melancholic", "ethereal", "literate" etc.)
-      Object.keys(TRAIT_ALIASES).some(a => a.length >= 5 && new RegExp(`\\b${a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(message)) ||
+      hasMusicalDescriptor(message) ||
       // Explicit search signal words
       /\b(something|anything|give me|play me|find me|another|more|different|instead|not\s+\w+|less\s+\w+|more\s+\w+)\b/i.test(message)
     );
@@ -1265,10 +1288,7 @@ app.post('/api/chat', async (req, res) => {
     // ---- Normal flow ----
 
     if (isMoreRequest(message) && session.lastSongTraits) {
-      const traitKeywords = Object.keys(session.lastSongTraits);
-      const scored = scoreSongs(available(), traitKeywords).filter(s => s.score > 0);
-      const diff = scored.filter(s => s.artist !== session.lastSongArtist);
-      const song = pickTopScoring(diff.length ? diff : scored);
+      const song = moreLikeLastSong();
       if (song) return res.json(buildSongResponse(song, session));
     }
 
@@ -1526,6 +1546,17 @@ app.post('/api/chat', async (req, res) => {
     const hasAnyMatch = bestScore >= MIN_SCORE;
 
     if (!hasAnyMatch) {
+      // Fallback: nothing scored, and the message doesn't name any concrete genre/mood —
+      // Haiku had nothing to extract from, which is the signature of vague continuation
+      // phrasing ("something else like this", "more of the last one") that isMoreRequest's
+      // phrase list didn't happen to catch. Treat it as an implicit "more like the last
+      // song" instead of a flat no-match. Gated tightly so a genuine "I don't have that
+      // genre" request (which DOES name something concrete) still gets the honest reply.
+      if (session.lastSongTraits && wordCount <= 10 && !hasMusicalDescriptor(message)) {
+        const fallbackSong = moreLikeLastSong();
+        if (fallbackSong) return res.json(buildSongResponse(fallbackSong, session));
+      }
+
       const noMatchText = generateNoMatchResponse(message);
       const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
       const interrupt = genreOptions.length >= 2
