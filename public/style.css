@@ -748,9 +748,11 @@ body::after {
   clear: both;
 }
 
-/* Factual info about a song — deliberately NOT a chat bubble. No background, no
-   border-radius, Space Mono instead of Inter — reads as a reference note rather than
-   something Efrain said, so it can't be mistaken for a personal (possibly invented) opinion. */
+/* Factual info about a song — deliberately NOT a chat bubble. A dark, near-opaque card
+   (not the 18px pill shape .message uses) with a left accent stripe, like a reference note
+   or citation rather than something Efrain said. The solid fill is intentional: this sits
+   directly over the animated glow-ring canvas, and a transparent background (the original
+   version) failed contrast whenever a ring's glow swept behind the text. */
 .song-info {
   font-family: 'Space Mono', monospace;
   font-size: 14px;
@@ -758,11 +760,14 @@ body::after {
   color: var(--text-secondary);
   max-width: 75%;
   margin-bottom: 15px;
-  padding: 2px 4px;
+  padding: 12px 14px;
   display: inline-block;
   word-wrap: break-word;
   float: left;
   clear: both;
+  background: rgba(8, 9, 10, 0.9);
+  border-radius: 6px;
+  border-left: 2px solid rgba(245, 242, 238, 0.18);
   opacity: 0;
   transition: opacity 0.4s ease;
 }

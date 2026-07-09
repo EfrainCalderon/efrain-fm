@@ -65,6 +65,10 @@ function getSession(sessionId, initialPlayedTitles = []) {
       lastSongTraits: null, lastSongArtist: null, lastSong: null,
       songCount: 0, askedMoreOf: false, lastInterruptSong: 0,
       _pendingRelatedSong: null, _pendingBridge: null,
+      // True only for the one turn right after a factual-info reply — lets an ambiguous
+      // follow-up ("tell me more") continue the info thread instead of being read as
+      // "give me a new song." Cleared the instant any new song is actually served.
+      _infoThreadActive: false, _lastSongInfoText: null,
     });
   }
   return sessions.get(sessionId);
@@ -717,11 +721,14 @@ Rules:
 - Plain text only, no markdown.`
 }];
 
-async function generateSongInfo(song) {
+async function generateSongInfo(song, previousInfo = null) {
+  const followUp = previousInfo
+    ? `\n\nYou already told them this — every fact in it is off-limits to restate, including reworded: "${previousInfo}"\n\nThey're asking for more. Only respond with facts that are NOT already covered above, even partially or reworded. Rephrasing something already said does not count as new. If you don't have anything left that's both true and not already mentioned, say in one short sentence that you've covered what you know — do not pad, elaborate on, or restate the existing facts to sound like there's more.`
+    : '';
   const r = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001', max_tokens: 150,
     system: SONG_INFO_SYSTEM,
-    messages: [{ role: 'user', content: `Song: "${song.title}" by ${song.artist}${song.year ? ` (${song.year})` : ''}` }]
+    messages: [{ role: 'user', content: `Song: "${song.title}" by ${song.artist}${song.year ? ` (${song.year})` : ''}${followUp}` }]
   });
   return r.content[0].text.trim();
 }
@@ -1026,6 +1033,8 @@ function buildSongResponse(song, session, interrupt = null, bridge = null, prefa
   session.lastSongTraits = song.traits || {};
   session.lastSongArtist = song.artist;
   session.songCount++;
+  // A real new song is being served — any "continue the info thread" state is now stale.
+  session._infoThreadActive = false;
 
   let int = interrupt;
   if (!int) {
@@ -1223,7 +1232,18 @@ app.post('/api/chat', async (req, res) => {
     // reaction and the info, not just the reaction. Also must run before isMoreRequest
     // further below, since that treats bare "more" as "give me a new song" and would
     // otherwise misfire on "tell me more about this song".
-    if (isSongInfoRequest(message) && session.lastSong) {
+    //
+    // continuingInfoThread: if the PREVIOUS turn was itself an info reply, an ambiguous
+    // follow-up ("tell me more", "go on" — anything that would otherwise trigger
+    // isMoreRequest's "give me a new song" path) is read as continuing that thread instead.
+    // Guarded by !hasMusicalDescriptor so naming an actual new genre/mood always wins, even
+    // mid-thread. session._infoThreadActive is cleared the instant any new song is served
+    // (in buildSongResponse), so this can't outlive exactly one follow-up turn.
+    const continuingInfoThread = session._infoThreadActive
+      && (isMoreRequest(message) || isSongInfoRequest(message))
+      && !hasMusicalDescriptor(message);
+
+    if ((isSongInfoRequest(message) || continuingInfoThread) && session.lastSong) {
       const s = session.lastSong;
       // Reaction is a zero-cost canned reply (no API call) — only one Haiku call happens
       // here regardless of whether praise is also present, rather than two round trips.
@@ -1237,7 +1257,9 @@ app.post('/api/chat', async (req, res) => {
         ];
         reaction = bridgeReplies[Math.floor(Math.random() * bridgeReplies.length)];
       }
-      const info = await generateSongInfo(s);
+      const info = await generateSongInfo(s, continuingInfoThread ? session._lastSongInfoText : null);
+      session._infoThreadActive = true;
+      session._lastSongInfoText = info;
       return res.json({ response: reaction, songInfo: info, song: null });
     }
 
