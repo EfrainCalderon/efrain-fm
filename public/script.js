@@ -18,6 +18,16 @@ let lastPlayedSong = null;
 // Mirrors server-side session._lastSongInfoText / _infoExhaustedFor — otherwise a cold
 // instance never learns the info well for this song ran dry and keeps regenerating "more."
 let lastSongInfoState = { text: null, exhausted: false };
+// Mirrors server-side session.songCount / askedMoreOf / lastInterruptSong — these pace
+// the "this reminds me of..." / "want to go somewhere different?" / "what else are you
+// in the mood for?" interrupts. Without this, a cold instance restarts the count at 0
+// and those prompts (including the 6-song Groove Glow fallback unlock) may never fire.
+let songsThisSession = 0;
+let askedMoreOfThisSession = false;
+let lastInterruptSongCount = 0;
+// Mirrors server-side session._pendingRelatedSong / _pendingBridge — the "want to hear
+// it?" suggestion the server is waiting on an "Okay"/"No thank you" reply for.
+let pendingRelatedSong = { title: null, bridge: null };
 
 // =====================
 // PLAYER PREFERENCE
@@ -441,6 +451,11 @@ async function sendMessage() {
 
   try {
     const endpoint = pendingFavoriteInput ? '/api/favorite' : '/api/chat';
+    // Read-then-clear: the server consumes and nulls its own copy of the pending
+    // suggestion the instant a reply comes in, so the client mirrors that exactly —
+    // whatever we send now is "used up" regardless of how the server responds.
+    const outgoingPendingRelated = pendingRelatedSong;
+    pendingRelatedSong = { title: null, bridge: null };
     const body = pendingFavoriteInput
       ? { input: message, sessionId }
       : {
@@ -450,10 +465,15 @@ async function sendMessage() {
           clusterCounts:     clusterPlayCounts,
           playedSongTitles:  loadPlayedTitles(),
           pushCluster:       null,
-          lastSongTitle:        lastPlayedSong ? lastPlayedSong.title  : null,
-          lastSongArtist:       lastPlayedSong ? lastPlayedSong.artist : null,
-          lastSongInfoText:     lastSongInfoState.text,
-          lastSongInfoExhausted: lastSongInfoState.exhausted,
+          lastSongTitle:          lastPlayedSong ? lastPlayedSong.title  : null,
+          lastSongArtist:         lastPlayedSong ? lastPlayedSong.artist : null,
+          lastSongInfoText:       lastSongInfoState.text,
+          lastSongInfoExhausted:  lastSongInfoState.exhausted,
+          songCount:              songsThisSession,
+          askedMoreOf:            askedMoreOfThisSession,
+          lastInterruptSong:      lastInterruptSongCount,
+          pendingRelatedSongTitle:  outgoingPendingRelated.title,
+          pendingRelatedSongBridge: outgoingPendingRelated.bridge,
         };
 
     const wasFavoriteInput = pendingFavoriteInput;
@@ -478,6 +498,21 @@ async function sendMessage() {
       lastSongInfoState = { text: null, exhausted: true };
     } else if (data.songInfo) {
       lastSongInfoState = { text: data.songInfo, exhausted: false };
+    }
+
+    if (data.interrupt) {
+      if (['related', 'vibe_check', 'more_of'].includes(data.interrupt.type)) {
+        lastInterruptSongCount = songsThisSession;
+      }
+      if (data.interrupt.type === 'related') {
+        pendingRelatedSong = {
+          title:  data.interrupt.relatedSongTitle || null,
+          bridge: data.interrupt.relatedBridge     || null,
+        };
+      }
+      if (data.interrupt.type === 'more_of') {
+        askedMoreOfThisSession = true;
+      }
     }
 
     if (data.song) {
@@ -645,6 +680,7 @@ async function displaySong(song, storyText) {
     lastSongInfoState = { text: null, exhausted: false };
   }
   lastPlayedSong = song;
+  songsThisSession++;
   const songContainer = document.createElement('div');
   songContainer.classList.add('message', 'song');
 

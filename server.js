@@ -875,7 +875,7 @@ function decideInterrupt(session, justPlayedSong) {
       const msg = bridge
         ? "This reminds me of another song — want to hear it?"
         : "Oh, this reminds me of another song — want to hear it?";
-      return { type: 'related', message: msg, options: ['Okay', 'No thank you'] };
+      return { type: 'related', message: msg, options: ['Okay', 'No thank you'], relatedSongTitle: related.title, relatedBridge: session._pendingBridge };
     }
   }
 
@@ -1080,6 +1080,8 @@ function buildSongResponse(song, session, interrupt = null, bridge = null, prefa
           message: "This reminds me of another song — want to hear it?",
           options: ['Okay', 'No thank you'],
           isBridge: true,
+          relatedSongTitle: bridgeDest.title,
+          relatedBridge: bridgeMatch.bridge,
         };
       } else {
         int = decideInterrupt(session, song);
@@ -1163,6 +1165,8 @@ app.post('/api/chat', async (req, res) => {
     const {
       message, sessionId = 'default', unlockedClusters = [], clusterCounts = {}, pushCluster = null, playedSongTitles = [],
       lastSongTitle = null, lastSongArtist = null, lastSongInfoText = null, lastSongInfoExhausted = false,
+      songCount = 0, askedMoreOf = false, lastInterruptSong = 0,
+      pendingRelatedSongTitle = null, pendingRelatedSongBridge = null,
     } = req.body;
     if (!message || !message.trim()) return res.json({ response: "Say something and I'll find you a song.", song: null });
     if (message.length > 500) return res.json({ response: "Keep it short — I just need a vibe, not an essay.", song: null });
@@ -1187,6 +1191,15 @@ app.post('/api/chat', async (req, res) => {
         } else if (lastSongInfoText) {
           session._infoThreadActive = true;
           session._lastSongInfoText = lastSongInfoText;
+        }
+        // Conversation pacing (interrupt cadence) and a pending "want to hear it?"
+        // suggestion — same rehydration reasoning as above.
+        if (songCount > 0) session.songCount = songCount;
+        if (askedMoreOf) session.askedMoreOf = true;
+        if (lastInterruptSong > 0) session.lastInterruptSong = lastInterruptSong;
+        if (pendingRelatedSongTitle) {
+          session._pendingRelatedSong = pendingRelatedSongTitle;
+          session._pendingBridge = pendingRelatedSongBridge || null;
         }
       }
     }
