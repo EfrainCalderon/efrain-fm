@@ -15,6 +15,9 @@ let pendingFavoriteInput = false;
 // Mirrors server-side session.lastSong client-side, so a stateless/cold serverless
 // instance can rehydrate "tell me more about this song" style follow-ups.
 let lastPlayedSong = null;
+// Mirrors server-side session._lastSongInfoText / _infoExhaustedFor — otherwise a cold
+// instance never learns the info well for this song ran dry and keeps regenerating "more."
+let lastSongInfoState = { text: null, exhausted: false };
 
 // =====================
 // PLAYER PREFERENCE
@@ -447,8 +450,10 @@ async function sendMessage() {
           clusterCounts:     clusterPlayCounts,
           playedSongTitles:  loadPlayedTitles(),
           pushCluster:       null,
-          lastSongTitle:     lastPlayedSong ? lastPlayedSong.title  : null,
-          lastSongArtist:    lastPlayedSong ? lastPlayedSong.artist : null,
+          lastSongTitle:        lastPlayedSong ? lastPlayedSong.title  : null,
+          lastSongArtist:       lastPlayedSong ? lastPlayedSong.artist : null,
+          lastSongInfoText:     lastSongInfoState.text,
+          lastSongInfoExhausted: lastSongInfoState.exhausted,
         };
 
     const wasFavoriteInput = pendingFavoriteInput;
@@ -468,6 +473,12 @@ async function sendMessage() {
     }
     const data = await response.json();
     sessionStats.messagesExchanged++;
+
+    if (data.infoExhausted) {
+      lastSongInfoState = { text: null, exhausted: true };
+    } else if (data.songInfo) {
+      lastSongInfoState = { text: data.songInfo, exhausted: false };
+    }
 
     if (data.song) {
       removeTypingIndicator(typingIndicator);
@@ -630,6 +641,9 @@ function toYouTubeEmbedUrl(url) {
 }
 
 async function displaySong(song, storyText) {
+  if (!lastPlayedSong || lastPlayedSong.title !== song.title) {
+    lastSongInfoState = { text: null, exhausted: false };
+  }
   lastPlayedSong = song;
   const songContainer = document.createElement('div');
   songContainer.classList.add('message', 'song');

@@ -1160,16 +1160,19 @@ app.post('/api/favorite', async (req, res) => {
 // =====================
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, sessionId = 'default', unlockedClusters = [], clusterCounts = {}, pushCluster = null, playedSongTitles = [], lastSongTitle = null, lastSongArtist = null } = req.body;
+    const {
+      message, sessionId = 'default', unlockedClusters = [], clusterCounts = {}, pushCluster = null, playedSongTitles = [],
+      lastSongTitle = null, lastSongArtist = null, lastSongInfoText = null, lastSongInfoExhausted = false,
+    } = req.body;
     if (!message || !message.trim()) return res.json({ response: "Say something and I'll find you a song.", song: null });
     if (message.length > 500) return res.json({ response: "Keep it short — I just need a vibe, not an essay.", song: null });
 
     const session = getSession(sessionId, playedSongTitles);
 
-    // Rehydrate last-song context from the client when the in-memory session doesn't
-    // have it (e.g. a cold/different serverless instance) but the client already knows
-    // what it was just shown — keeps "tell me more about this song" working regardless
-    // of which instance handles the request.
+    // Rehydrate last-song (and info-thread) context from the client when the in-memory
+    // session doesn't have it (e.g. a cold/different serverless instance) but the client
+    // already knows what it was just shown — keeps "tell me more about this song" working,
+    // and keeps the "I'm tapped out on this one" offramp from resetting every request.
     if (!session.lastSong && lastSongTitle) {
       const hydrated = songsData.songs.find(s =>
         normalize(s.title) === normalize(lastSongTitle) &&
@@ -1179,6 +1182,12 @@ app.post('/api/chat', async (req, res) => {
         session.lastSong = hydrated;
         session.lastSongTraits = hydrated.traits || {};
         session.lastSongArtist = hydrated.artist;
+        if (lastSongInfoExhausted) {
+          session._infoExhaustedFor = hydrated.title;
+        } else if (lastSongInfoText) {
+          session._infoThreadActive = true;
+          session._lastSongInfoText = lastSongInfoText;
+        }
       }
     }
 
@@ -1291,7 +1300,7 @@ app.post('/api/chat', async (req, res) => {
       // Already told them we're tapped out on THIS song — don't re-run the Haiku call (risk
       // of restating or inventing something new just because it's being asked fresh again).
       if (session._infoExhaustedFor === s.title) {
-        return res.json({ response: "Let's move on...", song: null });
+        return res.json({ response: "Let's move on...", song: null, infoExhausted: true });
       }
 
       // Reaction is a zero-cost canned reply (no API call) — only one Haiku call happens
@@ -1330,6 +1339,7 @@ app.post('/api/chat', async (req, res) => {
         response: reaction ? `${reaction} ${chosen.text}` : chosen.text,
         responseLink: chosen.linkWord ? { word: chosen.linkWord, url: chosen.linkUrl } : null,
         song: null,
+        infoExhausted: true,
       });
     }
 
