@@ -1160,11 +1160,27 @@ app.post('/api/favorite', async (req, res) => {
 // =====================
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, sessionId = 'default', unlockedClusters = [], clusterCounts = {}, pushCluster = null, playedSongTitles = [] } = req.body;
+    const { message, sessionId = 'default', unlockedClusters = [], clusterCounts = {}, pushCluster = null, playedSongTitles = [], lastSongTitle = null, lastSongArtist = null } = req.body;
     if (!message || !message.trim()) return res.json({ response: "Say something and I'll find you a song.", song: null });
     if (message.length > 500) return res.json({ response: "Keep it short — I just need a vibe, not an essay.", song: null });
 
     const session = getSession(sessionId, playedSongTitles);
+
+    // Rehydrate last-song context from the client when the in-memory session doesn't
+    // have it (e.g. a cold/different serverless instance) but the client already knows
+    // what it was just shown — keeps "tell me more about this song" working regardless
+    // of which instance handles the request.
+    if (!session.lastSong && lastSongTitle) {
+      const hydrated = songsData.songs.find(s =>
+        normalize(s.title) === normalize(lastSongTitle) &&
+        (!lastSongArtist || normalize(s.artist) === normalize(lastSongArtist))
+      );
+      if (hydrated) {
+        session.lastSong = hydrated;
+        session.lastSongTraits = hydrated.traits || {};
+        session.lastSongArtist = hydrated.artist;
+      }
+    }
 
     // ── DEV COMMAND: /push C1 — force-serve a specific cluster's keystone ──
     if (pushCluster) {

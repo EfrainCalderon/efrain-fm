@@ -12,6 +12,9 @@ let sessionStats = {
 
 let isTyping = false;
 let pendingFavoriteInput = false;
+// Mirrors server-side session.lastSong client-side, so a stateless/cold serverless
+// instance can rehydrate "tell me more about this song" style follow-ups.
+let lastPlayedSong = null;
 
 // =====================
 // PLAYER PREFERENCE
@@ -444,6 +447,8 @@ async function sendMessage() {
           clusterCounts:     clusterPlayCounts,
           playedSongTitles:  loadPlayedTitles(),
           pushCluster:       null,
+          lastSongTitle:     lastPlayedSong ? lastPlayedSong.title  : null,
+          lastSongArtist:    lastPlayedSong ? lastPlayedSong.artist : null,
         };
 
     const wasFavoriteInput = pendingFavoriteInput;
@@ -625,6 +630,7 @@ function toYouTubeEmbedUrl(url) {
 }
 
 async function displaySong(song, storyText) {
+  lastPlayedSong = song;
   const songContainer = document.createElement('div');
   songContainer.classList.add('message', 'song');
 
