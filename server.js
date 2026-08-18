@@ -26,7 +26,7 @@ app.use('/api/chat', limiter);
 // New schema: songs have traits object with weights, streaming object with spotify/apple_music/youtube.
 // No more flat genre/mood/tags strings to normalize.
 // =====================
-const songsData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'songs.json'), 'utf8'));
+const songsData = require('./data/songs.json');
 const favoritesPath = path.join(__dirname, 'data', 'favorites.json');
 
 const sessions = new Map();
@@ -901,10 +901,14 @@ function decideInterrupt(session, justPlayedSong) {
 // FAVORITES
 // =====================
 function saveFavorite(songTitle, artist) {
-  let favorites = [];
-  try { if (fs.existsSync(favoritesPath)) favorites = JSON.parse(fs.readFileSync(favoritesPath, 'utf8')); } catch (e) {}
-  favorites.push({ songTitle, artist, timestamp: new Date().toISOString() });
-  fs.writeFileSync(favoritesPath, JSON.stringify(favorites, null, 2));
+  try {
+    let favorites = [];
+    if (fs.existsSync(favoritesPath)) favorites = JSON.parse(fs.readFileSync(favoritesPath, 'utf8'));
+    favorites.push({ songTitle, artist, timestamp: new Date().toISOString() });
+    fs.writeFileSync(favoritesPath, JSON.stringify(favorites, null, 2));
+  } catch (e) {
+    console.log('[FAVORITE]', JSON.stringify({ songTitle, artist, timestamp: new Date().toISOString() }));
+  }
 }
 
 function findFavoriteInCollection(input) {
@@ -1907,4 +1911,8 @@ app.post('/api/invoke-cluster', async (req, res) => {
   }
 });
 
-app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
+if (require.main === module) {
+  app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
+}
+
+module.exports = app;
