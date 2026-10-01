@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>efrain.fm — show layout mock</title>
+  <!-- TEMPORARY design mock for the radio show layout. Not part of the app; delete before shipping. -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Mode toggle (header) */
+    .mode-toggle {
+      display: flex;
+      padding: 3px;
+      border-radius: 11px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+    }
+    .mode-toggle button {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+    .mode-toggle button.active {
+      color: var(--text-primary);
+      background: var(--live-tag-hover-bg);
+    }
+
+    /* Info line */
+    .show-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+      background-color: var(--bg-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    .show-info .sep { opacity: 0.5; }
+    .service-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      border: none;
+      border-radius: 999px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .service-pill.apple   { background: rgba(250, 87, 108, 0.16); color: #ff9aa9; }
+    .service-pill.spotify { background: rgba(30, 215, 96, 0.14);  color: #6fe39b; }
+    .service-pill.apple:hover   { background: rgba(250, 87, 108, 0.26); }
+    .service-pill.spotify:hover { background: rgba(30, 215, 96, 0.24); }
+
+    /* Body: playlist + current */
+    .show-body {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 200px minmax(0, 1fr);
+      background-color: var(--bg-secondary);
+    }
+    .show-list {
+      overflow-y: auto;
+      padding: 8px;
+      border-right: 1px solid var(--border-color);
+      scrollbar-width: none;
+    }
+    .show-list::-webkit-scrollbar { display: none; }
+    .show-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+      font-family: 'Inter', sans-serif;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      padding: 8px;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: background 0.15s ease;
+    }
+    .show-row:hover { background: var(--live-tag-bg); }
+    .show-row.current { background: var(--live-tag-hover-bg); }
+    .show-row__num {
+      flex: none;
+      width: 16px;
+      font-size: 12px;
+      line-height: 18px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    .show-row__text { min-width: 0; }
+    .show-row__title,
+    .show-row__artist {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .show-row__title  { font-size: 13px; font-weight: 500; line-height: 18px; }
+    .show-row__artist { font-size: 12px; line-height: 16px; color: var(--text-secondary); }
+
+    .show-stage {
+      min-width: 0;
+      padding: 12px;
+      overflow-y: auto;
+    }
+    .show-stage .tx-placeholder {
+      height: 152px;
+      border-radius: 12px;
+      border: 1px dashed var(--input-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 0 16px;
+    }
+
+    .show-next-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 48px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: var(--text-primary);
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.12s;
+    }
+    .show-next-btn:hover  { background: var(--live-tag-bg); border-color: var(--input-focus-border); }
+    .show-next-btn:active { transform: scale(0.98); }
+
+    /* Phones: playlist stacks on top with a capped height */
+    @media (max-width: 768px) {
+      .show-body { display: flex; flex-direction: column; }
+      .show-list {
+        flex: none;
+        max-height: 212px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .show-stage { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app-card">
+    <header id="header">
+      <h1 id="site-title">
+        <span class="logo-efr">efr</span><span class="logo-ai">ai</span><span class="logo-n">n</span><span class="logo-dot">.</span><span class="logo-fm">fm</span>
+      </h1>
+      <div id="header-right">
+        <div class="mode-toggle" role="group" aria-label="Mode">
+          <button type="button">Explore</button>
+          <button type="button" class="active" aria-pressed="true">Show</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="show-info">
+      <span id="info-count"></span>
+      <span class="sep">•</span>
+      <span>55 minutes</span>
+      <span class="sep">•</span>
+      <button type="button" class="service-pill" id="service-pill" aria-label="Change music service"></button>
+    </div>
+
+    <div class="show-body">
+      <div class="show-list" id="show-list"></div>
+      <div class="show-stage" id="show-stage"></div>
+    </div>
+
+    <footer id="input-footer">
+      <button type="button" class="show-next-btn" id="show-next"></button>
+    </footer>
+  </div>
+
+  <script>
+    const TOTAL_SONGS = 14;
+    const items = [
+      { type: 'song', title: "You're Gonna Miss Me", artist: '13th Floor Elevators', spotify: 'https://open.spotify.com/embed/track/34miSNKQ0xN7EG8zzzaFzI', apple: 'https://embed.music.apple.com/us/album/156868333?i=156868335' },
+      { type: 'song', title: 'Backwaters', artist: 'Brian Eno', spotify: 'https://open.spotify.com/embed/track/5LyWia3X6AJtosLJdSA6ar', apple: 'https://embed.music.apple.com/us/album/724418251?i=724418623' },
+      { type: 'song', title: 'Thank You Jack White (For the Fiber-Optic Jesus That You Gave Me)', artist: 'The Flaming Lips', spotify: 'https://open.spotify.com/embed/track/7pyPdzkn83MvU4U7xz9L3d', apple: 'https://embed.music.apple.com/us/album/145125477?i=145125365' },
+      { type: 'song', title: 'Another Nail in My Heart', artist: 'Squeeze', spotify: 'https://open.spotify.com/embed/track/7c3WIsUNdaMNbQQzL1Q56l', apple: 'https://embed.music.apple.com/us/album/1446091631?i=1446091637' },
+      { type: 'tx',   title: 'Transmission 1', artist: 'Efrain' },
+      { type: 'song', title: "Let's Make Love and Listen to Death From Above", artist: 'CSS', spotify: 'https://open.spotify.com/embed/track/1Jd9W7k8DTnBSovDSxK77n', apple: 'https://embed.music.apple.com/us/album/254790838?i=254790854' },
+      { type: 'song', title: '3000', artist: 'Dr. Octagon', spotify: 'https://open.spotify.com/embed/track/5Z13kJAqqkzj6F4MkjsOsL', apple: 'https://embed.music.apple.com/us/album/1440770693?i=1440770701' },
+      { type: 'song', title: "Don't Let the Sun Go Down on Your Grievances", artist: 'Daniel Johnston', spotify: 'https://open.spotify.com/embed/track/7oLXIMwSsps98ihBq64KhV', apple: 'https://embed.music.apple.com/us/album/282585570?i=282585578' },
+      { type: 'tx',   title: 'Transmission 2', artist: 'Efrain' },
+      { type: 'song', title: 'Ditto', artist: 'New Jeans', spotify: 'https://open.spotify.com/embed/track/3r8RuvgbX9s7ammBn07D3W', apple: 'https://embed.music.apple.com/us/album/1657231957?i=1657231962' }
+    ];
+
+    let reached = 6;   // how many items have been revealed
+    let current = 5;   // which revealed item is loaded
+    let service = 'apple';
+
+    const listEl  = document.getElementById('show-list');
+    const stageEl = document.getElementById('show-stage');
+    const nextBtn = document.getElementById('show-next');
+    const pill    = document.getElementById('service-pill');
+    const countEl = document.getElementById('info-count');
+
+    const MIC = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
+    const SWAP = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+
+    function songNumber(index) {
+      return items.slice(0, index + 1).filter(i => i.type === 'song').length;
+    }
+
+    function renderList() {
+      listEl.innerHTML = '';
+      items.slice(0, reached).forEach((item, i) => {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'show-row' + (i === current ? ' current' : '');
+        const num = document.createElement('span');
+        num.className = 'show-row__num';
+        if (item.type === 'song') num.textContent = songNumber(i);
+        else num.innerHTML = MIC;
+        const text = document.createElement('span');
+        text.className = 'show-row__text';
+        const title = document.createElement('div');
+        title.className = 'show-row__title';
+        title.textContent = item.title;
+        const artist = document.createElement('div');
+        artist.className = 'show-row__artist';
+        artist.textContent = item.artist;
+        text.append(title, artist);
+        row.append(num, text);
+        row.addEventListener('click', () => { current = i; render(); });
+        listEl.appendChild(row);
+        if (i === current) requestAnimationFrame(() => row.scrollIntoView({ block: 'nearest' }));
+      });
+    }
+
+    function renderStage() {
+      stageEl.innerHTML = '';
+      const item = items[current];
+      if (item.type === 'tx') {
+        const ph = document.createElement('div');
+        ph.className = 'tx-placeholder';
+        ph.textContent = 'Voice message component goes here (existing design, no autoplay)';
+        stageEl.appendChild(ph);
+        return;
+      }
+      const wrapper = document.createElement('div');
+      wrapper.className = 'song-embed-wrapper';
+      const iframe = document.createElement('iframe');
+      iframe.className = 'song-embed';
+      iframe.addEventListener('load', () => {
+        iframe.classList.add('loaded');
+        wrapper.classList.add('loaded');
+      });
+      if (service === 'apple') {
+        iframe.src = item.apple + '&theme=dark';
+        iframe.allow = 'autoplay *; encrypted-media *; fullscreen *';
+        iframe.style.borderRadius = '10px';
+      } else {
+        iframe.src = item.spotify;
+        iframe.allow = 'encrypted-media';
+      }
+      wrapper.appendChild(iframe);
+      stageEl.appendChild(wrapper);
+    }
+
+    function renderControls() {
+      const songsReached = items.slice(0, reached).filter(i => i.type === 'song').length;
+      countEl.textContent = songsReached + ' of ' + TOTAL_SONGS + ' songs';
+      pill.className = 'service-pill ' + service;
+      pill.innerHTML = (service === 'apple' ? 'Apple Music' : 'Spotify') + SWAP;
+      const next = items[current + 1];
+      if (!next) nextBtn.textContent = 'End of this mock';
+      else nextBtn.textContent = next.type === 'tx' ? 'Transmission from Efrain' : 'Next song';
+    }
+
+    function render() { renderList(); renderStage(); renderControls(); }
+
+    nextBtn.addEventListener('click', () => {
+      if (current + 1 >= items.length) return;
+      current += 1;
+      if (current >= reached) reached = current + 1;
+      render();
+    });
+
+    pill.addEventListener('click', () => {
+      service = service === 'apple' ? 'spotify' : 'apple';
+      renderStage();
+      renderControls();
+    });
+
+    render();
+  </script>
+</body>
+</html>
