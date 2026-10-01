@@ -24,7 +24,7 @@
     },
     {
       "type": "transmission",
-      "title": "Break 1",
+      "title": "Transmission 1",
       "audio": "/audio/AIntro.m4a",
       "placeholder": true
     },
@@ -42,7 +42,7 @@
     },
     {
       "type": "transmission",
-      "title": "Break 2",
+      "title": "Transmission 2",
       "audio": "/audio/AIntro.m4a",
       "placeholder": true
     },
@@ -60,7 +60,7 @@
     },
     {
       "type": "transmission",
-      "title": "Break 3",
+      "title": "Transmission 3",
       "audio": "/audio/AIntro.m4a",
       "placeholder": true
     },
@@ -82,7 +82,7 @@
     },
     {
       "type": "transmission",
-      "title": "Break 4",
+      "title": "Transmission 4",
       "audio": "/audio/AIntro.m4a",
       "placeholder": true
     },

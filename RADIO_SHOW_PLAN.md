@@ -41,7 +41,9 @@ Show mode is built and working locally on the `radio-show` branch, with placehol
 - Masthead under the header: edition ("October 2026"), show title, then an info line: `5 of 15 songs • 55 minutes • [service pill]`.
 - Playlist: only items already reached, two lines per row (title, artist), cut off with an ellipsis. Transmissions are unnumbered rows with a mic icon. The current row is highlighted. Tapping any row loads it.
 - Current item: one embed at a time. No "now playing" label.
-- Footer: one button. Label names what comes next: "Next song", "Transmission from Efrain", and at the end the way into Explore.
+- Footer: one button. Label names what comes next: "Drop the needle" (first song), "Next up", "Transmission from Efrain", "Sign off", then "Keep exploring" into Explore.
+- Voice breaks are called "Transmission 1", "Transmission 2", and so on.
+- The toggle label for show mode is still undecided ("Show" for now).
 - Desktop: playlist left (200px), current item right. Phones (768px and under): playlist stacked on top with a capped, scrollable height.
 - Service pill: pink for Apple Music, green for Spotify. Tapping it asks the Spotify-or-Apple question in the footer (same component as today), then reloads the current song.
 

@@ -2633,7 +2633,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   function getTransmissionEmbed(index, item) {
     if (txEmbeds.has(index)) return txEmbeds.get(index);
 
-    const baseTitle = `TRANSMISSION //<br>${item.title.toUpperCase()}, ${episode.edition.toUpperCase()}`;
+    const baseTitle = `${item.title.toUpperCase()} //<br>${episode.edition.toUpperCase()}`;
     const embed = createVoiceEmbed(item.audio, '');
     const wrapper = document.createElement('div');
     wrapper.className = 'voice-embed-wrapper';
@@ -2674,10 +2674,10 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   // ── Masthead + footer button ───────────────────────────────────────────
   function nextLabel() {
     const next = items[current + 1];
-    if (!next) return 'Start exploring';
+    if (!next) return 'Keep exploring';
     if (next.type === 'transmission') return 'Transmission from Efrain';
-    if (next.type === 'outro') return 'End of show';
-    return songNumber(current + 1) === 1 ? 'First song' : 'Next song';
+    if (next.type === 'outro') return 'Sign off';
+    return songNumber(current + 1) === 1 ? 'Drop the needle' : 'Next up';
   }
 
   function renderControls() {

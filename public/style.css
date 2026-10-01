@@ -706,7 +706,7 @@ body::after {
 
 .live-tag {
   display: inline-block;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--live-tag-text);
   background: var(--live-tag-bg);
   padding: 6px 12px;
@@ -868,7 +868,7 @@ body::after {
   border-radius: 14px;
   padding: 0 20px;
   height: 44px;
-  font-size: 15px;
+  font-size: 14px;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
   cursor: pointer;
@@ -1434,12 +1434,15 @@ body:not(.intro-active) #intro-start-btn {
    ===================== */
 
 /*
-  Type scale for show mode — four sizes, emphasis from weight and colour:
-    18px/600  episode title
-    16px      intro / sign-off text (matches Explore's chat messages)
-    13px      everything in the UI: playlist rows, info line, pill, toggle
-    11px mono edition label (matches transmission titles)
-  The footer button keeps 14px/500 to match Explore's start button.
+  Site type scale — keep new text on one of these; use weight and colour for emphasis:
+    28px      logo
+    22px      Grooves card title (the one display size)
+    18px/600  titles: episode title, Grooves modal title
+    16px      body: chat messages, text input, intro / sign-off text
+    14px/500  buttons and actions (start, interrupt options, show footer button); song info
+    13px      supporting UI: playlist rows, info line, pill, toggle, tags, toasts
+    11px mono labels: edition, transmission titles, Grooves card labels
+  (8px is used once, for the tiny "new transmission" label inside the voice embed.)
 */
 :root {
   /* --text-secondary only reaches 3:1 on a highlighted row or the toggle's fill.
