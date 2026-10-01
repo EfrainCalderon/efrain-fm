@@ -20,10 +20,10 @@ Show mode is built and working locally on the `radio-show` branch, with placehol
 - The Explore/Show toggle is built but hidden from the public. It appears only in a browser that has already entered the show by address or command. To show it to everyone, set `SHOW_TOGGLE_PUBLIC = true` in the show section of `public/script.js`.
 - The normal arrival flow is untouched: no show-or-explore question, no "new" marker.
 
-**Placeholders to replace in `data/episodes/2026-10.json`**
-- `intro`, `outro` (text to come from Efrain)
-- Title is set: "Episode 01: It could be Franky", 54 minutes of music
-- The four transmissions: after songs 4, 7, 10 and 14 (set by Efrain), all pointing at the welcome audio (`/audio/AIntro.m4a`) as a stand-in. Efrain is mixing the real ones over a music bed. Real files go in `public/audio/episodes/2026-10/`.
+**Episode content status (`data/episodes/2026-10.json`)**
+- Title, running time and all audio are real. The episode opens with a spoken Introduction (no intro text), then Transmissions 1–4 after songs 4, 7, 10 and 14. Audio is AAC at 128 kbit/s in `public/audio/episodes/2026-10/`.
+- Still a placeholder: `outro` (sign-off text).
+- Export guideline: AAC 128 kbit/s. Files are served through a Vercel Function, which documents a 4.5 MB response cap; the largest October file is 3.0 MB.
 
 **Before going live:** replace the placeholders, review on the branch, then merge `radio-show` into `main`.
 

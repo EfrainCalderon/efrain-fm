@@ -2741,13 +2741,15 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       btn.textContent = opt.label;
       btn.style.animationDelay = `${i * 70}ms`;
       btn.addEventListener('click', () => {
-        const changed  = getPlayerPref() !== opt.val || needsServicePick;
+        const wasFirstPick = needsServicePick;   // the stage is showing the question, not an item
+        const changed      = getPlayerPref() !== opt.val;
         setPlayerPref(opt.val);
         needsServicePick = false;
         closePicker();
         renderControls();
-        // Reload what's on stage only if it's affected — never interrupt a transmission
-        if (changed && items[current] && items[current].type !== 'transmission') renderStage();
+        // After the first pick, put the real item on stage. Otherwise reload only if the
+        // service changed and a song is showing — never interrupt a transmission.
+        if (wasFirstPick || (changed && items[current] && items[current].type === 'song')) renderStage();
       });
       pickerEl.appendChild(btn);
     });

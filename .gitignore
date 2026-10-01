@@ -3,3 +3,4 @@ node_modules/
 music-sheet-updater-0dde996d74c6.json
 spotify-results.csv
 .claude/settings.local.json
+.DS_Store
