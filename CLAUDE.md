@@ -70,6 +70,14 @@ Songs live in `data/songs.json`. Each song needs:
 
 If a song is a keystone, it must be added to `GROOVE_KEYSTONES` in `server.js` and the corresponding audio file placed in `public/audio/`.
 
+Spotify links are added by hand: take the track ID from Spotify's "Copy song link" (the part after `/track/`) and save it as `https://open.spotify.com/embed/track/<track id>`. There is no script for this (see below).
+
+## Secrets
+
+This repo is public. Never hardcode API keys, client secrets, or tokens in any file — read them from the gitignored `.env` via `dotenv`, as `server.js` does. Service account key files (e.g. `music-sheet-updater-0dde996d74c6.json`) must stay gitignored.
+
+**Record — Spotify secret cleanup (2026-10-01):** `fetch-spotify-urls.js`, a one-off helper for bulk-fetching Spotify embed URLs, had a Spotify client ID and client secret hardcoded and committed (Feb and Apr 2026), so they were publicly exposed. Nothing else in the project used them, and every song already had a Spotify or YouTube link, so the script and its leftover `missing-urls.txt` were removed (commit `eb42976`) rather than fixed. Efrain then deleted the Spotify developer app, which invalidated the credentials; the old values are still visible in git history but no longer work. A scan of the other tracked files and the git history found no other exposed secrets. If bulk Spotify lookups are ever needed again, create a new Spotify app and read its credentials from `.env`.
+
 ## Key invariants
 
 - Keystone songs are withheld from recommendations until their cluster is unlocked. They are identified by normalized `title|||artist` lookup against `KEYSTONE_LOOKUP`.
