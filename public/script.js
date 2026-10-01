@@ -2525,11 +2525,11 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 // - Show plays never touch Groove counts or Explore's played-song list.
 // =====================
 (function initShow() {
-  // LAUNCH SWITCH. While false, the episode is only offered (header button in Explore,
-  // and the "explore or episode?" question for first-time visitors) in browsers that
-  // have already entered show mode by address or command. Flip to true to offer it to
-  // every visitor.
-  const SHOW_PUBLIC = false;
+  // LAUNCH SWITCH — launched 2026-10-01. When true, every visitor is offered the episode
+  // (header button in Explore, and the "explore or episode?" question on a first visit).
+  // Set to false to pull it back: it is then only offered in browsers that have already
+  // entered show mode by address or command.
+  const SHOW_PUBLIC = true;
 
   const UNLOCK_KEY   = 'efrain_fm_show_unlocked';
   const PROGRESS_KEY = 'efrain_fm_show_progress';
