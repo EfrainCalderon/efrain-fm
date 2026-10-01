@@ -2785,8 +2785,9 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     else {
       const block = buildTextBlock(item.text, current);
       stageEl.appendChild(block);
-      // The note form follows the sign-off once it has finished typing
-      if (item.type === 'outro') {
+      // The note form follows the sign-off once it has finished typing — only when the
+      // server says notes can be delivered, so nobody meets a form that can't send
+      if (item.type === 'outro' && episode.notes) {
         block.typed.then(() => { if (stageEl.contains(block)) stageEl.appendChild(buildNoteForm()); });
       }
     }

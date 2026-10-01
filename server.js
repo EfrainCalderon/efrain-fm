@@ -1907,7 +1907,8 @@ app.get('/api/groove-keystones', (req, res) => {
 // =====================
 app.get('/api/show', (req, res) => {
   if (!episodes.length) return res.status(404).json({ error: 'No episode available.' });
-  res.json(episodes[0]);
+  // notes: whether listener notes can actually be delivered, so the form only shows when they can
+  res.json({ ...episodes[0], notes: Boolean(process.env.RESEND_API_KEY && process.env.NOTIFY_EMAIL) });
 });
 
 app.get(['/show', '/episode'], (req, res) => {
@@ -1917,7 +1918,7 @@ app.get(['/show', '/episode'], (req, res) => {
 // =====================
 // LISTENER NOTES
 // A short note (and optional reply address) left at the end of an episode, emailed to
-// NOTIFY_EMAIL via Resend — the same setup /api/log uses. Nothing is stored and nothing
+// NOTIFY_EMAIL via Resend. Nothing is stored and nothing
 // a listener types is ever shown back on the site.
 //
 // Guards: 3 notes per 10 minutes per IP, length caps, a strict email pattern, a hidden
@@ -1988,7 +1989,7 @@ app.post('/api/feedback', feedbackLimiter, async (req, res) => {
 // =====================
 // GROOVE GLOW LOG + EMAIL NOTIFICATION
 // Called by the frontend on each cluster unlock.
-// Logs to stdout and sends an email via Resend with unlock details.
+// Logs to stdout only. (It used to email each unlock too; removed 2026-10-01 at Efrain's request.)
 // =====================
 app.post('/api/log', async (req, res) => {
   try {
@@ -2005,47 +2006,8 @@ app.post('/api/log', async (req, res) => {
       allUnlocks:         allUnlocks || [],
     };
 
-    // Always log to stdout — visible in Render dashboard
+    // Log to stdout — visible in the host's function logs
     console.log('[GROOVE UNLOCK]', JSON.stringify(entry));
-
-    // Send email via Resend if configured
-    const resendKey   = process.env.RESEND_API_KEY;
-    const notifyEmail = process.env.NOTIFY_EMAIL;
-
-    if (resendKey && notifyEmail) {
-      const firstStart = firstSessionStart
-        ? new Date(firstSessionStart).toLocaleString('en-US', { timeZone: 'America/New_York' })
-        : 'unknown';
-      const unlockedTime = new Date(unlockedAt).toLocaleString('en-US', { timeZone: 'America/New_York' });
-      const allLabels = (allUnlocks || []).join(', ') || label;
-
-      const html = `
-        <p><strong>Visitor:</strong> ${entry.visitorId}</p>
-        <p><strong>Cluster unlocked:</strong> ${label} (${cluster})</p>
-        <p><strong>Triggered by:</strong> "${entry.inputThatTriggered}"</p>
-        <p><strong>Unlocked at:</strong> ${unlockedTime} ET</p>
-        <p><strong>First session start:</strong> ${firstStart} ET</p>
-        <p><strong>Total unlocked so far:</strong> ${entry.totalUnlocks} / 9</p>
-        <p><strong>All unlocked:</strong> ${allLabels}</p>
-      `;
-
-      fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from:    'efrain.fm <onboarding@resend.dev>',
-          to:      [notifyEmail],
-          subject: `// ${label} unlocked — efrain.fm`,
-          html,
-        }),
-      }).then(r => {
-        if (!r.ok) r.text().then(t => console.error('Resend error:', t));
-        else console.log('[RESEND] Email sent for', label);
-      }).catch(e => console.error('Resend fetch error:', e));
-    }
 
     res.json({ ok: true });
   } catch (e) {

@@ -67,7 +67,7 @@ A second, on-rails mode beside Explore: a fixed order of songs and voice transmi
 - **State:** progress in `localStorage` under `efrain_fm_show_progress`, keyed by episode id (a new id starts fresh). Show plays do not touch Groove counts or Explore's played list.
 
 - **Flow:** the first item is a spoken Introduction. The Spotify-or-Apple question is asked only when the listener is about to reach the first song embed, never on arrival.
-- **Listener notes:** under the sign-off, a small form posts to `/api/feedback`, which emails the note to `NOTIFY_EMAIL` through Resend (`RESEND_API_KEY`), the same setup `/api/log` uses. Rate-limited (3 per 10 minutes per IP), length-capped, honeypot field, sent as plain text. Nothing a listener types is stored or rendered back. Without those two env vars the endpoint returns 503 and the form says the note couldn't be sent.
+- **Listener notes:** under the sign-off, a small form posts to `/api/feedback`, which emails the note to `NOTIFY_EMAIL` through Resend (`RESEND_API_KEY`). `/api/show` reports `notes: true` only when both are set, and the form is shown only then. (`/api/log` no longer sends email; it only logs unlocks.) Rate-limited (3 per 10 minutes per IP), length-capped, honeypot field, sent as plain text. Nothing a listener types is stored or rendered back.
 
 **Publishing a new episode:** add any new songs to `data/songs.json`, put transmission audio in `public/audio/episodes/<year-month>/`, add `data/episodes/<year-month>.json`, push.
 
