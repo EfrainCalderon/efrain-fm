@@ -39,6 +39,23 @@ function getPlayerPref() { return localStorage.getItem(PLAYER_KEY) || 'apple'; }
 function setPlayerPref(val) { localStorage.setItem(PLAYER_KEY, val); }
 
 // =====================
+// SPOTIFY PLAYBACK NOTE
+// What a Spotify listener can expect from the embeds, said only to the people it affects.
+// Spotify's embed plays full songs only when it can tell the listener is logged in to
+// Spotify, which depends on the browser: Safari and phones are limited to 30-second
+// previews. We can't detect a Spotify login, so the wording stays conditional and never
+// promises full songs.
+// =====================
+function spotifyPlaybackNote() {
+  const ua = navigator.userAgent;
+  const isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const isSafari = /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Android/i.test(ua);
+  if (isPhone) return 'On phones and tablets, Spotify only plays 30-second previews here. Tap a song to hear the rest in Spotify.';
+  if (isSafari) return 'Safari limits Spotify to 30-second previews here. You may get full songs in Chrome if you’re logged in to Spotify there.';
+  return 'Being logged in to Spotify in this browser can unlock full songs. If one stops at 30 seconds, click it to hear the rest on Spotify.';
+}
+
+// =====================
 // PLAYER PICKER
 // showPlayerPicker  — first-time setup, three options, called after intro audio ends
 // showPlayerSwitchPrompt — mid-session, two options, called when user mentions a platform
@@ -92,7 +109,7 @@ async function showPlayerPicker(promptText, { offerEpisode = false } = {}) {
 
       let reply;
       if (opt.label === 'Spotify') {
-        reply = "Cool, I'll use Spotify. Heads up — they only let me share 30-second previews, but you can click on the song to hear on Spotify.";
+        reply = `Cool, I'll use Spotify. ${spotifyPlaybackNote()}`;
       } else if (opt.label === 'Apple Music') {
         reply = "Awesome — I'll show Apple Music versions. You can listen to the full song if you sign in."
           + (offer ? '' : ' What would you like to hear?');
@@ -216,7 +233,7 @@ async function showPlayerSwitchPrompt() {
       removeTypingIndicator(t);
 
       const reply = opt.val === 'spotify'
-        ? "Switched to Spotify for any songs you request next. Just a heads up — previews are 30 seconds here."
+        ? `Switched to Spotify for any songs you request next. ${spotifyPlaybackNote()}`
         : "Switched to Apple Music for any songs you request next. Sign in and you can hear full songs.";
 
       await addMessageToChatWithTyping(reply, 'assistant');

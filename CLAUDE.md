@@ -88,7 +88,8 @@ Songs belong to clusters: C1 Outsider, C2 Night, C3 Raw, C4 Cosmic, C5 Soul, C6 
 ### Frontend (`public/script.js`, `index.html`, `style.css`)
 
 - `sessionId` is generated per page load and sent with every API request.
-- The Spotify/Apple choice persists in `localStorage` as `efrain_fm_player` (default Apple, whose previews are longer).
+- The Spotify/Apple choice persists in `localStorage` as `efrain_fm_player` (default Apple, whose previews are longer). Visitors change it by typing "switch to Spotify" / "switch to Apple Music" in Explore, or with the service pill in an episode. There is no player toggle in the header.
+- **Spotify playback copy is conditional and hedged.** Spotify's embed plays full songs only when it can tell the listener is logged in, and Safari and phones are limited to 30-second previews; we can't detect a login. `spotifyPlaybackNote()` (client) and `describeSpotifyPlayback()` (server, by User-Agent) word this per browser and must stay in step. Don't write copy that says Spotify can never play full songs, or that promises it will.
 - `isTyping` gates all input while the assistant is responding.
 - Choices appear as buttons in the footer (`#interrupt-bar`), temporarily replacing the text input. The footer's height never changes.
 - `addMessageToChatWithTyping` does the typewriter effect; `createVoiceEmbed` builds the voice-message player used for the welcome, keystones, and transmissions.

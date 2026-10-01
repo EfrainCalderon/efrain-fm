@@ -31,6 +31,18 @@ const favoritesPath = path.join(__dirname, 'data', 'favorites.json');
 
 const sessions = new Map();
 
+// What a Spotify listener can expect from the embeds, tailored to their browser.
+// Spotify's embed plays full songs only when it can tell the listener is logged in, and
+// Safari and phones are limited to 30-second previews. Mirrors spotifyPlaybackNote() in
+// public/script.js; keep the two in step. Never promise full songs outright.
+function describeSpotifyPlayback(userAgent = '') {
+  const isPhone = /iPhone|iPad|iPod|Android/i.test(userAgent);
+  const isSafari = /Safari/i.test(userAgent) && !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Android/i.test(userAgent);
+  if (isPhone) return 'On phones and tablets, Spotify only plays 30-second previews here.';
+  if (isSafari) return "Safari limits Spotify to 30-second previews here; Chrome may play full songs if you're logged in to Spotify.";
+  return "Spotify can play full songs when you're logged in to it in this browser, and 30-second previews otherwise.";
+}
+
 // =====================
 // SHOW EPISODES
 // One JSON file per monthly episode in data/episodes/ (e.g. 2026-10.json). Each lists
@@ -765,7 +777,7 @@ const EFRAIN_CHARACTER = `You are Efrain — a product designer and music obsess
 
 Background: You made music in your teens and 20s. You've spent years in health tech and design. You love talking about music, sharing cool discoveries, and recommending songs to people. Your design work is at www.efrain.design if anyone's curious.
 
-About the site: There's a player toggle in the top bar — Spotify on the left, Apple Music on the right. Spotify is the default and only plays 30-second previews unless you're logged in. Apple Music plays full songs if you're signed in. Some songs aren't on either platform, or you specifically wanted to share a live performance or music video — in those cases you share a YouTube link instead. If someone asks about hearing full songs, switching players, or mentions Spotify or Apple Music, let them know about the toggle and explain the difference briefly.
+About the site: Visitors pick Spotify or Apple Music when they arrive, and can change it any time by typing "switch to Spotify" or "switch to Apple Music". Apple Music plays full songs if they're signed in. Spotify can play full songs when its player can tell the listener is logged in to Spotify in that browser; otherwise it plays 30-second previews, and on Safari and on phones it is always limited to previews, so Chrome on a computer is the better bet for Spotify listeners. Some songs aren't on either platform, or you specifically wanted to share a live performance or music video — in those cases you share a YouTube link instead. If someone asks about hearing full songs, switching players, or mentions Spotify or Apple Music, explain the difference briefly and tell them what to type to switch. There is also a monthly episode, reached from the "EP" button in the top bar: about an hour of music in a set order, with you talking in between.
 
 Personality: Warm, direct, a little dry. Deep music knowledge — outsider, lo-fi, experimental, jazz, proto-punk, international. Never pretentious. You share because you genuinely love it, not to impress anyone.
 
@@ -1446,18 +1458,18 @@ app.post('/api/chat', async (req, res) => {
     }
 
     if (/\b(whole\s+song|full\s+(song|track|version)|can'?t\s+(hear|play|listen)|only\s+(hear|get|playing)\s+(30|thirty)|30\s+seconds|thirty\s+seconds|why\s+(only|can'?t)|preview|just\s+a\s+clip|stream\s+full|listen\s+in\s+full|full\s+playback)\b/i.test(message)) {
-      return res.json({ response: "There's a player toggle in the top bar — Spotify on the left plays 30-second previews, Apple Music on the right plays full songs if you're signed in. Flip it over and you'll hear the whole thing.", song: null });
+      return res.json({ response: `Apple Music plays full songs if you're signed in. ${describeSpotifyPlayback(req.headers['user-agent'])} Type "switch to Apple Music" or "switch to Spotify" to change players.`, song: null });
     }
 
     if (/\bapple\s+music\b/i.test(message)) {
-      return res.json({ response: "Apple Music is live — hit the toggle in the top bar to switch from Spotify. You'll get full songs if you're signed into Apple Music, versus 30-second previews on Spotify.", song: null });
+      return res.json({ response: `Type "switch to Apple Music" and I'll use it. You'll get full songs if you're signed in to Apple Music.`, song: null });
     }
 
     if (/\b(switch\s+(to\s+)?(spotify|apple)|use\s+(spotify|apple)|change\s+(to\s+)?(spotify|apple)|want\s+(spotify|apple)|prefer\s+(spotify|apple)|play\s+on\s+(spotify|apple))\b/i.test(message)) {
       const toApple = /apple/i.test(message);
       return res.json({ response: toApple
-        ? "Hit the Apple Music side of the toggle in the top bar — you'll get full tracks if you're signed in."
-        : "Hit the Spotify side of the toggle in the top bar to switch back. You'll get 30-second previews unless you're logged in.",
+        ? `Type "Apple Music" and I'll switch you over. You'll get full tracks if you're signed in.`
+        : `Type "Spotify" and I'll switch you over. ${describeSpotifyPlayback(req.headers['user-agent'])}`,
         song: null });
     }
 
