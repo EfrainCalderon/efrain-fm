@@ -58,7 +58,6 @@ Fully self-contained canvas renderer for the animated rings + star field. Thrott
 ## Utility scripts
 
 - `update-sheet.js` — syncs song data to/from Google Sheets (requires `music-sheet-updater-0dde996d74c6.json` service account credentials)
-- `fetch-spotify-urls.js` — fetches Spotify embed URLs for songs
 - `populate-apple-music.js` — populates Apple Music embed URLs
 
 ## Adding songs
