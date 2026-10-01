@@ -148,8 +148,11 @@
       const cx        = W / 2;
       const cy        = footerTop;
 
+      // Show mode hides the record: no disc, no rings, stars fill the whole sky
+      const showMode = document.body.classList.contains('mode-show');
+
       // Animated disc radius (outermost ring)
-      const discR = ringR(outerBase, OFFSETS[NUM_RINGS - 1], now);
+      const discR = showMode ? 0 : ringR(outerBase, OFFSETS[NUM_RINGS - 1], now);
 
       // Fill disc solid — the "record" body blocks stars beneath
       ctx.beginPath();
@@ -202,7 +205,7 @@
 
       const SWEEP_DURATION = 7000; // ms — arc sweep animation duration
 
-      for (let i = 0; i < NUM_RINGS; i++) {
+      for (let i = 0; i < (showMode ? 0 : NUM_RINGS); i++) {
         const r = ringR(step*(i+1), OFFSETS[i], now);
         const isGlow = i < glowCount;
 
@@ -357,6 +360,13 @@
           </svg>
         </button>
 
+        <!-- Explore / Show toggle. Hidden until show mode is public (SHOW_TOGGLE_PUBLIC in script.js)
+             or this browser has entered the show via /show or the /show command. -->
+        <div id="mode-toggle" role="group" aria-label="Mode" hidden>
+          <button type="button" id="mode-toggle-explore" aria-pressed="true">Explore</button>
+          <button type="button" id="mode-toggle-show" aria-pressed="false">Show</button>
+        </div>
+
       </div>
     </header>
 
@@ -409,7 +419,27 @@
       </div>
     </div>
 
+    <!-- Show mode: monthly on-rails episode. Hidden unless body has .mode-show. -->
+    <div id="show-view" hidden>
+      <div class="show-masthead">
+        <div class="show-edition" id="show-edition"></div>
+        <h2 class="show-title" id="show-title"></h2>
+        <div class="show-info">
+          <span id="show-count"></span>
+          <span class="sep" aria-hidden="true">•</span>
+          <span id="show-duration"></span>
+          <span class="sep" aria-hidden="true">•</span>
+          <button type="button" class="service-pill" id="show-service-pill" aria-label="Change music service"></button>
+        </div>
+      </div>
+      <div class="show-body">
+        <div class="show-list" id="show-list" aria-label="Played so far"></div>
+        <div class="show-stage" id="show-stage"></div>
+      </div>
+    </div>
+
     <footer id="input-footer">
+      <button type="button" id="show-next-btn"></button>
       <div id="input-wrapper">
         <!-- Intro state: Start Exploring button replaces the text input -->
         <button id="intro-start-btn" aria-label="Start exploring">

@@ -32,6 +32,67 @@ const favoritesPath = path.join(__dirname, 'data', 'favorites.json');
 const sessions = new Map();
 
 // =====================
+// SHOW EPISODES
+// One JSON file per monthly episode in data/episodes/ (e.g. 2026-10.json). Each lists
+// an ordered set of steps: songs (by library id) and voice transmissions.
+// The newest file by id is the current episode. A broken episode is skipped with a
+// loud log line rather than thrown, so Explore keeps working if a show file is wrong.
+// =====================
+const EPISODES_DIR = path.join(__dirname, 'data', 'episodes');
+
+function loadEpisodes() {
+  if (!fs.existsSync(EPISODES_DIR)) return [];
+  const songsById = new Map(songsData.songs.map(s => [s.id, s]));
+  const episodes = [];
+
+  for (const file of fs.readdirSync(EPISODES_DIR).filter(f => f.endsWith('.json'))) {
+    try {
+      const raw = JSON.parse(fs.readFileSync(path.join(EPISODES_DIR, file), 'utf8'));
+      const steps = (raw.steps || []).map(step => {
+        if (step.type === 'song') {
+          const song = songsById.get(step.song_id);
+          if (!song) throw new Error(`unknown song_id "${step.song_id}"`);
+          const urls = getStreamingUrls(song);
+          return {
+            type: 'song',
+            title: song.title,
+            short_title: step.short_title || '',
+            artist: song.artist,
+            spotify_url: urls.spotify.includes('open.spotify.com') ? urls.spotify : '',
+            apple_music_url: urls.apple_music,
+          };
+        }
+        if (step.type === 'transmission') {
+          if (!step.audio) throw new Error('transmission step has no audio');
+          if (!fs.existsSync(path.join(__dirname, 'public', step.audio))) {
+            console.warn(`Episode ${file}: audio file not found: ${step.audio}`);
+          }
+          return { type: 'transmission', title: step.title || 'Transmission', audio: step.audio };
+        }
+        throw new Error(`unknown step type "${step.type}"`);
+      });
+
+      episodes.push({
+        id: raw.id || file.replace(/\.json$/, ''),
+        edition: raw.edition || '',
+        title: raw.title || '',
+        duration_minutes: raw.duration_minutes || null,
+        intro: raw.intro || '',
+        outro: raw.outro || '',
+        song_count: steps.filter(s => s.type === 'song').length,
+        steps,
+      });
+    } catch (e) {
+      console.error(`EPISODE SKIPPED — ${file}: ${e.message}`);
+    }
+  }
+
+  return episodes.sort((a, b) => b.id.localeCompare(a.id));
+}
+
+const episodes = loadEpisodes();
+
+// =====================
 // GROOVE GLOW CONFIG
 // Keystone songs that are withheld until a cluster is unlocked.
 // Each cluster has one keystone identified by title + artist (normalized).
@@ -275,6 +336,11 @@ const TRAIT_ALIASES = {
   'opera': 'genre:opera', 'operatic': 'genre:opera',
   'piano': 'texture:piano',
   'hawaiian': 'char:hawaiian', 'hawaii': 'char:hawaiian',
+
+  // Children's voices / music for kids — songs sung by or sampling kids, lullabies
+  'kids': 'char:children', 'kids music': 'char:children', 'children': 'char:children',
+  "children's": 'char:children', "children's music": 'char:children', 'childlike': 'char:children',
+  'nursery': 'char:children', 'lullaby': 'char:children', 'lullabies': 'char:children',
 };
 
 // =====================
@@ -559,7 +625,7 @@ Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender
 Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet", "texture:piano"
 Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk", "genre:k-pop", "genre:classical", "genre:opera"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
-Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson", "char:hawaiian"
+Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson", "char:hawaiian", "char:children"
 Origin (use when user specifies a country or region): "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland", "origin:spain", "origin:colombia", "origin:jamaica"
 
 SITUATIONAL MAPPINGS:
@@ -585,6 +651,7 @@ SITUATIONAL MAPPINGS:
 - "french", "french pop", "ye-ye" → ["genre:ye-ye", "origin:france"]
 - "bittersweet" → ["mood:bittersweet", "char:bittersweet"]
 - "k-pop", "kpop", "korean pop" → ["genre:k-pop", "origin:korea"]
+- "kids", "kids singing", "children", "children's music", "nursery", "lullaby" → ["char:children"] (and nothing else)
 
 RULES:
 - Prefer trait vocabulary terms over raw words whenever possible
@@ -766,7 +833,6 @@ function generateNoMatchResponse(userMessage) {
     [/\bpolka\b/i, "No polka in here, sorry."],
     [/\bbluegrass\b/i, "Nothing with a banjo unfortunately."],
     [/\bchristmas|holiday\b/i, "No holiday music in this collection."],
-    [/\bnursery|children'?s|kids music\b/i, "Nothing for kids in here."],
     [/\bkaraoke\b/i, "This isn't a karaoke spot."],
     [/\bnational\s*anthem\b/i, "Nope."],
   ];
@@ -1620,7 +1686,6 @@ app.post('/api/chat', async (req, res) => {
       [/\b(bluegrass|banjo|appalachian)\b/i, "No bluegrass in here — closest I have is some folk and country."],
       [/\b(christmas|holiday|xmas|festive)\b/i, "No holiday music in this collection."],
       [/\b(polka)\b/i, "No polka in here, sorry."],
-      [/\b(nursery|children's|kids\s+music|lullaby)\b/i, "Nothing for kids in here."],
       [/\b(karaoke)\b/i, "This isn't a karaoke spot."],
     ];
     for (const [re, reply] of HARD_NO_MATCH) {
@@ -1832,6 +1897,20 @@ app.get('/api/groove-keystones', (req, res) => {
     artist:  k.artist,
     audio:   k.audio,
   })));
+});
+
+// =====================
+// SHOW MODE
+// /api/show returns the current (newest) episode with song details filled in.
+// /show and /episode serve the same page as / — the frontend opens in show mode.
+// =====================
+app.get('/api/show', (req, res) => {
+  if (!episodes.length) return res.status(404).json({ error: 'No episode available.' });
+  res.json(episodes[0]);
+});
+
+app.get(['/show', '/episode'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // =====================

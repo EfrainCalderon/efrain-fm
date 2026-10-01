@@ -21,7 +21,8 @@ Single Express server that:
 1. Serves static files from `public/`
 2. Loads `data/songs.json` once at startup (all song data in memory)
 3. Maintains in-memory chat sessions keyed by `sessionId`
-4. Exposes `/api/chat` (POST, rate-limited to 10 req/min), `/api/groove-keystones`, `/api/favorites`, `/api/groove-log`
+4. Exposes `/api/chat` (POST, rate-limited to 10 req/min), `/api/groove-keystones`, `/api/favorites`, `/api/groove-log`, `/api/show`
+5. Serves the same page at `/show` and `/episode` (the frontend opens in show mode)
 
 **Request pipeline for `/api/chat`:**
 - Detect artist name mentions → look up by artist
@@ -53,7 +54,19 @@ Vanilla JS, no framework. Key concerns:
 - `addMessageToChatWithTyping` handles the typewriter effect for assistant messages
 
 ### Background canvas (`public/index.html` inline `<script>`)
-Fully self-contained canvas renderer for the animated rings + star field. Throttled to 24fps, paused when tab is hidden. Reads `--star-color` CSS variable for theming. Ring glow state is read from `window._grooveGlowCount`.
+Fully self-contained canvas renderer for the animated rings + star field. Throttled to 24fps, paused when tab is hidden. Reads `--star-color` CSS variable for theming. Ring glow state is read from `window._grooveGlowCount`. When `body` has `.mode-show` it draws stars only (no disc, no rings).
+
+### Show mode (monthly episode)
+A second, on-rails mode beside Explore: a fixed order of songs and voice transmissions stepped through with one footer button. No free text. Full design record and status in `RADIO_SHOW_PLAN.md`.
+
+- **Data:** one file per episode in `data/episodes/<year-month>.json` listing ordered `steps` (`song` by library `song_id`, or `transmission` with an `audio` path), plus `edition`, `title`, `duration_minutes`, `intro`, `outro`. The newest file by id is the current episode. Songs must exist in `data/songs.json`; an episode with an unknown id is skipped at startup with an `EPISODE SKIPPED` log line.
+- **Audio:** transmission files live in `public/audio/episodes/<year-month>/`.
+- **Frontend:** the `initShow` IIFE at the end of `script.js`, markup in `#show-view`, styles under "SHOW MODE" in `style.css`. `body.mode-show` swaps the chat thread and text input for the show view; neither mode is torn down, so switching keeps both modes' progress.
+- **Entry:** `/show` or `/episode` in the address bar, or the `/show` command in the text box. The header toggle is hidden unless `SHOW_TOGGLE_PUBLIC` is true or the browser has already entered show mode (`efrain_fm_show_unlocked`).
+- **One embed at a time.** Spotify/Apple embeds can't be paused from outside, so leaving a mode takes its iframes off the page; our own `<audio>` is paused and resumed. Transmissions never autoplay in show mode.
+- **State:** progress in `localStorage` under `efrain_fm_show_progress`, keyed by episode id (a new id starts fresh). Show plays do not touch Groove counts or Explore's played list.
+
+**Publishing a new episode:** add any new songs to `data/songs.json`, put transmission audio in `public/audio/episodes/<year-month>/`, add `data/episodes/<year-month>.json`, push.
 
 ## Utility scripts
 

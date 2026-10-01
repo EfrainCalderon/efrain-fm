@@ -11642,7 +11642,8 @@
         "char:nostalgic": 0.7,
         "energy:low": 0.8,
         "era:90s": 0.9,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:children": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/08EgS4Nqe1jPkI9tx9Dq3S",
@@ -13809,7 +13810,8 @@
         "mood:melancholic": 0.8,
         "char:intimate": 0.9,
         "texture:lo-fi": 0.9,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "char:children": 1
       }
     },
     {
@@ -19266,7 +19268,8 @@
         "texture:lo-fi": 0.8,
         "energy:low": 0.9,
         "era:50s": 1,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:children": 0.6
       }
     }
   ]

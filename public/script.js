@@ -320,7 +320,19 @@ function handleSecretCommand(command) {
     }
 
     case '/help':
-      console.log('Commands: /reset, /debug, /push [c1-c9], /groove-reset, /player [apple|spotify], /help');
+      console.log('Commands: /reset, /debug, /push [c1-c9], /groove-reset, /player [apple|spotify], /show, /show-reset, /help');
+      return true;
+
+    case '/show':
+    case '/episode':
+      // Enter show mode (the monthly on-rails episode)
+      if (window.enterShowMode) window.enterShowMode();
+      return true;
+
+    case '/show-reset':
+      // Forget show progress and hide the toggle again — useful for testing the first-time flow
+      if (window.resetShowMode) window.resetShowMode();
+      console.log('Show progress reset.');
       return true;
 
     case '/push': {
@@ -1419,6 +1431,16 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     audio.addEventListener('play', () => clearTimeout(guard), { once: true });
   };
 
+  // Expose stop() so show mode can cut a transmission when the listener moves on:
+  // rewinds and returns to the static layer, where the play button lives.
+  wrap.stop = () => {
+    if (audio.paused && audio.currentTime === 0) return;
+    audio.pause();
+    audio.currentTime = 0;
+    if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
+    showStatic();
+  };
+
   return wrap;
 }
 
@@ -2420,5 +2442,437 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     }
   }
 
+})();
+
+// =====================
+// SHOW MODE
+// A monthly on-rails episode: a fixed order of songs and voice transmissions that the
+// listener steps through with one footer button. No free text, nothing timed.
+//
+// - Lives beside Explore on the same page. body.mode-show swaps which one is visible;
+//   neither is torn down, so switching never loses progress in either.
+// - Entered via /show (or /episode) in the address bar, or the /show command.
+// - Only one embed exists at a time. Leaving a mode removes its embeds so nothing keeps
+//   playing out of sight; our own <audio> is paused and resumed in place.
+// - Progress is saved per episode id in localStorage.
+// - Show plays never touch Groove counts or Explore's played-song list.
+// =====================
+(function initShow() {
+  // Flip to true to show the Explore/Show toggle to every visitor. Until then it only
+  // appears in browsers that have already entered show mode by address or command.
+  const SHOW_TOGGLE_PUBLIC = false;
+
+  const UNLOCK_KEY   = 'efrain_fm_show_unlocked';
+  const PROGRESS_KEY = 'efrain_fm_show_progress';
+  const SHOW_PATHS   = ['/show', '/episode'];
+
+  const view = document.getElementById('show-view');
+  if (!view) return;
+
+  const listEl        = document.getElementById('show-list');
+  const stageEl       = document.getElementById('show-stage');
+  const nextBtn       = document.getElementById('show-next-btn');
+  const pill          = document.getElementById('show-service-pill');
+  const countEl       = document.getElementById('show-count');
+  const durationEl    = document.getElementById('show-duration');
+  const editionEl     = document.getElementById('show-edition');
+  const titleEl       = document.getElementById('show-title');
+  const toggle        = document.getElementById('mode-toggle');
+  const toggleExplore = document.getElementById('mode-toggle-explore');
+  const toggleShow    = document.getElementById('mode-toggle-show');
+  const footer        = document.getElementById('input-footer');
+
+  const ICON_MIC  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
+  const ICON_TEXT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="13" y2="17"/></svg>';
+  const ICON_SWAP = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+
+  let active          = false;   // is show mode in front?
+  let episode         = null;
+  let episodePromise  = null;
+  let items           = [];      // intro + episode steps + outro
+  let reached         = 1;       // how many items have been revealed
+  let current         = 0;       // which revealed item is loaded
+  let needsServicePick = false;  // first visit with no Spotify/Apple choice yet
+  let pickerEl        = null;
+  let resumeOnReturn  = null;    // transmission <audio> we paused when leaving show mode
+  let heldExplore     = [];      // Explore iframes detached while show mode is in front
+  let heldExploreAudio = [];
+  const typedText = new Set();   // text items already typed out once
+  const txEmbeds  = new Map();   // item index → voice embed wrapper (kept so titles persist)
+
+  const isShowPath = () => SHOW_PATHS.includes(window.location.pathname.replace(/\/+$/, '') || '/');
+
+  // ── Episode + progress ─────────────────────────────────────────────────
+  function loadEpisode() {
+    if (!episodePromise) {
+      episodePromise = fetch('/api/show')
+        .then(res => {
+          if (!res.ok) throw new Error('No episode available');
+          return res.json();
+        })
+        .then(data => {
+          episode = data;
+          items = [];
+          if (data.intro) items.push({ type: 'intro', title: 'Intro', artist: 'Efrain', text: data.intro });
+          items.push(...data.steps);
+          if (data.outro) items.push({ type: 'outro', title: 'Sign-off', artist: 'Efrain', text: data.outro });
+          restoreProgress();
+          return data;
+        })
+        .catch(err => { episodePromise = null; throw err; });
+    }
+    return episodePromise;
+  }
+
+  function restoreProgress() {
+    reached = 1;
+    current = 0;
+    try {
+      const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY));
+      // A different episode id means a new month — start fresh
+      if (saved && saved.id === episode.id) {
+        reached = Math.min(Math.max(1, saved.reached | 0), items.length);
+        current = Math.min(Math.max(0, saved.current | 0), reached - 1);
+      }
+    } catch { /* corrupt or missing — start fresh */ }
+  }
+
+  function saveProgress() {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({ id: episode.id, reached, current }));
+  }
+
+  const songNumber   = index => items.slice(0, index + 1).filter(i => i.type === 'song').length;
+  const songsReached = () => items.slice(0, reached).filter(i => i.type === 'song').length;
+
+  // ── Playlist ───────────────────────────────────────────────────────────
+  function renderList() {
+    listEl.replaceChildren();
+    items.slice(0, reached).forEach((item, i) => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'show-row';
+      if (i === current) row.setAttribute('aria-current', 'true');
+
+      const num = document.createElement('span');
+      num.className = 'show-row__num';
+      if (item.type === 'song') num.textContent = songNumber(i);
+      else num.innerHTML = item.type === 'transmission' ? ICON_MIC : ICON_TEXT;
+
+      const text = document.createElement('span');
+      text.className = 'show-row__text';
+      const title = document.createElement('div');
+      title.className = 'show-row__title';
+      title.textContent = item.short_title || item.title;
+      const artist = document.createElement('div');
+      artist.className = 'show-row__artist';
+      artist.textContent = item.type === 'transmission' ? 'Efrain' : item.artist;
+      text.append(title, artist);
+
+      row.title = item.artist ? `${item.title} — ${item.artist}` : item.title;
+      row.append(num, text);
+      row.addEventListener('click', () => {
+        if (i === current) return;
+        current = i;
+        saveProgress();
+        render();
+      });
+      listEl.appendChild(row);
+      if (i === current) requestAnimationFrame(() => row.scrollIntoView({ block: 'nearest' }));
+    });
+  }
+
+  // ── Current item ───────────────────────────────────────────────────────
+  function clearStage() {
+    // Removing an <audio> from the page doesn't stop it — rewind any transmission first
+    stageEl.querySelectorAll('.voice-embed').forEach(embed => embed.stop && embed.stop());
+    resumeOnReturn = null;
+    stageEl.replaceChildren();
+  }
+
+  function buildTextBlock(text, key) {
+    const el = document.createElement('div');
+    el.className = 'show-text';
+    if (key !== null && !typedText.has(key)) {
+      typedText.add(key);
+      typeText(el, text, 14);
+    } else {
+      el.textContent = text;
+    }
+    return el;
+  }
+
+  function buildSongEmbed(item) {
+    // Apple wins if preferred and available; otherwise fall back to whichever link exists
+    const useApple = (getPlayerPref() === 'apple' && item.apple_music_url) || !item.spotify_url;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'song-embed-wrapper';
+
+    const iframe = document.createElement('iframe');
+    iframe.className = 'song-embed';
+    iframe.title = `${item.title} — ${item.artist}`;
+    iframe.addEventListener('load', () => {
+      iframe.classList.add('loaded');
+      wrapper.classList.add('loaded');
+    });
+
+    if (useApple) {
+      const url = item.apple_music_url;
+      iframe.src = url.includes('?') ? `${url}&theme=dark` : `${url}?theme=dark`;
+      iframe.allow = 'autoplay *; encrypted-media *; fullscreen *';
+      iframe.style.borderRadius = '10px';
+    } else {
+      iframe.src = item.spotify_url;
+      iframe.allow = 'encrypted-media';
+    }
+
+    wrapper.appendChild(iframe);
+    return wrapper;
+  }
+
+  function getTransmissionEmbed(index, item) {
+    if (txEmbeds.has(index)) return txEmbeds.get(index);
+
+    const baseTitle = `TRANSMISSION //<br>${item.title.toUpperCase()}, ${episode.edition.toUpperCase()}`;
+    const embed = createVoiceEmbed(item.audio, '');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'voice-embed-wrapper';
+    wrapper.appendChild(embed);
+
+    // Start on the static layer (title + play button). Transmissions never autoplay in
+    // show mode: a song may still be playing in the embed the listener just left.
+    embed.classList.add('loaded');
+    embed.querySelector('.voice-embed__static').classList.add('visible');
+    const title = embed.querySelector('.voice-embed__title');
+    title.innerHTML = baseTitle;
+    embed.querySelector('.voice-embed__play-btn').setAttribute('aria-label', `Play ${item.title}`);
+
+    const audio = embed.querySelector('audio');
+    audio.addEventListener('ended', () => {
+      if (title.dataset.durationSet) return;
+      title.innerHTML = `${baseTitle}<span class="voice-embed__time"> [${Math.round(audio.duration)}s]</span>`;
+      title.dataset.durationSet = '1';
+    });
+
+    txEmbeds.set(index, wrapper);
+    return wrapper;
+  }
+
+  function renderStage() {
+    clearStage();
+    if (needsServicePick) {
+      stageEl.appendChild(buildTextBlock('Which do you use to listen to music?', null));
+      return;
+    }
+    const item = items[current];
+    if (!item) return;
+    if (item.type === 'song') stageEl.appendChild(buildSongEmbed(item));
+    else if (item.type === 'transmission') stageEl.appendChild(getTransmissionEmbed(current, item));
+    else stageEl.appendChild(buildTextBlock(item.text, current));
+  }
+
+  // ── Masthead + footer button ───────────────────────────────────────────
+  function nextLabel() {
+    const next = items[current + 1];
+    if (!next) return 'Start exploring';
+    if (next.type === 'transmission') return 'Transmission from Efrain';
+    if (next.type === 'outro') return 'End of show';
+    return songNumber(current + 1) === 1 ? 'First song' : 'Next song';
+  }
+
+  function renderControls() {
+    editionEl.textContent = episode.edition;
+    titleEl.textContent   = episode.title;
+
+    const total = episode.song_count;
+    const heard = songsReached();
+    countEl.textContent    = heard ? `${heard} of ${total} songs` : `${total} songs`;
+    durationEl.textContent = episode.duration_minutes ? `${episode.duration_minutes} minutes` : '';
+    durationEl.previousElementSibling.hidden = !episode.duration_minutes;
+
+    const service = getPlayerPref();
+    pill.className = `service-pill ${service === 'spotify' ? 'spotify' : 'apple'}`;
+    pill.innerHTML = (service === 'spotify' ? 'Spotify' : 'Apple Music') + ICON_SWAP;
+
+    nextBtn.textContent = nextLabel();
+  }
+
+  function render() {
+    renderList();
+    renderStage();
+    renderControls();
+  }
+
+  function renderUnavailable() {
+    items = [];
+    editionEl.textContent = '';
+    titleEl.textContent = 'Show';
+    view.querySelector('.show-info').style.display = 'none';
+    listEl.replaceChildren();
+    stageEl.replaceChildren(buildTextBlock('No episode is available right now.', null));
+    nextBtn.textContent = 'Back to exploring';
+  }
+
+  nextBtn.addEventListener('click', () => {
+    // On the last item (or with no episode) the button leads into Explore
+    if (current + 1 >= items.length) {
+      setMode('explore');
+      return;
+    }
+    current += 1;
+    if (current >= reached) reached = current + 1;
+    saveProgress();
+    render();
+  });
+
+  // ── Spotify / Apple Music question (footer, same pattern as Explore's interrupt bar) ──
+  function openPicker() {
+    if (pickerEl) {
+      if (!needsServicePick) closePicker();   // tapping the pill again dismisses it
+      return;
+    }
+    pickerEl = document.createElement('div');
+    pickerEl.id = 'show-picker';
+
+    [{ label: 'Spotify', val: 'spotify' }, { label: 'Apple Music', val: 'apple' }].forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'interrupt-btn';
+      btn.textContent = opt.label;
+      btn.style.animationDelay = `${i * 70}ms`;
+      btn.addEventListener('click', () => {
+        const changed  = getPlayerPref() !== opt.val || needsServicePick;
+        setPlayerPref(opt.val);
+        needsServicePick = false;
+        closePicker();
+        renderControls();
+        // Reload what's on stage only if it's affected — never interrupt a transmission
+        if (changed && items[current] && items[current].type !== 'transmission') renderStage();
+      });
+      pickerEl.appendChild(btn);
+    });
+
+    footer.appendChild(pickerEl);
+    document.body.classList.add('show-picking');
+    const el = pickerEl;
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('visible')));
+  }
+
+  function closePicker() {
+    if (!pickerEl) return;
+    const el = pickerEl;
+    pickerEl = null;
+    document.body.classList.remove('show-picking');
+    el.classList.remove('visible');
+    setTimeout(() => el.remove(), 300);
+  }
+
+  pill.addEventListener('click', openPicker);
+
+  // ── Keeping the hidden mode quiet ──────────────────────────────────────
+  // Spotify/Apple embeds can't be paused from outside, so the only way to stop one is to
+  // take it off the page. Detached iframes reload from the start when put back.
+  function holdExploreMedia() {
+    chatMessages.querySelectorAll('iframe').forEach(iframe => {
+      heldExplore.push({ iframe, parent: iframe.parentNode, next: iframe.nextSibling });
+      iframe.remove();
+    });
+    chatMessages.querySelectorAll('audio').forEach(audio => {
+      if (!audio.paused) {
+        audio.pause();
+        heldExploreAudio.push(audio);
+      }
+    });
+  }
+
+  function releaseExploreMedia() {
+    heldExplore.forEach(({ iframe, parent, next }) => {
+      if (!parent.isConnected) return;
+      iframe.classList.remove('loaded');
+      parent.classList.remove('loaded');
+      parent.insertBefore(iframe, next && next.parentNode === parent ? next : null);
+    });
+    heldExplore = [];
+    heldExploreAudio.forEach(audio => audio.play().catch(() => {}));
+    heldExploreAudio = [];
+  }
+
+  function leaveStage() {
+    const item = items[current];
+    if (item && item.type === 'transmission') {
+      const audio = stageEl.querySelector('audio');
+      if (audio && !audio.paused) {
+        audio.pause();
+        resumeOnReturn = audio;
+      }
+    } else {
+      stageEl.replaceChildren();
+    }
+  }
+
+  function returnToStage() {
+    const item = items[current];
+    const stillOnStage = item && item.type === 'transmission' && !needsServicePick && stageEl.querySelector('.voice-embed');
+    if (stillOnStage) {
+      renderList();
+      renderControls();
+      if (resumeOnReturn) resumeOnReturn.play().catch(() => {});
+      resumeOnReturn = null;
+    } else {
+      render();
+    }
+  }
+
+  // ── Mode switching ─────────────────────────────────────────────────────
+  function syncToggle() {
+    toggle.hidden = !(SHOW_TOGGLE_PUBLIC || localStorage.getItem(UNLOCK_KEY));
+    toggleExplore.setAttribute('aria-pressed', String(!active));
+    toggleShow.setAttribute('aria-pressed', String(active));
+  }
+
+  function setMode(mode, { push = true } = {}) {
+    const toShow = mode === 'show';
+    if (toShow === active) return;
+    active = toShow;
+    document.body.classList.toggle('mode-show', toShow);
+
+    if (toShow) {
+      view.hidden = false;
+      localStorage.setItem(UNLOCK_KEY, '1');
+      holdExploreMedia();
+      needsServicePick = !localStorage.getItem(PLAYER_KEY);
+      loadEpisode()
+        .then(() => {
+          if (!active) return;
+          returnToStage();
+          if (needsServicePick) openPicker();
+        })
+        .catch(() => { if (active) renderUnavailable(); });
+    } else {
+      closePicker();
+      leaveStage();
+      releaseExploreMedia();
+    }
+
+    syncToggle();
+    if (push) history.pushState({ mode }, '', toShow ? '/show' : '/');
+  }
+
+  toggleExplore.addEventListener('click', () => setMode('explore'));
+  toggleShow.addEventListener('click', () => setMode('show'));
+  window.addEventListener('popstate', () => setMode(isShowPath() ? 'show' : 'explore', { push: false }));
+
+  // Used by the /show and /show-reset commands
+  window.enterShowMode = () => setMode('show');
+  window.resetShowMode = () => {
+    localStorage.removeItem(PROGRESS_KEY);
+    localStorage.removeItem(UNLOCK_KEY);
+    typedText.clear();
+    txEmbeds.clear();
+    if (episode) restoreProgress();
+    syncToggle();
+  };
+
+  syncToggle();
+  if (isShowPath()) setMode('show', { push: false });
 })();
 
