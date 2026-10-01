@@ -1815,6 +1815,49 @@ textarea.show-note__input {
   min-height: 21px;
 }
 
+/* ── Support link (under the sign-off and note form) ──
+   Secondary on purpose: same outline treatment as "Send note". The footer's
+   "Explore" button stays the main action. */
+.show-support {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.show-support__line {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--show-muted-strong);
+}
+
+.show-support__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: none;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.show-support__link:hover {
+  background: var(--live-tag-bg);
+  border-color: var(--input-focus-border);
+}
+
+.show-support__link:focus-visible {
+  outline: 2px solid var(--input-focus-border);
+  outline-offset: 2px;
+}
+
 /* ── Footer button ── */
 #show-next-btn {
   align-items: center;

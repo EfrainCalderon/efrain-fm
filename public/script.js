@@ -2676,6 +2676,34 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   // A short message and optional reply address, posted to /api/feedback, which emails
   // it to Efrain. Nothing typed here is ever rendered back into the page.
   const noteDraft = { message: '', email: '' };   // survives switching modes or rows
+
+  // ── Support link (end of episode only) ─────────────────────────────────
+  // A plain link to Efrain's Buy Me a Coffee page, opened in a new tab so the listener
+  // keeps their place. Deliberately not the Buy Me a Coffee widget: no third-party
+  // script, and it stays as quiet as everything around it.
+  const SUPPORT_URL = 'https://buymeacoffee.com/efrainfm';
+  const ICON_COFFEE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>';
+  const ICON_LEAVES = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>';
+
+  function buildSupportBlock() {
+    const wrap = document.createElement('div');
+    wrap.className = 'show-support';
+
+    const line = document.createElement('p');
+    line.className = 'show-support__line';
+    line.textContent = 'If this hour was worth a coffee to you, you can buy me one.';
+
+    const link = document.createElement('a');
+    link.className = 'show-support__link';
+    link.href = SUPPORT_URL;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.setAttribute('aria-label', 'Buy me a coffee (opens in a new tab)');
+    link.innerHTML = `${ICON_COFFEE}<span>Buy me a coffee</span>${ICON_LEAVES}`;
+
+    wrap.append(line, link);
+    return wrap;
+  }
   const noteSentKey = () => `efrain_fm_show_note_${episode.id}`;
 
   function buildNoteForm() {
@@ -2854,10 +2882,16 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     else {
       const block = buildTextBlock(item.text, current);
       stageEl.appendChild(block);
-      // The note form follows the sign-off once it has finished typing — only when the
-      // server says notes can be delivered, so nobody meets a form that can't send
-      if (item.type === 'outro' && episode.notes) {
-        block.typed.then(() => { if (stageEl.contains(block)) stageEl.appendChild(buildNoteForm()); });
+      // Once the sign-off has finished typing: the note form (only when the server says
+      // notes can be delivered, so nobody meets a form that can't send), then the
+      // support link. The link is a sibling of the form, so it is still there on the
+      // "note sent" confirmation.
+      if (item.type === 'outro') {
+        block.typed.then(() => {
+          if (!stageEl.contains(block)) return;
+          if (episode.notes) stageEl.appendChild(buildNoteForm());
+          stageEl.appendChild(buildSupportBlock());
+        });
       }
     }
   }
