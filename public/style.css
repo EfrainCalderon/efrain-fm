@@ -1433,6 +1433,20 @@ body:not(.intro-active) #intro-start-btn {
    for the show view and a single "next" button. Header, footer and card are shared.
    ===================== */
 
+/*
+  Type scale for show mode — four sizes, emphasis from weight and colour:
+    18px/600  episode title
+    16px      intro / sign-off text (matches Explore's chat messages)
+    13px      everything in the UI: playlist rows, info line, pill, toggle
+    11px mono edition label (matches transmission titles)
+  The footer button keeps 14px/500 to match Explore's start button.
+*/
+:root {
+  /* --text-secondary only reaches 3:1 on a highlighted row or the toggle's fill.
+     This lighter step clears WCAG AA (4.5:1) on both. */
+  --show-muted-strong: hsla(36, 8%, 72%, 1);
+}
+
 /* ── Mode switching ── */
 #show-view,
 #show-next-btn {
@@ -1477,7 +1491,7 @@ body.mode-show #show-next-btn {
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--show-muted-strong);
   background: transparent;
   border: none;
   border-radius: 8px;
@@ -1525,7 +1539,7 @@ body.mode-show #show-next-btn {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
@@ -1538,13 +1552,13 @@ body.mode-show #show-next-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   border: none;
   border-radius: 999px;
-  padding: 4px 10px;
+  padding: 4px 10px 4px 8px;
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -1582,6 +1596,7 @@ body.mode-show #show-next-btn {
 
 .show-row {
   display: flex;
+  align-items: center;
   gap: 8px;
   width: 100%;
   text-align: left;
@@ -1603,18 +1618,26 @@ body.mode-show #show-next-btn {
   background: var(--live-tag-hover-bg);
 }
 
+/* Number or icon, centred on the two-line title/artist block beside it */
 .show-row__num {
   flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 13px;
+  line-height: 1;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
 .show-row__num svg {
   display: block;
-  margin-top: 2px;
+}
+
+.show-row[aria-current="true"] .show-row__num,
+.show-row[aria-current="true"] .show-row__artist {
+  color: var(--show-muted-strong);
 }
 
 .show-row__text {
@@ -1629,7 +1652,7 @@ body.mode-show #show-next-btn {
 }
 
 .show-row__title  { font-size: 13px; font-weight: 500; line-height: 18px; }
-.show-row__artist { font-size: 12px; line-height: 16px; color: var(--text-secondary); }
+.show-row__artist { font-size: 13px; font-weight: 400; line-height: 18px; color: var(--text-secondary); }
 
 .show-stage {
   min-width: 0;
@@ -1648,7 +1671,7 @@ body.mode-show #show-next-btn {
 
 /* Intro / outro text and the first-visit service question */
 .show-text {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--assistant-bubble-text);
   background: var(--assistant-bubble-bg);
