@@ -79,6 +79,20 @@
     }
     const stars = Array.from({ length: STAR_COUNT }, buildStar);
 
+    // ── show mode: stars inside the disc ───────────────────────────────────
+    // Explore keeps the disc empty so the rings read clearly. Show mode has no rings, so
+    // the disc area is filled with stars that fade in linearly from the centre (invisible)
+    // to the disc edge (fully visible) — halfway out they are at half strength.
+    // Count is chosen to match the outer field's density where the two meet.
+    const INNER_STAR_COUNT = 1300;
+    function buildInnerStar() {
+      const s = buildStar();
+      s.normR = 1.02 * Math.sqrt(Math.random());   // even spread over the disc's area
+      s.fade  = Math.min(1, s.normR);
+      return s;
+    }
+    const showStars = stars.concat(Array.from({ length: INNER_STAR_COUNT }, buildInnerStar));
+
     // ── star shape ────────────────────────────────────────────────────────
     function starPath(ctx, x, y, outer, spikes, rot) {
       const inner = outer * 0.28;
@@ -148,7 +162,8 @@
       const cx        = W / 2;
       const cy        = footerTop;
 
-      // Show mode hides the record: no disc, no rings, stars fill the whole sky
+      // Show mode hides the record: no solid disc, no rings. Stars fade in across the
+      // disc area instead (see showStars above).
       const showMode = document.body.classList.contains('mode-show');
 
       // Animated disc radius (outermost ring)
@@ -171,7 +186,7 @@
       // Warm white stars — read from CSS, same token system as text, rings, everything else
       const starCol = getComputedStyle(document.documentElement).getPropertyValue('--star-color').trim();
 
-      for (const s of stars) {
+      for (const s of (showMode ? showStars : stars)) {
         const a  = s.angle + globalRot;
         const r  = s.normR * outerBase;
         const px = cx + Math.cos(a) * r;
@@ -184,7 +199,8 @@
         const raw   = Math.sin(tw);
         // Pure twinkle — sin wave drives opacity, nothing else
         // Color is already correct from --star-color, no brightness multiplier needed
-        const alpha = raw > 0.1 ? (raw - 0.1) / 0.9 : 0;
+        // Inner (show mode) stars carry a fade factor from their distance to the centre
+        const alpha = (raw > 0.1 ? (raw - 0.1) / 0.9 : 0) * (s.fade === undefined ? 1 : s.fade);
         if (alpha < 0.01) continue;
 
         ctx.fillStyle = `rgba(${starCol},${alpha.toFixed(3)})`;
