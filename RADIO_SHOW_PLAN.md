@@ -17,8 +17,8 @@ Show mode is built and working locally on the `radio-show` branch, with placehol
 - `/show-reset` in the text box forgets show progress and hides the toggle again (for testing the first-time flow)
 
 **What is deliberately held back**
-- The Explore/Show toggle is built but hidden from the public. It appears only in a browser that has already entered the show by address or command. To show it to everyone, set `SHOW_TOGGLE_PUBLIC = true` in the show section of `public/script.js`.
-- The normal arrival flow is untouched: no show-or-explore question, no "new" marker.
+- The header mode switch ("EP. 01" / "Explore") and the first-visit "explore or episode?" question are built but held back. They appear only in a browser that has already entered the show by address or command. To launch for everyone, set `SHOW_PUBLIC = true` in the show section of `public/script.js`.
+- For the public, the arrival flow is unchanged until launch. There is no "new" marker; the button's episode number plays that role.
 
 **Episode content status (`data/episodes/2026-10.json`)**
 - Title, running time and all audio are real. The episode opens with a spoken Introduction (no intro text), then Transmissions 1–4 after songs 4, 7, 10 and 14. Audio is AAC at 128 kbit/s in `public/audio/episodes/2026-10/`.
@@ -44,7 +44,9 @@ Show mode is built and working locally on the `radio-show` branch, with placehol
 - Current item: one embed at a time. No "now playing" label.
 - Footer: one button. Label names what comes next: "Drop the needle" (first song), "Next up", "Transmission from Efrain", "Sign off", then "Keep exploring" into Explore.
 - Voice breaks are called "Transmission 1", "Transmission 2", and so on.
-- The toggle label for show mode is still undecided ("Show" for now).
+- The Explore/Show toggle was replaced by one header button that names its destination: "EP. 01" in Explore, "Explore" in the episode.
+- First-time visitors are asked, right after the Spotify-or-Apple question, whether to explore or hear the episode ("Explore" / "Hear EP. 01").
+- Both of those are held behind `SHOW_PUBLIC` in `public/script.js` until launch.
 - Desktop: playlist left (200px), current item right. Phones (768px and under): playlist stacked on top with a capped, scrollable height.
 - Service pill: pink for Apple Music, green for Spotify. Tapping it asks the Spotify-or-Apple question in the footer (same component as today), then reloads the current song.
 
@@ -115,7 +117,7 @@ the order.
 ### 3. Show layout (`index.html`, `style.css`)
 - [x] Add the show markup beside the chat container: masthead, playlist, current item.
 - [x] Move the mock's styles into `style.css`.
-- [x] Add the Explore/Show toggle to the header (hidden behind `SHOW_TOGGLE_PUBLIC` until launch).
+- [x] Add the Explore/Show toggle to the header (since replaced by the single mode switch, held behind `SHOW_PUBLIC`).
 - [x] Phone layout: stacked playlist with capped height.
 
 ### 4. Show behaviour (`script.js`)
@@ -136,7 +138,7 @@ the order.
 - [ ] "New" marker on the toggle for an unstarted show. *(held back until launch)*
 
 ### 6. Arrival
-- [ ] After the Spotify-or-Apple question on a first visit to `/`, ask show or explore. *(held back until launch)*
+- [x] After the Spotify-or-Apple question on a first visit to `/`, ask show or explore. *(built; held behind `SHOW_PUBLIC`)*
 - [x] First visit to `/show`: skip the welcome transmission, ask Spotify or Apple, start the show.
 
 ### 7. Service pill

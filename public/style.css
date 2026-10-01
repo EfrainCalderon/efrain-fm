@@ -236,9 +236,9 @@ body.intro-active #groove-map-btn {
   display: none;
 }
 
-/* On small phones the label gives way when the Explore/Show toggle is also in the header */
-@media (max-width: 480px) {
-  #header-right:has(#mode-toggle:not([hidden])) .groove-map-btn__label {
+/* On the narrowest phones the label gives way when the episode button is also in the header */
+@media (max-width: 359px) {
+  #header-right:has(#mode-switch:not([hidden])) .groove-map-btn__label {
     display: none;
   }
 }
@@ -1497,39 +1497,56 @@ body.mode-show #show-next-btn {
   display: flex;
 }
 
-/* ── Explore / Show toggle (header) ── */
-#mode-toggle {
+/* ── Mode switch (header) ──
+   Same shape as the Grooves button beside it: icon, then label. It names the
+   destination ("EP. 01" from Explore, "Explore" from the episode), and is the brighter
+   of the two because it is the invitation. */
+#mode-switch {
   display: flex;
-  padding: 4px;
-  border-radius: 12px;
-  background: var(--input-bg);
-  border: 1px solid var(--input-border);
-}
-
-#mode-toggle[hidden] {
-  display: none;
-}
-
-#mode-toggle button {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
-  color: var(--show-muted-strong);
+  color: var(--text-primary);
   background: transparent;
   border: none;
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 6px 10px 6px 8px;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+  transition: background 0.2s ease;
 }
 
-#mode-toggle button:hover {
-  color: var(--text-primary);
+#mode-switch[hidden],
+body.intro-active:not(.mode-show) #mode-switch {
+  display: none;
 }
 
-#mode-toggle button[aria-pressed="true"] {
-  color: var(--text-primary);
+#mode-switch:hover {
+  background: var(--live-tag-bg);
+}
+
+#mode-switch:active {
   background: var(--live-tag-hover-bg);
+}
+
+#mode-switch-icon {
+  display: flex;
+}
+
+/* Header buttons are 30px tall; this extends their tap area to 44px without moving them */
+#mode-switch,
+#groove-map-btn {
+  position: relative;
+}
+
+#mode-switch::after,
+#groove-map-btn::after {
+  content: '';
+  position: absolute;
+  inset: -7px 0;
 }
 
 /* ── Masthead: edition, title, info line ── */
@@ -1852,7 +1869,8 @@ body.mode-show.show-picking #show-next-btn {
 }
 
 /* ── Keyboard focus ── */
-#mode-toggle button:focus-visible,
+#mode-switch:focus-visible,
+#groove-map-btn:focus-visible,
 .service-pill:focus-visible,
 .show-row:focus-visible,
 #show-next-btn:focus-visible {

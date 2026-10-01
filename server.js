@@ -74,6 +74,7 @@ function loadEpisodes() {
 
       episodes.push({
         id: raw.id || file.replace(/\.json$/, ''),
+        number: Number.isInteger(raw.number) ? raw.number : null,
         edition: raw.edition || '',
         title: raw.title || '',
         duration_minutes: raw.duration_minutes || null,

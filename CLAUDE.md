@@ -59,10 +59,11 @@ Fully self-contained canvas renderer for the animated rings + star field. Thrott
 ### Show mode (monthly episode)
 A second, on-rails mode beside Explore: a fixed order of songs and voice transmissions stepped through with one footer button. No free text. Full design record and status in `RADIO_SHOW_PLAN.md`.
 
-- **Data:** one file per episode in `data/episodes/<year-month>.json` listing ordered `steps` (`song` by library `song_id`, or `transmission` with an `audio` path), plus `edition`, `title`, `duration_minutes`, `intro`, `outro`. The newest file by id is the current episode. Songs must exist in `data/songs.json`; an episode with an unknown id is skipped at startup with an `EPISODE SKIPPED` log line.
+- **Data:** one file per episode in `data/episodes/<year-month>.json` listing ordered `steps` (`song` by library `song_id`, or `transmission` with an `audio` path), plus `number`, `edition`, `title`, `duration_minutes`, `intro`, `outro`. The newest file by id is the current episode. Songs must exist in `data/songs.json`; an episode with an unknown id is skipped at startup with an `EPISODE SKIPPED` log line.
 - **Audio:** transmission files live in `public/audio/episodes/<year-month>/`.
 - **Frontend:** the `initShow` IIFE at the end of `script.js`, markup in `#show-view`, styles under "SHOW MODE" in `style.css`. `body.mode-show` swaps the chat thread and text input for the show view; neither mode is torn down, so switching keeps both modes' progress.
-- **Entry:** `/show` or `/episode` in the address bar, or the `/show` command in the text box. The header toggle is hidden unless `SHOW_TOGGLE_PUBLIC` is true or the browser has already entered show mode (`efrain_fm_show_unlocked`).
+- **Entry:** `/show` or `/episode` in the address bar, the `/show` command in the text box, or the header mode switch. The switch is one button that names its destination: `EP. 01` (from the episode's `number`) while in Explore, `Explore` while in the episode.
+- **Launch switch:** `SHOW_PUBLIC` in `initShow`. While false, the header button in Explore and the first-visit "explore or episode?" question (`showModeChoice`, asked right after the Spotify/Apple question) are only offered in browsers that have already entered show mode (`efrain_fm_show_unlocked`). Set it to true to offer the episode to everyone.
 - **One embed at a time.** Spotify/Apple embeds can't be paused from outside, so leaving a mode takes its iframes off the page; our own `<audio>` is paused and resumed. Transmissions never autoplay in show mode.
 - **State:** progress in `localStorage` under `efrain_fm_show_progress`, keyed by episode id (a new id starts fresh). Show plays do not touch Groove counts or Explore's played list.
 

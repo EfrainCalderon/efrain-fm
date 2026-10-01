@@ -43,7 +43,7 @@ function setPlayerPref(val) { localStorage.setItem(PLAYER_KEY, val); }
 // showPlayerPicker  — first-time setup, three options, called after intro audio ends
 // showPlayerSwitchPrompt — mid-session, two options, called when user mentions a platform
 // =====================
-async function showPlayerPicker(promptText) {
+async function showPlayerPicker(promptText, { offerEpisode = false } = {}) {
   isTyping = true;
   fadeOutInput();
 
@@ -87,16 +87,24 @@ async function showPlayerPicker(promptText) {
       await new Promise(r => setTimeout(r, 500));
       removeTypingIndicator(t);
 
+      // First visit only: once the service is settled, offer the two ways to listen
+      const offer = offerEpisode && window.showMode && window.showMode.isOffered();
+
       let reply;
       if (opt.label === 'Spotify') {
         reply = "Cool, I'll use Spotify. Heads up — they only let me share 30-second previews, but you can click on the song to hear on Spotify.";
       } else if (opt.label === 'Apple Music') {
-        reply = "Awesome — I'll show Apple Music versions. You can listen to the full song if you sign in. What would you like to hear?";
+        reply = "Awesome — I'll show Apple Music versions. You can listen to the full song if you sign in."
+          + (offer ? '' : ' What would you like to hear?');
       } else {
         reply = "Got it — I'll use Apple Music to share songs because its previews are longer than Spotify.";
       }
 
       await addMessageToChatWithTyping(reply, 'assistant');
+      if (offer) {
+        showModeChoice();
+        return;
+      }
       isTyping = false;
       setTimeout(fadeInInput, 600);
     });
@@ -107,6 +115,65 @@ async function showPlayerPicker(promptText) {
   footer.appendChild(interruptEl);
   requestAnimationFrame(() => requestAnimationFrame(() => interruptEl.classList.add('visible')));
   // Note: input stays hidden — fadeInInput fires inside the button click handler
+}
+
+// First visit, after the service question: explain the two ways to listen in one message,
+// then offer them as two buttons in the footer (same slot as every other choice).
+async function showModeChoice() {
+  isTyping = true;
+  fadeOutInput();
+  const typingIndicator = showTypingIndicator();
+  await new Promise(r => setTimeout(r, 700));
+  removeTypingIndicator(typingIndicator);
+
+  const { name, label, songCount, enter } = window.showMode;
+  await addMessageToChatWithTyping(
+    `There are two ways to listen. Explore: tell me a mood, a genre, or an artist, and I’ll find you a song. Or hear ${name()}, this month’s show: ${songCount()} songs in order, with me talking in between.`,
+    'assistant'
+  );
+
+  const footer = document.querySelector('footer') || document.getElementById('chat-footer');
+  const interruptEl = document.createElement('div');
+  interruptEl.id = 'interrupt-bar';
+  const btnRow = document.createElement('div');
+  btnRow.id = 'interrupt-buttons';
+
+  const options = [
+    { label: 'Explore',           episode: false },
+    { label: `Hear ${label()}`,   episode: true  },
+  ];
+
+  options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'interrupt-btn';
+    btn.textContent = opt.label;
+    btn.style.animationDelay = `${i * 70}ms`;
+    btn.addEventListener('click', async () => {
+      interruptEl.classList.remove('visible');
+      await new Promise(r => setTimeout(r, 350));
+      interruptEl.remove();
+
+      if (opt.episode) {
+        // Leave Explore ready for whenever they come back, then open the episode
+        isTyping = false;
+        fadeInInput();
+        enter();
+        return;
+      }
+
+      const t = showTypingIndicator();
+      await new Promise(r => setTimeout(r, 500));
+      removeTypingIndicator(t);
+      await addMessageToChatWithTyping('What would you like to hear?', 'assistant');
+      isTyping = false;
+      setTimeout(fadeInInput, 600);
+    });
+    btnRow.appendChild(btn);
+  });
+
+  interruptEl.appendChild(btnRow);
+  footer.appendChild(interruptEl);
+  requestAnimationFrame(() => requestAnimationFrame(() => interruptEl.classList.add('visible')));
 }
 
 async function showPlayerSwitchPrompt() {
@@ -330,7 +397,7 @@ function handleSecretCommand(command) {
       return true;
 
     case '/show-reset':
-      // Forget show progress and hide the toggle again — useful for testing the first-time flow
+      // Forget show progress and hide the episode button again — useful for testing the first-time flow
       if (window.resetShowMode) window.resetShowMode();
       console.log('Show progress reset.');
       return true;
@@ -1621,7 +1688,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
           localStorage.setItem(STORAGE_KEY, fullTitle);
         }
         // Show player picker after a short breath
-        setTimeout(() => showPlayerPicker(), 800);
+        setTimeout(() => showPlayerPicker(undefined, { offerEpisode: true }), 800);
       });
     }
 
@@ -2458,9 +2525,11 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 // - Show plays never touch Groove counts or Explore's played-song list.
 // =====================
 (function initShow() {
-  // Flip to true to show the Explore/Show toggle to every visitor. Until then it only
-  // appears in browsers that have already entered show mode by address or command.
-  const SHOW_TOGGLE_PUBLIC = false;
+  // LAUNCH SWITCH. While false, the episode is only offered (header button in Explore,
+  // and the "explore or episode?" question for first-time visitors) in browsers that
+  // have already entered show mode by address or command. Flip to true to offer it to
+  // every visitor.
+  const SHOW_PUBLIC = false;
 
   const UNLOCK_KEY   = 'efrain_fm_show_unlocked';
   const PROGRESS_KEY = 'efrain_fm_show_progress';
@@ -2477,9 +2546,9 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   const durationEl    = document.getElementById('show-duration');
   const editionEl     = document.getElementById('show-edition');
   const titleEl       = document.getElementById('show-title');
-  const toggle        = document.getElementById('mode-toggle');
-  const toggleExplore = document.getElementById('mode-toggle-explore');
-  const toggleShow    = document.getElementById('mode-toggle-show');
+  const modeSwitch      = document.getElementById('mode-switch');
+  const modeSwitchIcon  = document.getElementById('mode-switch-icon');
+  const modeSwitchLabel = document.getElementById('mode-switch-label');
   const footer        = document.getElementById('input-footer');
 
   const ICON_MIC  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
@@ -2962,10 +3031,22 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   }
 
   // ── Mode switching ─────────────────────────────────────────────────────
-  function syncToggle() {
-    toggle.hidden = !(SHOW_TOGGLE_PUBLIC || localStorage.getItem(UNLOCK_KEY));
-    toggleExplore.setAttribute('aria-pressed', String(!active));
-    toggleShow.setAttribute('aria-pressed', String(active));
+  const ICON_EPISODE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>';
+  const ICON_EXPLORE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+
+  const episodeNumber = () => (episode && episode.number ? String(episode.number).padStart(2, '0') : '');
+  const episodeLabel  = () => (episodeNumber() ? `EP. ${episodeNumber()}` : 'Episode');
+  const episodeName   = () => (episodeNumber() ? `Episode ${episodeNumber()}` : 'the episode');
+
+  // Is the episode offered to this visitor from Explore? (See SHOW_PUBLIC above.)
+  const isOffered = () => Boolean(episode) && (SHOW_PUBLIC || Boolean(localStorage.getItem(UNLOCK_KEY)));
+
+  // One header button that names where it takes you
+  function syncSwitch() {
+    modeSwitch.hidden = !(active || isOffered());
+    modeSwitchIcon.innerHTML = active ? ICON_EXPLORE : ICON_EPISODE;
+    modeSwitchLabel.textContent = active ? 'Explore' : episodeLabel();
+    modeSwitch.setAttribute('aria-label', active ? 'Switch to Explore' : `Switch to ${episode ? episode.title : 'the episode'}`);
   }
 
   function setMode(mode, { push = true } = {}) {
@@ -2979,7 +3060,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       localStorage.setItem(UNLOCK_KEY, '1');
       holdExploreMedia();
       loadEpisode()
-        .then(() => { if (active) returnToStage(); })
+        .then(() => { if (active) returnToStage(); syncSwitch(); })
         .catch(() => { if (active) renderUnavailable(); });
     } else {
       closePicker();
@@ -2988,12 +3069,11 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       releaseExploreMedia();
     }
 
-    syncToggle();
+    syncSwitch();
     if (push) history.pushState({ mode }, '', toShow ? '/show' : '/');
   }
 
-  toggleExplore.addEventListener('click', () => setMode('explore'));
-  toggleShow.addEventListener('click', () => setMode('show'));
+  modeSwitch.addEventListener('click', () => setMode(active ? 'explore' : 'show'));
   window.addEventListener('popstate', () => setMode(isShowPath() ? 'show' : 'explore', { push: false }));
 
   // Used by the /show and /show-reset commands
@@ -3004,10 +3084,21 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     typedText.clear();
     txEmbeds.clear();
     if (episode) restoreProgress();
-    syncToggle();
+    syncSwitch();
   };
 
-  syncToggle();
+  // What Explore's first-visit flow needs to offer the episode
+  window.showMode = {
+    isOffered,
+    label:     episodeLabel,
+    name:      episodeName,
+    songCount: () => (episode ? episode.song_count : 0),
+    enter:     () => setMode('show'),
+  };
+
+  syncSwitch();
   if (isShowPath()) setMode('show', { push: false });
+  // Explore needs the episode too, for the header button's label and the first-visit offer
+  else loadEpisode().then(syncSwitch).catch(() => {});
 })();
 

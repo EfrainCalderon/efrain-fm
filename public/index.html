@@ -377,12 +377,14 @@
           <span class="groove-map-btn__label">Grooves</span>
         </button>
 
-        <!-- Explore / Show toggle. Hidden until show mode is public (SHOW_TOGGLE_PUBLIC in script.js)
+        <!-- Mode switch: one button that names where it takes you. In Explore it reads
+             "EP. 01" (the current episode); in the episode it reads "Explore".
+             In Explore it stays hidden until the show is public (SHOW_PUBLIC in script.js)
              or this browser has entered the show via /show or the /show command. -->
-        <div id="mode-toggle" role="group" aria-label="Mode" hidden>
-          <button type="button" id="mode-toggle-explore" aria-pressed="true">Explore</button>
-          <button type="button" id="mode-toggle-show" aria-pressed="false">Show</button>
-        </div>
+        <button type="button" id="mode-switch" hidden>
+          <span id="mode-switch-icon" aria-hidden="true"></span>
+          <span id="mode-switch-label"></span>
+        </button>
 
       </div>
     </header>
