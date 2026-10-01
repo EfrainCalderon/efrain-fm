@@ -190,7 +190,7 @@ Order as supplied on 2026-10-01. "In library" songs already have both links.
 | 15 | Dr. Dog – Say Something | In library `0122` | have | have |
 
 Notes
-- Spotify's search API refused lookups (403) with the project's credentials, so Spotify links come from Efrain.
+- Spotify links are supplied by hand each month. Spotify's developer rules (changed Feb–Mar 2026) require the app owner to have Premium, which Efrain no longer has, so automatic Spotify lookup is not available. Apple Music links can still be looked up automatically.
 - Year differences between the list and the library: The Radiant City (library 2005, list 2016), Say Something (library 2010, list 2005). Library left unchanged.
 - Still to supply: show title, intro and outro text, total minutes, transmission audio and positions, clusters and stories for the nine new songs.
 
