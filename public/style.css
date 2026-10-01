@@ -1741,6 +1741,11 @@ body.mode-show.show-picking #show-next-btn {
     justify-content: flex-end;
   }
 
+  /* Embeds sit at the bottom, by the button. Text reads from the top, under the playlist. */
+  .show-stage .show-text {
+    margin-bottom: auto;
+  }
+
   #show-picker {
     padding: 10px 12px;
     padding-bottom: max(10px, calc(10px + env(safe-area-inset-bottom)));
