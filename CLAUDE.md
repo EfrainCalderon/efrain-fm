@@ -21,7 +21,7 @@ Single Express server that:
 1. Serves static files from `public/`
 2. Loads `data/songs.json` once at startup (all song data in memory)
 3. Maintains in-memory chat sessions keyed by `sessionId`
-4. Exposes `/api/chat` (POST, rate-limited to 10 req/min), `/api/groove-keystones`, `/api/favorites`, `/api/groove-log`, `/api/show`
+4. Exposes `/api/chat` (POST, rate-limited to 10 req/min), `/api/groove-keystones`, `/api/favorites`, `/api/groove-log`, `/api/show`, `/api/feedback`
 5. Serves the same page at `/show` and `/episode` (the frontend opens in show mode)
 
 **Request pipeline for `/api/chat`:**
@@ -43,7 +43,7 @@ Each song has:
 The trait vocabulary is the central abstraction. User natural language → `TRAIT_ALIASES` → trait IDs → scored against `song.traits`. Categories: `energy:`, `mood:`, `texture:`, `genre:`, `era:`, `char:`, `origin:`. `GENRE_WORDS` prevents genre words from matching song titles/artist names by text.
 
 ### Groove Glow system
-9 clusters (C1–C9), each with a hidden "keystone" song. Playing enough non-keystone songs from a cluster unlocks its keystone. State persists in `localStorage`. The background canvas (`index.html` inline script) renders 9 animated rings; unlocked clusters cause inner rings to glow with a sweep animation. The canvas communicates with `script.js` via `window.dispatchEvent('grooveRingUnlock')` and `window.getGrooveGlowCount`.
+9 clusters (C1–C9), each with a hidden "keystone" song. Playing 3 non-keystone songs from a cluster unlocks its keystone; if nothing is unlocked after 4 songs in a session, the most-played cluster's keystone is surfaced. The Grooves button (icon + label) is always shown in Explore once past the first-visit screen. State persists in `localStorage`. The background canvas (`index.html` inline script) renders 9 animated rings; unlocked clusters cause inner rings to glow with a sweep animation. The canvas communicates with `script.js` via `window.dispatchEvent('grooveRingUnlock')` and `window.getGrooveGlowCount`.
 
 ### Frontend (`public/script.js`)
 Vanilla JS, no framework. Key concerns:
@@ -65,6 +65,9 @@ A second, on-rails mode beside Explore: a fixed order of songs and voice transmi
 - **Entry:** `/show` or `/episode` in the address bar, or the `/show` command in the text box. The header toggle is hidden unless `SHOW_TOGGLE_PUBLIC` is true or the browser has already entered show mode (`efrain_fm_show_unlocked`).
 - **One embed at a time.** Spotify/Apple embeds can't be paused from outside, so leaving a mode takes its iframes off the page; our own `<audio>` is paused and resumed. Transmissions never autoplay in show mode.
 - **State:** progress in `localStorage` under `efrain_fm_show_progress`, keyed by episode id (a new id starts fresh). Show plays do not touch Groove counts or Explore's played list.
+
+- **Flow:** the first item is a spoken Introduction. The Spotify-or-Apple question is asked only when the listener is about to reach the first song embed, never on arrival.
+- **Listener notes:** under the sign-off, a small form posts to `/api/feedback`, which emails the note to `NOTIFY_EMAIL` through Resend (`RESEND_API_KEY`), the same setup `/api/log` uses. Rate-limited (3 per 10 minutes per IP), length-capped, honeypot field, sent as plain text. Nothing a listener types is stored or rendered back. Without those two env vars the endpoint returns 503 and the form says the note couldn't be sent.
 
 **Publishing a new episode:** add any new songs to `data/songs.json`, put transmission audio in `public/audio/episodes/<year-month>/`, add `data/episodes/<year-month>.json`, push.
 

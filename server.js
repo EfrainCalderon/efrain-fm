@@ -1847,12 +1847,13 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    // ── 6-song fallback unlock ───────────────────────────────────────────────
-    // If the user has received 6+ songs and still hasn't unlocked anything,
+    // ── 4-song fallback unlock ───────────────────────────────────────────────
+    // (Was 6 songs; lowered so a first Groove lands earlier in a session.)
+    // If the user has received 4+ songs and still hasn't unlocked anything,
     // surface the keystone for whichever cluster they've played the most songs
     // from this session. Rewards actual listening behavior vs. random assignment.
     // Only fires once (after first unlock, unlockedClusters.length > 0 so this is skipped).
-    if (session.songCount >= 6 && unlockedClusters.length === 0 && Object.keys(clusterCounts).length > 0) {
+    if (session.songCount >= 4 && unlockedClusters.length === 0 && Object.keys(clusterCounts).length > 0) {
       const mostPlayedCluster = Object.entries(clusterCounts).reduce(
         (best, [cl, n]) => n > best[1] ? [cl, n] : best,
         ['', 0]
@@ -1911,6 +1912,77 @@ app.get('/api/show', (req, res) => {
 
 app.get(['/show', '/episode'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// =====================
+// LISTENER NOTES
+// A short note (and optional reply address) left at the end of an episode, emailed to
+// NOTIFY_EMAIL via Resend — the same setup /api/log uses. Nothing is stored and nothing
+// a listener types is ever shown back on the site.
+//
+// Guards: 3 notes per 10 minutes per IP, length caps, a strict email pattern, a hidden
+// honeypot field for bots, and the note is sent as plain text (never HTML).
+// =====================
+const feedbackLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, max: 3,
+  message: { ok: false, error: 'rate' },
+  standardHeaders: true, legacyHeaders: false,
+});
+
+app.post('/api/feedback', feedbackLimiter, async (req, res) => {
+  try {
+    const body = req.body || {};
+
+    // Honeypot: real listeners never see this field. Pretend it worked and drop it.
+    if (typeof body.website === 'string' && body.website.trim()) return res.json({ ok: true });
+
+    const message = typeof body.message === 'string' ? body.message.trim() : '';
+    const email   = typeof body.email === 'string' ? body.email.trim() : '';
+    const episode = typeof body.episode === 'string' && /^[\w-]{1,40}$/.test(body.episode) ? body.episode : 'unknown';
+
+    if (!message || message.length > 1000) return res.status(400).json({ ok: false, error: 'message' });
+    if (email && (email.length > 254 || !/^[^\s@<>,;"']+@[^\s@<>,;"']+\.[^\s@<>,;"']+$/.test(email))) {
+      return res.status(400).json({ ok: false, error: 'email' });
+    }
+
+    const sentAt = new Date();
+    // Log that a note arrived, but not what it says or who sent it
+    console.log('[LISTENER NOTE]', JSON.stringify({ sentAt: sentAt.toISOString(), episode, hasEmail: !!email, length: message.length }));
+
+    const resendKey   = process.env.RESEND_API_KEY;
+    const notifyEmail = process.env.NOTIFY_EMAIL;
+    if (!resendKey || !notifyEmail) return res.status(503).json({ ok: false, error: 'unavailable' });
+
+    const when = sentAt.toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' });
+    const text = [
+      `Episode: ${episode}`,
+      `Sent: ${when} ET`,
+      `From: ${email || '(no email given)'}`,
+      '',
+      message,
+    ].join('\n');
+
+    const sendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from:    'efrain.fm <onboarding@resend.dev>',
+        to:      [notifyEmail],
+        subject: '// Note from a listener — efrain.fm',
+        text,
+        ...(email ? { reply_to: email } : {}),
+      }),
+    });
+
+    if (!sendRes.ok) {
+      console.error('Resend error (listener note):', await sendRes.text());
+      return res.status(502).json({ ok: false, error: 'send' });
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Listener note error:', e);
+    res.status(500).json({ ok: false, error: 'server' });
+  }
 });
 
 // =====================

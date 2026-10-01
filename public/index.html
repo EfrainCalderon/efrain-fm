@@ -367,13 +367,14 @@
       </h1>
       <!-- Right side controls -->
       <div id="header-right">
-        <!-- Groove map button — disc icon, only visible once at least 1 cluster is unlocked -->
+        <!-- Grooves button — disc icon + label. Always shown in Explore once past the first-visit screen. -->
         <button id="groove-map-btn" aria-label="Grooves" title="Grooves">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <circle cx="12" cy="12" r="6"/>
             <circle cx="12" cy="12" r="2"/>
           </svg>
+          <span class="groove-map-btn__label">Grooves</span>
         </button>
 
         <!-- Explore / Show toggle. Hidden until show mode is public (SHOW_TOGGLE_PUBLIC in script.js)
@@ -444,7 +445,6 @@
           <span id="show-count"></span>
           <span class="sep" aria-hidden="true">•</span>
           <span id="show-duration"></span>
-          <span class="sep" aria-hidden="true">•</span>
           <button type="button" class="service-pill" id="show-service-pill" aria-label="Change music service"></button>
         </div>
       </div>

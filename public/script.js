@@ -21,7 +21,7 @@ let lastSongInfoState = { text: null, exhausted: false };
 // Mirrors server-side session.songCount / askedMoreOf / lastInterruptSong — these pace
 // the "this reminds me of..." / "want to go somewhere different?" / "what else are you
 // in the mood for?" interrupts. Without this, a cold instance restarts the count at 0
-// and those prompts (including the 6-song Groove Glow fallback unlock) may never fire.
+// and those prompts (including the 4-song Groove Glow fallback unlock) may never fire.
 let songsThisSession = 0;
 let askedMoreOfThisSession = false;
 let lastInterruptSongCount = 0;
@@ -1708,7 +1708,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   // ── Visibility ────────────────────────────────────────────────────────
   function syncButtonVisibility() {
     const count = grooveState.unlockedClusters.length;
-    mapBtn.classList.toggle('visible', count > 0);
+    // The button is always shown in Explore now (see #groove-map-btn in style.css)
     const subtitleEl = document.getElementById('groove-modal-subtitle');
     if (subtitleEl) {
       subtitleEl.textContent = count >= 9 ? 'All 9 unlocked' : `${count} of 9 unlocked`;
@@ -2595,11 +2595,125 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     el.className = 'show-text';
     if (key !== null && !typedText.has(key)) {
       typedText.add(key);
-      typeText(el, text, 14);
+      el.typed = typeText(el, text, 14);
     } else {
       el.textContent = text;
+      el.typed = Promise.resolve();
     }
     return el;
+  }
+
+  // ── Listener note (shown under the sign-off) ───────────────────────────
+  // A short message and optional reply address, posted to /api/feedback, which emails
+  // it to Efrain. Nothing typed here is ever rendered back into the page.
+  const noteDraft = { message: '', email: '' };   // survives switching modes or rows
+  const noteSentKey = () => `efrain_fm_show_note_${episode.id}`;
+
+  function buildNoteForm() {
+    const form = document.createElement('form');
+    form.className = 'show-note';
+    form.noValidate = true;
+
+    const status = document.createElement('p');
+    status.className = 'show-note__status';
+    status.setAttribute('role', 'status');
+
+    if (localStorage.getItem(noteSentKey())) {
+      status.textContent = 'Your note was sent. Thanks for listening.';
+      form.appendChild(status);
+      return form;
+    }
+
+    const field = (labelText, control) => {
+      const label = document.createElement('label');
+      label.className = 'show-note__label';
+      label.textContent = labelText;
+      label.htmlFor = control.id;
+      return [label, control];
+    };
+
+    const message = document.createElement('textarea');
+    message.id = 'show-note-message';
+    message.className = 'show-note__input';
+    message.rows = 3;
+    message.maxLength = 1000;
+    message.placeholder = 'What caught your ear?';
+    message.value = noteDraft.message;
+    message.addEventListener('input', () => { noteDraft.message = message.value; });
+
+    const email = document.createElement('input');
+    email.id = 'show-note-email';
+    email.className = 'show-note__input';
+    email.type = 'email';
+    email.autocomplete = 'email';
+    email.maxLength = 254;
+    email.placeholder = 'name@example.com';
+    email.value = noteDraft.email;
+    email.addEventListener('input', () => { noteDraft.email = email.value; });
+
+    // Honeypot: hidden from people and screen readers; only bots fill it
+    const trap = document.createElement('input');
+    trap.type = 'text';
+    trap.name = 'website';
+    trap.className = 'show-note__trap';
+    trap.tabIndex = -1;
+    trap.autocomplete = 'off';
+    trap.setAttribute('aria-hidden', 'true');
+
+    const send = document.createElement('button');
+    send.type = 'submit';
+    send.className = 'show-note__send';
+    send.textContent = 'Send note';
+
+    form.append(
+      ...field('Leave a note for Efrain', message),
+      ...field('Your email, if you’d like a reply (optional)', email),
+      trap, send, status
+    );
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = message.value.trim();
+      const addr = email.value.trim();
+      if (!text) {
+        status.textContent = 'Write a note before sending.';
+        message.focus();
+        return;
+      }
+      if (addr && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) {
+        status.textContent = 'That email doesn’t look right. Check it, or leave it blank.';
+        email.focus();
+        return;
+      }
+
+      send.disabled = true;
+      send.textContent = 'Sending…';
+      status.textContent = '';
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, email: addr, episode: episode.id, website: trap.value }),
+        });
+        if (res.ok) {
+          localStorage.setItem(noteSentKey(), '1');
+          noteDraft.message = '';
+          noteDraft.email = '';
+          status.textContent = 'Your note was sent. Thanks for listening.';
+          form.replaceChildren(status);
+          return;
+        }
+        status.textContent = res.status === 429
+          ? 'You’ve sent a few notes already. Try again in a few minutes.'
+          : 'Your note couldn’t be sent right now. It’s still here; try again in a minute.';
+      } catch {
+        status.textContent = 'Your note couldn’t be sent. Check your connection and try again.';
+      }
+      send.disabled = false;
+      send.textContent = 'Send note';
+    });
+
+    return form;
   }
 
   function buildSongEmbed(item) {
@@ -2668,13 +2782,20 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     if (!item) return;
     if (item.type === 'song') stageEl.appendChild(buildSongEmbed(item));
     else if (item.type === 'transmission') stageEl.appendChild(getTransmissionEmbed(current, item));
-    else stageEl.appendChild(buildTextBlock(item.text, current));
+    else {
+      const block = buildTextBlock(item.text, current);
+      stageEl.appendChild(block);
+      // The note form follows the sign-off once it has finished typing
+      if (item.type === 'outro') {
+        block.typed.then(() => { if (stageEl.contains(block)) stageEl.appendChild(buildNoteForm()); });
+      }
+    }
   }
 
   // ── Masthead + footer button ───────────────────────────────────────────
   function nextLabel() {
     const next = items[current + 1];
-    if (!next) return 'Keep exploring';
+    if (!next) return 'Explore';
     if (next.type === 'transmission') return 'Transmission from Efrain';
     if (next.type === 'outro') return 'Sign off';
     return songNumber(current + 1) === 1 ? 'Drop the needle' : 'Next up';
@@ -2687,7 +2808,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     const total = episode.song_count;
     const heard = songsReached();
     countEl.textContent    = heard ? `${heard} of ${total} songs` : `${total} songs`;
-    durationEl.textContent = episode.duration_minutes ? `${episode.duration_minutes} minutes` : '';
+    durationEl.textContent = episode.duration_minutes ? `${episode.duration_minutes} min` : '';
     durationEl.previousElementSibling.hidden = !episode.duration_minutes;
 
     const service = getPlayerPref();
@@ -2713,16 +2834,28 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     nextBtn.textContent = 'Back to exploring';
   }
 
+  function advance() {
+    current += 1;
+    if (current >= reached) reached = current + 1;
+    saveProgress();
+    render();
+  }
+
   nextBtn.addEventListener('click', () => {
     // On the last item (or with no episode) the button leads into Explore
     if (current + 1 >= items.length) {
       setMode('explore');
       return;
     }
-    current += 1;
-    if (current >= reached) reached = current + 1;
-    saveProgress();
-    render();
+    // Ask Spotify or Apple Music only when it's first needed: just before the first
+    // song embed, not before the spoken introduction.
+    if (items[current + 1].type === 'song' && !localStorage.getItem(PLAYER_KEY)) {
+      needsServicePick = true;
+      renderStage();
+      openPicker();
+      return;
+    }
+    advance();
   });
 
   // ── Spotify / Apple Music question (footer, same pattern as Explore's interrupt bar) ──
@@ -2747,9 +2880,11 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
         needsServicePick = false;
         closePicker();
         renderControls();
-        // After the first pick, put the real item on stage. Otherwise reload only if the
-        // service changed and a song is showing — never interrupt a transmission.
-        if (wasFirstPick || (changed && items[current] && items[current].type === 'song')) renderStage();
+        // The first pick was asked for on the way to a song, so carry on to it. Otherwise
+        // reload only if the service changed and a song is showing — never interrupt
+        // a transmission.
+        if (wasFirstPick) advance();
+        else if (changed && items[current] && items[current].type === 'song') renderStage();
       });
       pickerEl.appendChild(btn);
     });
@@ -2842,16 +2977,12 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       view.hidden = false;
       localStorage.setItem(UNLOCK_KEY, '1');
       holdExploreMedia();
-      needsServicePick = !localStorage.getItem(PLAYER_KEY);
       loadEpisode()
-        .then(() => {
-          if (!active) return;
-          returnToStage();
-          if (needsServicePick) openPicker();
-        })
+        .then(() => { if (active) returnToStage(); })
         .catch(() => { if (active) renderUnavailable(); });
     } else {
       closePicker();
+      needsServicePick = false;   // an unanswered question is simply asked again later
       leaveStage();
       releaseExploreMedia();
     }

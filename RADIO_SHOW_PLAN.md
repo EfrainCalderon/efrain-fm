@@ -22,7 +22,8 @@ Show mode is built and working locally on the `radio-show` branch, with placehol
 
 **Episode content status (`data/episodes/2026-10.json`)**
 - Title, running time and all audio are real. The episode opens with a spoken Introduction (no intro text), then Transmissions 1–4 after songs 4, 7, 10 and 14. Audio is AAC at 128 kbit/s in `public/audio/episodes/2026-10/`.
-- Still a placeholder: `outro` (sign-off text).
+- Sign-off text is real. Under it is a listener note form (`/api/feedback`), which needs `RESEND_API_KEY` and `NOTIFY_EMAIL` set on the host to deliver.
+- First-time listeners are asked Spotify or Apple Music when they press "Drop the needle", not on arrival.
 - Export guideline: AAC 128 kbit/s. Files are served through a Vercel Function, which documents a 4.5 MB response cap; the largest October file is 3.0 MB.
 
 **Before going live:** replace the placeholders, review on the branch, then merge `radio-show` into `main`.
