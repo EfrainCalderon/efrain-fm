@@ -5,28 +5,29 @@ steps through a fixed order of songs and voice transmissions at their own pace.
 
 Status key: `[ ]` to do · `[x]` done · **(open)** needs a decision
 
-**Where the work lives:** branch `radio-show`. The project auto-commits and pushes at the end of every turn, and anything on `main` deploys to the live site, so unfinished show work stays on this branch until it is ready to merge.
+**Where the work lives:** `main`. It was built on a `radio-show` branch and merged on 2026-10-01.
 
-## Status (2026-10-01)
+## Status
 
-Show mode is built and working locally on the `radio-show` branch, with placeholder content.
+**Launched 2026-10-01.** Show mode is live on efrain.fm for every visitor, with Episode 01
+("It could be Franky"): 15 songs, a spoken introduction, four transmissions, a sign-off,
+and a listener note form that emails Efrain.
 
-**How to get in while it is hidden**
-- Address: `/show` or `/episode`
-- Typed in the Explore text box: `/show` or `/episode`
-- `/show-reset` in the text box forgets show progress and hides the toggle again (for testing the first-time flow)
+This file is now the design record: what was decided and why. For how the mode works
+today, see the "Show mode" section of `CLAUDE.md`. To publish a new episode, use the
+`new-episode` skill in `.claude/skills/new-episode/`.
 
-**What is deliberately held back**
-- The header mode switch ("EP. 01" / "Explore") and the first-visit "explore or episode?" question are built but held back. They appear only in a browser that has already entered the show by address or command. To launch for everyone, set `SHOW_PUBLIC = true` in the show section of `public/script.js`.
-- For the public, the arrival flow is unchanged until launch. There is no "new" marker; the button's episode number plays that role.
-
-**Episode content status (`data/episodes/2026-10.json`)**
-- Title, running time and all audio are real. The episode opens with a spoken Introduction (no intro text), then Transmissions 1–4 after songs 4, 7, 10 and 14. Audio is AAC at 128 kbit/s in `public/audio/episodes/2026-10/`.
-- Sign-off text is real. Under it is a listener note form (`/api/feedback`), which needs `RESEND_API_KEY` and `NOTIFY_EMAIL` set on the host to deliver.
-- First-time listeners are asked Spotify or Apple Music when they press "Drop the needle", not on arrival.
-- Export guideline: AAC 128 kbit/s. Files are served through a Vercel Function, which documents a 4.5 MB response cap; the largest October file is 3.0 MB.
-
-**Before going live:** replace the placeholders, review on the branch, then merge `radio-show` into `main`.
+**Changes made after the original plan below was written**
+- The Explore/Show toggle became one header button that names its destination ("EP. 01" in Explore, "Explore" in the episode).
+- Each month is an "episode"; files live in `data/episodes/` and `public/audio/episodes/`.
+- The episode opens with a spoken Introduction instead of intro text, and the Spotify-or-Apple question moved to just before the first song.
+- First-time visitors are asked "explore or episode?" right after the Spotify-or-Apple question.
+- Button labels: "Drop the needle", "Next up", "Transmission from Efrain", "Sign off", "Explore".
+- Voice breaks are "Transmission 1", "Transmission 2"…, placed after songs 4, 7, 10 and 14 in Episode 01.
+- A listener note form sits under the sign-off (`/api/feedback`, emailed through Resend).
+- In show mode the background drops the rings and fades stars in from the centre.
+- Site-wide type (18 / 16 / 14 / 11-mono) and spacing (4 / 8 / 12 / 16 / 24) scales were adopted.
+- `SHOW_PUBLIC` in `public/script.js` is the launch switch; set it to false to pull the episode back from the public.
 
 ---
 
