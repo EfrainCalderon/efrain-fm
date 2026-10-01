@@ -167,6 +167,35 @@ For each song, in order:
 
 ---
 
+## October show: song status
+
+Order as supplied on 2026-10-01. "In library" songs already have both links.
+
+| # | Song | Status | Apple Music | Spotify |
+|---|---|---|---|---|
+| 1 | Men I Trust – Numb | In library `0229` | have | have |
+| 2 | The Sons of Paradise – South Sea Island Magic (1936) | New | `https://embed.music.apple.com/us/album/300352493?i=300352497` | **needed** |
+| 3 | The Beach Boys – Wind Chimes (1967, Smiley Smile version) | New | `https://embed.music.apple.com/us/album/1442882207?i=1442882769` | **needed** |
+| 4 | Triathalon – Hawaiian Boi (2014) | New | `https://embed.music.apple.com/us/album/1666418964?i=1666418974` | **needed** |
+| 5 | Jeneba Kanneh-Mason – Theme from Samson and Delilah (arr. Nina Simone) (2026) | New | `https://embed.music.apple.com/us/album/6799136365?i=6799136459` | **needed** |
+| 6 | Claire Huangci – Dreaming, Op. 15 No. 3 (Amy Beach) | New | `https://embed.music.apple.com/us/album/1851371069?i=1851371351` | **needed** |
+| 7 | Royal Philharmonic Orchestra – Arabesque No. 1 (Debussy) (2001) | New | `https://embed.music.apple.com/us/album/arabesque-no-1-in-e-major-andantion-con-moto-berlin/1681525188?i=1681525203` (from Efrain) | **needed** |
+| 8 | Philip Glass Ensemble – Einstein on the Beach: Knee Play 1 (3:52 recording) | New | `https://embed.music.apple.com/us/album/347496489?i=347496505` | **needed** |
+| 9 | Oneohtrix Point Never – Lifeworld (2025) | New | `https://embed.music.apple.com/us/album/1840747238?i=1840747243` | **needed** |
+| 10 | Jóhann Jóhannsson – The Radiant City | In library `0691` | have | have |
+| 11 | Nico – These Days | In library `0253` | have | have |
+| 12 | Moondog – Lullaby (2 W 46th Street) (1953) | New | `https://embed.music.apple.com/us/album/1502671596?i=1502671614` | **needed** |
+| 13 | Vashti Bunyan – Diamond Day | In library `0406` | have | have |
+| 14 | Big Star – The Ballad of El Goodo | In library `0673` | have | have |
+| 15 | Dr. Dog – Say Something | In library `0122` | have | have |
+
+Notes
+- Spotify's search API refused lookups (403) with the project's credentials, so Spotify links come from Efrain.
+- Year differences between the list and the library: The Radiant City (library 2005, list 2016), Say Something (library 2010, list 2005). Library left unchanged.
+- Still to supply: show title, intro and outro text, total minutes, transmission audio and positions, clusters and stories for the nine new songs.
+
+---
+
 ## Each month after this
 
 1. Add any new songs to `data/songs.json`.
