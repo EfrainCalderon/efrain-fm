@@ -5,6 +5,8 @@ steps through a fixed order of songs and voice transmissions at their own pace.
 
 Status key: `[ ]` to do · `[x]` done · **(open)** needs a decision
 
+**Where the work lives:** branch `radio-show`. The project auto-commits and pushes at the end of every turn, and anything on `main` deploys to the live site, so unfinished show work stays on this branch until it is ready to merge.
+
 ---
 
 ## What we settled
@@ -72,10 +74,10 @@ the order.
 
 ### 1. October content
 - [ ] Efrain sends the show details (see "What I need from you").
-- [ ] Match each song against `songs.json`; reuse the existing entry where there is one.
-- [ ] Add new songs from id `0718` up: title, artist, year, cluster, secondary cluster, traits, embed links, story.
-- [ ] Draft traits for new songs from the existing vocabulary; Efrain reviews.
-- [ ] Convert share links to embed links (Spotify and Apple Music).
+- [x] Match each song against `songs.json`; reuse the existing entry where there is one.
+- [x] Add new songs from id `0718` up: title, artist, year, cluster, secondary cluster, traits, embed links, story.
+- [x] Draft traits for new songs from the existing vocabulary; Efrain reviews.
+- [x] Convert share links to embed links (Spotify and Apple Music).
 - [ ] Add transmission audio to `public/audio/shows/2026-10/`.
 - [ ] Write `data/shows/2026-10.json`.
 
@@ -146,7 +148,7 @@ Each has a default I will build unless told otherwise.
 4. **Intro and outro in the playlist.** Default: each appears as a row once reached, so people can go back to them.
 5. **Phones: where the embed sits.** Default: anchored at the bottom, just above the button, so it is near the thumb.
 6. **Edition wording.** "Transmission // October 2026" clashes with the voice transmissions. Default: "October 2026".
-7. **Cluster C10.** 15 songs in the library are tagged C10, but the code only knows C1–C9 (no label, no keystone). Need to know what C10 is before assigning new songs to it.
+7. ~~Cluster C10.~~ Resolved: C10 is the K-pop group; no October songs belong there.
 
 ---
 
@@ -169,22 +171,22 @@ For each song, in order:
 
 ## October show: song status
 
-Order as supplied on 2026-10-01. "In library" songs already have both links.
+Order as supplied on 2026-10-01. All fifteen songs are in `data/songs.json` with both links (nine added 2026-10-01 as `0718`–`0726`, stories blank).
 
 | # | Song | Status | Apple Music | Spotify |
 |---|---|---|---|---|
 | 1 | Men I Trust – Numb | In library `0229` | have | have |
-| 2 | The Sons of Paradise – South Sea Island Magic (1936) | New | `https://embed.music.apple.com/us/album/300352493?i=300352497` | `https://open.spotify.com/embed/track/6YsczPgpBVoz0bW4B2dpQK` |
-| 3 | The Beach Boys – Wind Chimes (1967, Smiley Smile version) | New | `https://embed.music.apple.com/us/album/1442882207?i=1442882769` | `https://open.spotify.com/embed/track/7t8W2MJodiseTtZR8lbp3H` |
-| 4 | Triathalon – Hawaiian Boi (2014) | New | `https://embed.music.apple.com/us/album/1666418964?i=1666418974` | `https://open.spotify.com/embed/track/47TGrct82IJs6kpQ7AsKCT` |
-| 5 | Jeneba Kanneh-Mason – Theme from Samson and Delilah (arr. Nina Simone) (2026) | New | `https://embed.music.apple.com/us/album/6799136365?i=6799136459` | `https://open.spotify.com/embed/track/6pphfcdaEUbRc4EuMCurNW` |
-| 6 | Claire Huangci – Dreaming, Op. 15 No. 3 (Amy Beach) | New | `https://embed.music.apple.com/us/album/1851371069?i=1851371351` | `https://open.spotify.com/embed/track/2RSaw76fPHOXNW48lFRjze` |
-| 7 | Royal Philharmonic Orchestra – Arabesque No. 1 (Debussy) (2001) | New | `https://embed.music.apple.com/us/album/arabesque-no-1-in-e-major-andantion-con-moto-berlin/1681525188?i=1681525203` (from Efrain) | `https://open.spotify.com/embed/track/6lrWXHnMIGqJ1q2j4i7cxI` |
-| 8 | Philip Glass Ensemble – Einstein on the Beach: Knee Play 1 (3:52 recording) | New | `https://embed.music.apple.com/us/album/347496489?i=347496505` | `https://open.spotify.com/embed/track/0HLNxZ4IwMMxJvGtz1xvWT` |
-| 9 | Oneohtrix Point Never – Lifeworld (2025) | New | `https://embed.music.apple.com/us/album/1840747238?i=1840747243` | `https://open.spotify.com/embed/track/5F7lkoriDmKyFQEjv3yzBg` |
+| 2 | The Sons of Paradise – South Sea Island Magic (1936) | Added `0718` | `https://embed.music.apple.com/us/album/300352493?i=300352497` | `https://open.spotify.com/embed/track/6YsczPgpBVoz0bW4B2dpQK` |
+| 3 | The Beach Boys – Wind Chimes (1967, Smiley Smile, mono mix) | Added `0719` | `https://embed.music.apple.com/us/album/1442864862?i=1442864878` | `https://open.spotify.com/embed/track/7t8W2MJodiseTtZR8lbp3H` |
+| 4 | Triathalon – Hawaiian Boi (2014) | Added `0720` | `https://embed.music.apple.com/us/album/1666418964?i=1666418974` | `https://open.spotify.com/embed/track/47TGrct82IJs6kpQ7AsKCT` |
+| 5 | Jeneba Kanneh-Mason – Theme from Samson and Delilah (arr. Nina Simone) (2026) | Added `0721` | `https://embed.music.apple.com/us/album/6799136365?i=6799136459` | `https://open.spotify.com/embed/track/6pphfcdaEUbRc4EuMCurNW` |
+| 6 | Claire Huangci – Dreaming, Op. 15 No. 3 (Amy Beach) | Added `0722` | `https://embed.music.apple.com/us/album/1851371069?i=1851371351` | `https://open.spotify.com/embed/track/2RSaw76fPHOXNW48lFRjze` |
+| 7 | Royal Philharmonic Orchestra – Arabesque No. 1 (Debussy) (2001) | Added `0723` | `https://embed.music.apple.com/us/album/arabesque-no-1-in-e-major-andantion-con-moto-berlin/1681525188?i=1681525203` (from Efrain) | `https://open.spotify.com/embed/track/6lrWXHnMIGqJ1q2j4i7cxI` |
+| 8 | Philip Glass Ensemble – Einstein on the Beach: Knee Play 1 (3:52 recording) | Added `0724` | `https://embed.music.apple.com/us/album/347496489?i=347496505` | `https://open.spotify.com/embed/track/0HLNxZ4IwMMxJvGtz1xvWT` |
+| 9 | Oneohtrix Point Never – Lifeworld (2025) | Added `0725` | `https://embed.music.apple.com/us/album/1840747238?i=1840747243` | `https://open.spotify.com/embed/track/5F7lkoriDmKyFQEjv3yzBg` |
 | 10 | Jóhann Jóhannsson – The Radiant City | In library `0691` | have | have |
 | 11 | Nico – These Days | In library `0253` | have | have |
-| 12 | Moondog – Lullaby (2 W 46th Street) (1953) | New | `https://embed.music.apple.com/us/album/1502671596?i=1502671614` | `https://open.spotify.com/embed/track/79g1aHmNJAADFeRhAfPAIv` |
+| 12 | Moondog – Lullaby (2 W 46th Street) (1953) | Added `0726` | `https://embed.music.apple.com/us/album/1502671596?i=1502671614` | `https://open.spotify.com/embed/track/79g1aHmNJAADFeRhAfPAIv` |
 | 13 | Vashti Bunyan – Diamond Day | In library `0406` | have | have |
 | 14 | Big Star – The Ballad of El Goodo | In library `0673` | have | have |
 | 15 | Dr. Dog – Say Something | In library `0122` | have | have |
@@ -192,7 +194,9 @@ Order as supplied on 2026-10-01. "In library" songs already have both links.
 Notes
 - Spotify links are supplied by hand each month. Spotify's developer rules (changed Feb–Mar 2026) require the app owner to have Premium, which Efrain no longer has, so automatic Spotify lookup is not available. Apple Music links can still be looked up automatically.
 - Year differences between the list and the library: The Radiant City (library 2005, list 2016), Say Something (library 2010, list 2005). Library left unchanged.
-- Still to supply: show title, intro and outro text, total minutes, transmission audio and positions, clusters and stories for the nine new songs.
+- New tags added with the October songs: `genre:classical`, `genre:opera`, `char:hawaiian`; `texture:piano` now has an alias. The canned "not much classical in here" replies were removed from `server.js`.
+- Dreaming is listed as 2025 (both services date the release 2025). Knee Play 1 is the 3:52 recording, dated 1979.
+- Still to supply: show title, intro and outro text, total minutes, transmission audio and positions.
 
 ---
 

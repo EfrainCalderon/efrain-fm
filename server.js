@@ -118,7 +118,7 @@ const GENRE_WORDS = new Set([
   'east coast rap', 'west coast rap', 'southern rap', 'trap',
   'yacht rock', 'soft rock', 'anti-folk', 'chamber folk', 'chamber pop',
   'blues rock', 'indie rock', 'indie folk', 'baroque pop', 'ye-ye',
-  'synth pop', 'glam rock', 'glam', 'lo-fi folk',
+  'synth pop', 'glam rock', 'glam', 'lo-fi folk', 'opera',
   // Moods — also genre-like in that they should hit trait fields, not titles
   'mellow', 'chill', 'upbeat', 'energetic', 'melancholy', 'dreamy',
   'raw', 'smooth', 'sparse', 'minimal', 'intense', 'gentle', 'soft',
@@ -136,6 +136,7 @@ const GENRE_WORDS = new Set([
   'canada', 'america', 'france', 'germany', 'sweden', 'japan', 'korea',
   'brazil', 'nigeria', 'australia', 'norway', 'iceland', 'spain', 'colombia',
   'jamaica', 'uk', 'england', 'scotland', 'ireland', 'mexico', 'peru', 'chile',
+  'hawaiian', 'hawaii',
 ]);
 
 // =====================
@@ -268,6 +269,12 @@ const TRAIT_ALIASES = {
   'colombian': 'origin:colombia', 'colombian': 'origin:colombia',
   'jamaican': 'origin:jamaica', 'jamaica': 'origin:jamaica',
   'latino': 'genre:latin', 'latina': 'genre:latin', 'latin american': 'genre:latin',
+
+  // Classical / opera / Hawaiian — kept last so partial matching never pre-empts older aliases
+  'classical': 'genre:classical', 'classical music': 'genre:classical',
+  'opera': 'genre:opera', 'operatic': 'genre:opera',
+  'piano': 'texture:piano',
+  'hawaiian': 'char:hawaiian', 'hawaii': 'char:hawaiian',
 };
 
 // =====================
@@ -549,10 +556,10 @@ Return a JSON object: { "keywords": [...], "interpretation": "..." }
 MAP TO THESE TRAIT VOCABULARY TERMS WHERE POSSIBLE:
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
 Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning", "mood:defeated", "mood:cathartic", "mood:hypnotic", "mood:romantic", "mood:celebratory", "mood:resigned"
-Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet"
-Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk", "genre:k-pop"
+Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet", "texture:piano"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk", "genre:k-pop", "genre:classical", "genre:opera"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
-Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson"
+Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson", "char:hawaiian"
 Origin (use when user specifies a country or region): "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland", "origin:spain", "origin:colombia", "origin:jamaica"
 
 SITUATIONAL MAPPINGS:
@@ -651,8 +658,8 @@ const EXTRACT_ARTIST_TRAITS_SYSTEM = [{ type: 'text', cache_control: { type: 'ep
 
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
 Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning"
-Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet"
-Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam"
+Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet", "texture:piano"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:classical", "genre:opera"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
 Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:cool"
 Origin: "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland"
@@ -759,7 +766,6 @@ function generateNoMatchResponse(userMessage) {
     [/\bpolka\b/i, "No polka in here, sorry."],
     [/\bbluegrass\b/i, "Nothing with a banjo unfortunately."],
     [/\bchristmas|holiday\b/i, "No holiday music in this collection."],
-    [/\bclassical|orchestra|symphony\b/i, "Not much classical in here — mostly contemporary stuff."],
     [/\bnursery|children'?s|kids music\b/i, "Nothing for kids in here."],
     [/\bkaraoke\b/i, "This isn't a karaoke spot."],
     [/\bnational\s*anthem\b/i, "Nope."],
@@ -1614,7 +1620,6 @@ app.post('/api/chat', async (req, res) => {
       [/\b(bluegrass|banjo|appalachian)\b/i, "No bluegrass in here — closest I have is some folk and country."],
       [/\b(christmas|holiday|xmas|festive)\b/i, "No holiday music in this collection."],
       [/\b(polka)\b/i, "No polka in here, sorry."],
-      [/\b(classical|orchestra|symphony|concerto|sonata)\b/i, "Not much classical in here — mostly contemporary stuff."],
       [/\b(nursery|children's|kids\s+music|lullaby)\b/i, "Nothing for kids in here."],
       [/\b(karaoke)\b/i, "This isn't a karaoke spot."],
     ];

@@ -18995,6 +18995,279 @@
         "era:00s": 1,
         "origin:france": 1
       }
+    },
+    {
+      "id": "0718",
+      "title": "South Sea Island Magic",
+      "artist": "The Sons of Paradise",
+      "year": 1936,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/6YsczPgpBVoz0bW4B2dpQK",
+        "apple_music": "https://embed.music.apple.com/us/album/300352493?i=300352497",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C8",
+      "cluster_secondary": "C4",
+      "traits": {
+        "genre:exotica": 0.8,
+        "char:hawaiian": 1,
+        "char:tropical": 0.9,
+        "char:nostalgic": 1,
+        "mood:dreamlike": 0.8,
+        "mood:romantic": 0.6,
+        "texture:warm": 0.9,
+        "texture:lo-fi": 0.5,
+        "energy:low": 0.8,
+        "char:beautiful": 0.8,
+        "era:30s": 1,
+        "origin:us": 1
+      }
+    },
+    {
+      "id": "0719",
+      "title": "Wind Chimes",
+      "artist": "The Beach Boys",
+      "year": 1967,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/7t8W2MJodiseTtZR8lbp3H",
+        "apple_music": "https://embed.music.apple.com/us/album/1442864862?i=1442864878",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C8",
+      "cluster_secondary": "C4",
+      "traits": {
+        "genre:psychedelic": 0.8,
+        "char:weird": 0.8,
+        "mood:dreamlike": 0.9,
+        "texture:sparse": 0.6,
+        "texture:lo-fi": 0.5,
+        "energy:low": 0.8,
+        "char:vocal-harmony": 0.7,
+        "char:nostalgic": 0.7,
+        "char:beautiful": 0.7,
+        "era:60s": 1,
+        "origin:us": 1
+      }
+    },
+    {
+      "id": "0720",
+      "title": "Hawaiian Boi",
+      "artist": "Triathalon",
+      "year": 2014,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/47TGrct82IJs6kpQ7AsKCT",
+        "apple_music": "https://embed.music.apple.com/us/album/1666418964?i=1666418974",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C2",
+      "cluster_secondary": "C8",
+      "traits": {
+        "genre:dream-pop": 0.7,
+        "texture:lo-fi": 0.8,
+        "char:hazy": 0.8,
+        "mood:dreamlike": 0.8,
+        "texture:warm": 0.7,
+        "energy:low": 0.7,
+        "char:hawaiian": 0.6,
+        "char:tropical": 0.6,
+        "char:nostalgic": 0.5,
+        "era:10s": 1,
+        "origin:us": 1
+      }
+    },
+    {
+      "id": "0721",
+      "title": "Theme from Samson and Delilah (arr. Nina Simone)",
+      "artist": "Jeneba Kanneh-Mason",
+      "year": 2026,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/6pphfcdaEUbRc4EuMCurNW",
+        "apple_music": "https://embed.music.apple.com/us/album/6799136365?i=6799136459",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C6",
+      "cluster_secondary": "C5",
+      "traits": {
+        "genre:classical": 1,
+        "genre:opera": 0.6,
+        "texture:piano": 1,
+        "char:instrumental": 1,
+        "mood:melancholic": 0.8,
+        "mood:dramatic": 0.5,
+        "char:beautiful": 1,
+        "char:intimate": 0.8,
+        "energy:low": 0.7,
+        "era:modern": 0.5,
+        "origin:uk": 1
+      }
+    },
+    {
+      "id": "0722",
+      "title": "Dreaming, Op. 15 No. 3 (Amy Beach)",
+      "artist": "Claire Huangci",
+      "year": 2025,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/2RSaw76fPHOXNW48lFRjze",
+        "apple_music": "https://embed.music.apple.com/us/album/1851371069?i=1851371351",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C8",
+      "cluster_secondary": "C6",
+      "traits": {
+        "genre:classical": 1,
+        "texture:piano": 1,
+        "char:instrumental": 1,
+        "mood:dreamlike": 0.9,
+        "mood:tender": 0.8,
+        "char:beautiful": 1,
+        "char:intimate": 0.8,
+        "texture:lush": 0.5,
+        "energy:low": 0.9,
+        "era:modern": 0.4,
+        "origin:us": 1
+      }
+    },
+    {
+      "id": "0723",
+      "title": "Arabesque No. 1 (Debussy)",
+      "artist": "Royal Philharmonic Orchestra",
+      "year": 2001,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/6lrWXHnMIGqJ1q2j4i7cxI",
+        "apple_music": "https://embed.music.apple.com/us/album/arabesque-no-1-in-e-major-andantion-con-moto-berlin/1681525188?i=1681525203",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C8",
+      "cluster_secondary": "C4",
+      "traits": {
+        "genre:classical": 1,
+        "texture:piano": 1,
+        "char:instrumental": 1,
+        "mood:dreamlike": 0.9,
+        "mood:tender": 0.6,
+        "char:beautiful": 1,
+        "char:nostalgic": 0.6,
+        "char:cinematic": 0.5,
+        "texture:lush": 0.6,
+        "energy:low": 0.7,
+        "era:00s": 0.4,
+        "origin:france": 1,
+        "origin:uk": 0.5
+      }
+    },
+    {
+      "id": "0724",
+      "title": "Einstein on the Beach: Knee Play 1",
+      "artist": "Philip Glass Ensemble",
+      "year": 1979,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/0HLNxZ4IwMMxJvGtz1xvWT",
+        "apple_music": "https://embed.music.apple.com/us/album/347496489?i=347496505",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C7",
+      "cluster_secondary": "C4",
+      "traits": {
+        "genre:experimental": 0.9,
+        "genre:opera": 0.8,
+        "genre:modern-classical": 0.8,
+        "genre:classical": 0.6,
+        "energy:hypnotic": 1,
+        "mood:hypnotic": 0.9,
+        "mood:meditative": 0.7,
+        "char:weird": 0.8,
+        "char:theatrical": 0.6,
+        "texture:sparse": 0.7,
+        "texture:cold": 0.6,
+        "era:70s": 1,
+        "origin:us": 1
+      }
+    },
+    {
+      "id": "0725",
+      "title": "Lifeworld",
+      "artist": "Oneohtrix Point Never",
+      "year": 2025,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/5F7lkoriDmKyFQEjv3yzBg",
+        "apple_music": "https://embed.music.apple.com/us/album/1840747238?i=1840747243",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C4",
+      "cluster_secondary": "C2",
+      "traits": {
+        "genre:electronic": 1,
+        "genre:experimental": 0.8,
+        "genre:ambient": 0.6,
+        "mood:dreamlike": 0.8,
+        "char:weird": 0.7,
+        "char:late-night": 0.6,
+        "texture:lush": 0.6,
+        "energy:medium": 0.5,
+        "era:modern": 1,
+        "origin:us": 1
+      }
+    },
+    {
+      "id": "0726",
+      "title": "Lullaby (2 W 46th Street)",
+      "artist": "Moondog",
+      "year": 1953,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/79g1aHmNJAADFeRhAfPAIv",
+        "apple_music": "https://embed.music.apple.com/us/album/1502671596?i=1502671614",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C4",
+      "cluster_secondary": "C1",
+      "traits": {
+        "char:weird": 0.8,
+        "genre:experimental": 0.8,
+        "char:outsider": 0.9,
+        "mood:dreamlike": 0.7,
+        "mood:tender": 0.7,
+        "char:intimate": 0.6,
+        "texture:lo-fi": 0.8,
+        "energy:low": 0.9,
+        "era:50s": 1,
+        "origin:us": 1
+      }
     }
   ]
 }
