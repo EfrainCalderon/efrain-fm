@@ -107,6 +107,7 @@ The `initShow` IIFE at the end of `script.js`, markup in `#show-view`, styles un
 - **Flow:** a spoken Introduction opens the episode. The Spotify-or-Apple question is asked only when a listener without a saved choice is about to reach the first song.
 - **State:** progress is saved in `localStorage` as `efrain_fm_show_progress`, keyed by episode id and stored by position. Show plays never touch Groove counts or Explore's played list.
 - **Listener notes:** a form under the sign-off posts to `/api/feedback`. Guards: rate limit, length caps, strict email pattern, honeypot field, plain-text email. Nothing typed is stored or rendered back.
+- **Support link:** under the sign-off (after the note form, and still shown on the note-sent confirmation) is a plain link to Efrain's Buy Me a Coffee page (`SUPPORT_URL` in `initShow`), opened in a new tab. It is deliberately not their widget and appears nowhere else on the site.
 - **Launch switch:** `SHOW_PUBLIC` in `initShow` (true since 2026-10-01). Set it to false to offer the episode only in browsers that have already entered Show mode.
 - Text-box commands for testing: `/show` (enter), `/show-reset` (forget progress), plus `/reset`, `/push c1`–`c9`, `/groove-reset`, `/player`.
 
