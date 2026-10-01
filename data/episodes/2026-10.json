@@ -1,28 +1,88 @@
 {
   "id": "2026-10",
   "edition": "October 2026",
-  "title": "[Show title]",
-  "duration_minutes": 55,
+  "title": "Episode 01: It could be Franky",
+  "duration_minutes": 54,
   "intro": "[Intro text placeholder] A few sentences on this month's theme and how the show works: press the button for the next song, and every few songs there's a transmission from me.",
   "outro": "[Outro text placeholder] A closing thought, then an invitation to keep exploring the rest of the collection.",
   "steps": [
-    { "type": "song", "song_id": "0229" },
-    { "type": "song", "song_id": "0718" },
-    { "type": "song", "song_id": "0719" },
-    { "type": "song", "song_id": "0720" },
-    { "type": "transmission", "title": "Break 1", "audio": "/audio/AIntro.m4a", "placeholder": true },
-    { "type": "song", "song_id": "0721" },
-    { "type": "song", "song_id": "0722" },
-    { "type": "song", "song_id": "0723" },
-    { "type": "song", "song_id": "0724" },
-    { "type": "transmission", "title": "Break 2", "audio": "/audio/AIntro.m4a", "placeholder": true },
-    { "type": "song", "song_id": "0725" },
-    { "type": "song", "song_id": "0691" },
-    { "type": "song", "song_id": "0253" },
-    { "type": "song", "song_id": "0726" },
-    { "type": "transmission", "title": "Break 3", "audio": "/audio/AIntro.m4a", "placeholder": true },
-    { "type": "song", "song_id": "0406" },
-    { "type": "song", "song_id": "0673" },
-    { "type": "song", "song_id": "0122" }
+    {
+      "type": "song",
+      "song_id": "0229"
+    },
+    {
+      "type": "song",
+      "song_id": "0718"
+    },
+    {
+      "type": "song",
+      "song_id": "0719"
+    },
+    {
+      "type": "song",
+      "song_id": "0720"
+    },
+    {
+      "type": "transmission",
+      "title": "Break 1",
+      "audio": "/audio/AIntro.m4a",
+      "placeholder": true
+    },
+    {
+      "type": "song",
+      "song_id": "0721"
+    },
+    {
+      "type": "song",
+      "song_id": "0722"
+    },
+    {
+      "type": "song",
+      "song_id": "0723"
+    },
+    {
+      "type": "song",
+      "song_id": "0724"
+    },
+    {
+      "type": "transmission",
+      "title": "Break 2",
+      "audio": "/audio/AIntro.m4a",
+      "placeholder": true
+    },
+    {
+      "type": "song",
+      "song_id": "0725"
+    },
+    {
+      "type": "song",
+      "song_id": "0691"
+    },
+    {
+      "type": "song",
+      "song_id": "0253"
+    },
+    {
+      "type": "song",
+      "song_id": "0726"
+    },
+    {
+      "type": "transmission",
+      "title": "Break 3",
+      "audio": "/audio/AIntro.m4a",
+      "placeholder": true
+    },
+    {
+      "type": "song",
+      "song_id": "0406"
+    },
+    {
+      "type": "song",
+      "song_id": "0673"
+    },
+    {
+      "type": "song",
+      "song_id": "0122"
+    }
   ]
 }

@@ -19268,8 +19268,7 @@
         "texture:lo-fi": 0.8,
         "energy:low": 0.9,
         "era:50s": 1,
-        "origin:us": 1,
-        "char:children": 0.6
+        "origin:us": 1
       }
     }
   ]

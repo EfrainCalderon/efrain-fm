@@ -337,10 +337,10 @@ const TRAIT_ALIASES = {
   'piano': 'texture:piano',
   'hawaiian': 'char:hawaiian', 'hawaii': 'char:hawaiian',
 
-  // Children's voices / music for kids — songs sung by or sampling kids, lullabies
+  // Children's voices — songs sung by or sampling kids
   'kids': 'char:children', 'kids music': 'char:children', 'children': 'char:children',
   "children's": 'char:children', "children's music": 'char:children', 'childlike': 'char:children',
-  'nursery': 'char:children', 'lullaby': 'char:children', 'lullabies': 'char:children',
+  'nursery': 'char:children',
 };
 
 // =====================
@@ -651,7 +651,7 @@ SITUATIONAL MAPPINGS:
 - "french", "french pop", "ye-ye" → ["genre:ye-ye", "origin:france"]
 - "bittersweet" → ["mood:bittersweet", "char:bittersweet"]
 - "k-pop", "kpop", "korean pop" → ["genre:k-pop", "origin:korea"]
-- "kids", "kids singing", "children", "children's music", "nursery", "lullaby" → ["char:children"] (and nothing else)
+- "kids", "kids singing", "children", "children's music", "nursery" → ["char:children"] (and nothing else)
 
 RULES:
 - Prefer trait vocabulary terms over raw words whenever possible

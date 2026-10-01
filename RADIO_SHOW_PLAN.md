@@ -21,9 +21,9 @@ Show mode is built and working locally on the `radio-show` branch, with placehol
 - The normal arrival flow is untouched: no show-or-explore question, no "new" marker.
 
 **Placeholders to replace in `data/episodes/2026-10.json`**
-- `title` ("[Show title]"), `intro`, `outro`
-- `duration_minutes` (55)
-- The three transmissions: currently after songs 4, 8 and 12, all pointing at the welcome audio (`/audio/AIntro.m4a`) as a stand-in. Real files go in `public/audio/episodes/2026-10/`.
+- `intro`, `outro` (text to come from Efrain)
+- Title is set: "Episode 01: It could be Franky", 54 minutes of music
+- The three transmissions: currently after songs 4, 8 and 12, all pointing at the welcome audio (`/audio/AIntro.m4a`) as a stand-in. Efrain is mixing the real ones over a music bed. Real files go in `public/audio/episodes/2026-10/`.
 
 **Before going live:** replace the placeholders, review on the branch, then merge `radio-show` into `main`.
 
