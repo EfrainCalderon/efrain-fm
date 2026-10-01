@@ -1295,6 +1295,158 @@ body.intro-active #groove-map-btn {
   flex-shrink: 0;
 }
 
+/* ── Control bar (episode transmissions only: .voice-embed--controls) ──
+   The waveform and title share the top of the card; play/pause, timecodes and the
+   scrubber sit in a 56px bar along the bottom. */
+.voice-embed--controls .voice-embed__waveform,
+.voice-embed--controls .voice-embed__static {
+  inset: 0 0 56px 0;
+}
+
+.voice-embed--controls .voice-embed__play-btn {
+  display: none;   /* the control bar's own button replaces it */
+}
+
+.voice-embed--controls .voice-embed__tx {
+  top: 14px;
+}
+
+/* The waveform is drawn in the space under the label (see WAVE_TOP_GAP in script.js) */
+.voice-embed--controls .voice-embed__waveform {
+  align-items: flex-end;
+}
+
+.voice-embed--controls .voice-embed__canvas {
+  flex: none;
+}
+
+.voice-embed__controls {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.voice-embed__toggle {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--play-btn-bg);
+  border: 1.5px solid var(--border-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+/* 44px tap area around the 40px button */
+.voice-embed__toggle::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+}
+
+.voice-embed__toggle:hover {
+  background: var(--play-btn-hover-bg);
+}
+
+.voice-embed__toggle:active {
+  transform: scale(0.95);
+}
+
+.voice-embed__toggle svg {
+  width: 16px;
+  height: 16px;
+  stroke: var(--play-btn-stroke);
+  fill: var(--play-btn-stroke);
+  transform: translateX(1px);   /* optical centring for the play triangle */
+}
+
+.voice-embed__toggle.is-playing svg {
+  fill: none;
+  transform: none;
+}
+
+.voice-embed__clock {
+  flex: none;
+  min-width: 4ch;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--show-muted-strong);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.voice-embed__clock:last-child {
+  text-align: right;
+}
+
+/* Scrubber: a thin track with a 44px-tall touch area, so it is easy to grab with a thumb */
+.voice-embed__seek {
+  --played: 0%;
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: none;   /* dragging the thumb must not scroll the page */
+}
+
+.voice-embed__seek::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--wave-played-color) var(--played), var(--wave-color) var(--played));
+}
+
+.voice-embed__seek::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--wave-color);
+}
+
+.voice-embed__seek::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--wave-played-color);
+}
+
+.voice-embed__seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;   /* centre the 16px thumb on the 4px track */
+  border-radius: 50%;
+  border: none;
+  background: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.voice-embed__seek::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.voice-embed__toggle:focus-visible,
+.voice-embed__seek:focus-visible {
+  outline: 2px solid var(--input-focus-border);
+  outline-offset: 2px;
+}
+
 @keyframes ve-tx-flicker {
   0%   { opacity: 1; }
   10%  { opacity: 0.15; }

@@ -1226,7 +1226,10 @@ userInput.addEventListener('keypress', (e) => {
 // - Waveform is mirrored from center (symmetric)
 // - Signal line oscillates at fixed rate, independent of audio data
 // =====================
-function createVoiceEmbed(audioUrl, title = 'Welcome') {
+// Pass { controls: true } for a control bar under the waveform: play/pause, a draggable
+// scrubber and timecodes. Episode transmissions use it; the welcome and Groove messages
+// in Explore do not, and behave exactly as before.
+function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}) {
 
   // ── DOM ──────────────────────────────────────────────────────────
   const wrap = document.createElement('div');
@@ -1287,6 +1290,39 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   wrap.appendChild(staticLayer);
   wrap.appendChild(audio);
 
+  // Control bar (optional): play/pause, current time, scrubber, total time
+  let toggleBtn, seek, currentEl, totalEl;
+  if (controls) {
+    wrap.classList.add('voice-embed--controls');
+    const bar = document.createElement('div');
+    bar.className = 'voice-embed__controls';
+
+    toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = 'voice-embed__toggle';
+
+    currentEl = document.createElement('span');
+    currentEl.className = 'voice-embed__clock';
+    currentEl.textContent = '0:00';
+
+    // A native range input: draggable by mouse and touch, and keyboard-operable for free
+    seek = document.createElement('input');
+    seek.type = 'range';
+    seek.className = 'voice-embed__seek';
+    seek.min = '0';
+    seek.max = '1000';
+    seek.step = '1';
+    seek.value = '0';
+    seek.setAttribute('aria-label', 'Position in message');
+
+    totalEl = document.createElement('span');
+    totalEl.className = 'voice-embed__clock';
+    totalEl.textContent = '0:00';
+
+    bar.append(toggleBtn, currentEl, seek, totalEl);
+    wrap.appendChild(bar);
+  }
+
   // ── State ─────────────────────────────────────────────────────────
   let audioCtx, analyser, source, dataArray, bufLen;
   let audioReady   = false;
@@ -1309,16 +1345,20 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   }
 
   // ── Canvas sizing ─────────────────────────────────────────────────
+  const WAVE_TOP_GAP = 34;   // px kept clear above the waveform when a control bar is present
+
   function resizeWaveCanvas() {
     const dpr  = window.devicePixelRatio || 1;
     const pad  = 16;
-    const rect = wrap.getBoundingClientRect();
+    const rect = (controls ? waveLayer : wrap).getBoundingClientRect();
+    // With a control bar the waveform sits below the "new transmission" label, not behind it
+    const height = controls ? Math.max(0, rect.height - WAVE_TOP_GAP) : rect.height;
     const w    = (rect.width - pad * 2) * dpr;
-    const h    = rect.height * dpr;
+    const h    = height * dpr;
     waveCanvas.width  = w;
     waveCanvas.height = h;
     waveCanvas.style.width  = (rect.width - pad * 2) + 'px';
-    waveCanvas.style.height = rect.height + 'px';
+    waveCanvas.style.height = height + 'px';
   }
 
   function initSignalCanvas() {
@@ -1347,7 +1387,14 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
   // ── Draw waveform (mirrored from center) ──────────────────────────
   function drawWave() {
     waveAnimId = requestAnimationFrame(drawWave);
-    analyser.getByteFrequencyData(dataArray);
+    paintWave(true);
+  }
+
+  // live=false paints flat bars (used while paused), still coloured by progress
+  function paintWave(live) {
+    if (!audioReady) return;
+    if (live) analyser.getByteFrequencyData(dataArray);
+    else dataArray.fill(0);
 
     const dpr      = window.devicePixelRatio || 1;
     const W        = waveCanvas.width;
@@ -1454,6 +1501,8 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       signalCanvas.getContext('2d').clearRect(0, 0, signalCanvas.width, signalCanvas.height);
     }
     setTimeout(() => {
+      // With a control bar, playback can restart during this fade — leave the waveform up
+      if (!audio.paused) { waveLayer.classList.remove('fading'); return; }
       waveLayer.classList.remove('visible', 'fading');
       if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
       staticLayer.classList.add('visible');
@@ -1514,6 +1563,86 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     const guard = setTimeout(() => { if (audio.paused) showStatic(); }, 800);
     audio.addEventListener('play', () => clearTimeout(guard), { once: true });
   };
+
+  // ── Control bar behaviour ────────────────────────────────────────
+  if (controls) {
+    const ICON_PLAY  = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5L13 8L4 13.5V2.5Z" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+    const ICON_PAUSE = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke-width="2.25" stroke-linecap="round"/></svg>';
+    const clock = s => (Number.isFinite(s) ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '0:00');
+    let completed = false;   // has it played through at least once?
+    let pauseTimer = null;
+
+    const setToggle = playing => {
+      toggleBtn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+      toggleBtn.classList.toggle('is-playing', playing);
+      toggleBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+    };
+
+    const syncProgress = () => {
+      const ratio = audio.duration ? audio.currentTime / audio.duration : 0;
+      seek.value = String(Math.round(ratio * 1000));
+      seek.style.setProperty('--played', `${(ratio * 100).toFixed(2)}%`);
+      seek.setAttribute('aria-valuetext', `${clock(audio.currentTime)} of ${clock(audio.duration)}`);
+      currentEl.textContent = clock(audio.currentTime);
+    };
+
+    // Play from wherever the scrubber is; from the top if it had finished
+    const resume = () => {
+      initAudio();
+      resizeWaveCanvas();
+      if (audio.ended || (audio.duration && audio.currentTime >= audio.duration - 0.05)) audio.currentTime = 0;
+      txLabel.textContent = completed ? 'replaying transmission' : 'new transmission';
+      hasPlayed = true;
+      const go = () => audio.play().catch(() => {});   // a blocked autoplay just leaves the play button
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().then(go, go);
+      else go();
+    };
+
+    toggleBtn.addEventListener('click', () => (audio.paused ? resume() : audio.pause()));
+
+    audio.addEventListener('play', () => {
+      clearTimeout(pauseTimer);
+      setToggle(true);
+      showWaveform();
+      if (!waveAnimId) drawWave();
+    });
+
+    audio.addEventListener('pause', () => {
+      setToggle(false);
+      if (audio.ended) return;   // the 'ended' handler takes it from here
+      tx.classList.remove('active');
+      if (signalAnimId) {
+        cancelAnimationFrame(signalAnimId);
+        signalAnimId = null;
+        signalCanvas.getContext('2d').clearRect(0, 0, signalCanvas.width, signalCanvas.height);
+      }
+      // Let the bars settle, then stop animating and leave a flat, progress-coloured frame
+      pauseTimer = setTimeout(() => {
+        if (!audio.paused) return;
+        if (waveAnimId) { cancelAnimationFrame(waveAnimId); waveAnimId = null; }
+        paintWave(false);
+      }, 350);
+    });
+
+    audio.addEventListener('ended', () => { completed = true; syncProgress(); });
+    audio.addEventListener('timeupdate', syncProgress);
+    audio.addEventListener('loadedmetadata', () => { totalEl.textContent = clock(audio.duration); syncProgress(); });
+    if (audio.readyState >= 1) totalEl.textContent = clock(audio.duration);
+
+    // Scrubbing: move the audio as the thumb moves, whether playing or paused
+    seek.addEventListener('input', () => {
+      if (!audio.duration) return;
+      audio.currentTime = (Number(seek.value) / 1000) * audio.duration;
+      syncProgress();
+      if (audio.paused) paintWave(false);
+    });
+
+    setToggle(false);
+    syncProgress();
+
+    wrap.resume = resume;
+    wrap.pause  = () => audio.pause();
+  }
 
   // Expose stop() so show mode can cut a transmission when the listener moves on:
   // rewinds and returns to the static layer, where the play button lives.
@@ -2661,7 +2790,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
         if (i === current) return;
         current = i;
         saveProgress();
-        render();
+        render({ autoplay: true });
       });
       listEl.appendChild(row);
       if (i === current) requestAnimationFrame(() => row.scrollIntoView({ block: 'nearest' }));
@@ -2670,8 +2799,9 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
 
   // ── Current item ───────────────────────────────────────────────────────
   function clearStage() {
-    // Removing an <audio> from the page doesn't stop it — rewind any transmission first
-    stageEl.querySelectorAll('.voice-embed').forEach(embed => embed.stop && embed.stop());
+    // Removing an <audio> from the page doesn't stop it — pause any transmission first.
+    // It keeps its position, so coming back picks up where the listener left off.
+    stageEl.querySelectorAll('.voice-embed').forEach(embed => (embed.pause ? embed.pause() : embed.stop && embed.stop()));
     resumeOnReturn = null;
     stageEl.replaceChildren();
   }
@@ -2862,18 +2992,17 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     if (txEmbeds.has(index)) return txEmbeds.get(index);
 
     const baseTitle = `${item.title.toUpperCase()} //<br>${episode.edition.toUpperCase()}`;
-    const embed = createVoiceEmbed(item.audio, '');
+    const embed = createVoiceEmbed(item.audio, '', { controls: true });
     const wrapper = document.createElement('div');
     wrapper.className = 'voice-embed-wrapper';
     wrapper.appendChild(embed);
 
-    // Start on the static layer (title + play button). Transmissions never autoplay in
-    // show mode: a song may still be playing in the embed the listener just left.
+    // Start on the static layer (the title), with the control bar below it. Whether it
+    // starts playing is decided by renderStage, which knows if a tap brought us here.
     embed.classList.add('loaded');
     embed.querySelector('.voice-embed__static').classList.add('visible');
     const title = embed.querySelector('.voice-embed__title');
     title.innerHTML = baseTitle;
-    embed.querySelector('.voice-embed__play-btn').setAttribute('aria-label', `Play ${item.title}`);
 
     const audio = embed.querySelector('audio');
     audio.addEventListener('ended', () => {
@@ -2886,7 +3015,10 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     return wrapper;
   }
 
-  function renderStage() {
+  // autoplay: start a transmission as it arrives. Only pass true from a tap or click —
+  // browsers block audio that starts without one, and only one item is ever on stage,
+  // so nothing else can be playing over it.
+  function renderStage({ autoplay = false } = {}) {
     clearStage();
     if (needsServicePick) {
       stageEl.appendChild(buildTextBlock('Which do you use to listen to music?', null));
@@ -2895,8 +3027,11 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     const item = items[current];
     if (!item) return;
     if (item.type === 'song') stageEl.appendChild(buildSongEmbed(item));
-    else if (item.type === 'transmission') stageEl.appendChild(getTransmissionEmbed(current, item));
-    else {
+    else if (item.type === 'transmission') {
+      const wrapper = getTransmissionEmbed(current, item);
+      stageEl.appendChild(wrapper);
+      if (autoplay) wrapper.querySelector('.voice-embed').resume();
+    } else {
       const block = buildTextBlock(item.text, current);
       stageEl.appendChild(block);
       // Once the sign-off has finished typing: the note form (only when the server says
@@ -2939,9 +3074,9 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     nextBtn.textContent = nextLabel();
   }
 
-  function render() {
+  function render({ autoplay = false } = {}) {
     renderList();
-    renderStage();
+    renderStage({ autoplay });
     renderControls();
   }
 
@@ -2955,11 +3090,13 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     nextBtn.textContent = 'Back to exploring';
   }
 
+  // Always reached from a tap (the footer button, or the service choice), so a
+  // transmission that arrives can start playing
   function advance() {
     current += 1;
     if (current >= reached) reached = current + 1;
     saveProgress();
-    render();
+    render({ autoplay: true });
   }
 
   nextBtn.addEventListener('click', () => {
@@ -3068,16 +3205,19 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     }
   }
 
-  function returnToStage() {
+  // byTap: the listener tapped their way in (header button, "Hear EP. 01", the /show
+  // command), as opposed to loading /show directly or using back/forward
+  function returnToStage(byTap = false) {
     const item = items[current];
     const stillOnStage = item && item.type === 'transmission' && !needsServicePick && stageEl.querySelector('.voice-embed');
     if (stillOnStage) {
       renderList();
       renderControls();
-      if (resumeOnReturn) resumeOnReturn.play().catch(() => {});
+      // Only pick a transmission back up if leaving is what paused it
+      if (resumeOnReturn) stageEl.querySelector('.voice-embed').resume();
       resumeOnReturn = null;
     } else {
-      render();
+      render({ autoplay: byTap });
     }
   }
 
@@ -3100,7 +3240,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     modeSwitch.setAttribute('aria-label', active ? 'Switch to Explore' : `Switch to ${episode ? episode.title : 'the episode'}`);
   }
 
-  function setMode(mode, { push = true } = {}) {
+  function setMode(mode, { push = true, byTap = false } = {}) {
     const toShow = mode === 'show';
     if (toShow === active) return;
     active = toShow;
@@ -3111,7 +3251,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
       localStorage.setItem(UNLOCK_KEY, '1');
       holdExploreMedia();
       loadEpisode()
-        .then(() => { if (active) returnToStage(); syncSwitch(); })
+        .then(() => { if (active) returnToStage(byTap); syncSwitch(); })
         .catch(() => { if (active) renderUnavailable(); });
     } else {
       closePicker();
@@ -3124,11 +3264,11 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     if (push) history.pushState({ mode }, '', toShow ? '/show' : '/');
   }
 
-  modeSwitch.addEventListener('click', () => setMode(active ? 'explore' : 'show'));
+  modeSwitch.addEventListener('click', () => setMode(active ? 'explore' : 'show', { byTap: true }));
   window.addEventListener('popstate', () => setMode(isShowPath() ? 'show' : 'explore', { push: false }));
 
   // Used by the /show and /show-reset commands
-  window.enterShowMode = () => setMode('show');
+  window.enterShowMode = () => setMode('show', { byTap: true });
   window.resetShowMode = () => {
     localStorage.removeItem(PROGRESS_KEY);
     localStorage.removeItem(UNLOCK_KEY);
@@ -3144,7 +3284,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome') {
     label:     episodeLabel,
     name:      episodeName,
     songCount: () => (episode ? episode.song_count : 0),
-    enter:     () => setMode('show'),
+    enter:     () => setMode('show', { byTap: true }),
   };
 
   syncSwitch();

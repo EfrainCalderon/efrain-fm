@@ -27,6 +27,7 @@ today, see the "Show mode" section of `CLAUDE.md`. To publish a new episode, use
 - A listener note form sits under the sign-off (`/api/feedback`, emailed through Resend).
 - In show mode the background drops the rings and fades stars in from the centre.
 - Site-wide type (18 / 16 / 14 / 11-mono) and spacing (4 / 8 / 12 / 16 / 24) scales were adopted.
+- Transmissions now autoplay when reached by a tap and have play/pause, a scrubber and timecodes. The original "never autoplay" rule existed because a song might still be playing; with one item on screen at a time that can no longer happen.
 - `SHOW_PUBLIC` in `public/script.js` is the launch switch; set it to false to pull the episode back from the public.
 
 ---
