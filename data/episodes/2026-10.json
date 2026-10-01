@@ -41,14 +41,14 @@
       "song_id": "0723"
     },
     {
-      "type": "song",
-      "song_id": "0724"
-    },
-    {
       "type": "transmission",
       "title": "Break 2",
       "audio": "/audio/AIntro.m4a",
       "placeholder": true
+    },
+    {
+      "type": "song",
+      "song_id": "0724"
     },
     {
       "type": "song",
@@ -59,6 +59,12 @@
       "song_id": "0691"
     },
     {
+      "type": "transmission",
+      "title": "Break 3",
+      "audio": "/audio/AIntro.m4a",
+      "placeholder": true
+    },
+    {
       "type": "song",
       "song_id": "0253"
     },
@@ -67,18 +73,18 @@
       "song_id": "0726"
     },
     {
-      "type": "transmission",
-      "title": "Break 3",
-      "audio": "/audio/AIntro.m4a",
-      "placeholder": true
-    },
-    {
       "type": "song",
       "song_id": "0406"
     },
     {
       "type": "song",
       "song_id": "0673"
+    },
+    {
+      "type": "transmission",
+      "title": "Break 4",
+      "audio": "/audio/AIntro.m4a",
+      "placeholder": true
     },
     {
       "type": "song",
