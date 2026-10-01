@@ -126,9 +126,9 @@ async function showModeChoice() {
   await new Promise(r => setTimeout(r, 700));
   removeTypingIndicator(typingIndicator);
 
-  const { name, label, songCount, enter } = window.showMode;
+  const { label, enter } = window.showMode;
   await addMessageToChatWithTyping(
-    `There are two ways to listen. Explore: tell me a mood, a genre, or an artist, and I’ll find you a song. Or hear ${name()}, this month’s show: ${songCount()} songs in order, with me talking in between.`,
+    'There are two ways to listen. Explore: tell me a mood, a genre, or an artist, and I’ll find you a song. Or, listen to monthly episodes where I share about an hour of music with some banter scattered in between.',
     'assistant'
   );
 
