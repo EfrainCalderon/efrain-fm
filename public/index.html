@@ -131,6 +131,7 @@
     const t0           = performance.now();
     let lastFrameTime  = 0;
     let rafId          = null;
+    let footerDrop     = 73;   // card bottom to footer top, re-measured whenever the footer is showing
 
     function frame(timestamp) {
       rafId = requestAnimationFrame(frame);
@@ -154,13 +155,15 @@
       // Ring geometry — origin at footer top edge
       const footer    = document.getElementById('input-footer');
       const header    = document.getElementById('header');
-      // Explore hangs the rings and stars from the footer's top edge. Show mode hides the
-      // footer on the final message, so there the star field hangs from the card's bottom
-      // edge instead, and stays put when the footer goes.
-      const card      = document.getElementById('app-card');
-      const footerTop = document.body.classList.contains('mode-show') && card
-        ? card.getBoundingClientRect().bottom
-        : (footer ? footer.getBoundingClientRect().top : H);
+      // Both modes hang the sky from the footer's top edge, so the stars don't move when
+      // the mode changes. Show mode hides the footer on the final message; the line is
+      // then worked out from the card's bottom edge and the footer's last known height,
+      // so the stars stay put when the footer goes.
+      const card       = document.getElementById('app-card');
+      const cardBottom = card ? card.getBoundingClientRect().bottom : H;
+      const footerBox  = footer ? footer.getBoundingClientRect() : null;
+      if (footerBox && footerBox.height > 0) footerDrop = cardBottom - footerBox.top;
+      const footerTop  = cardBottom - footerDrop;
       const headerBot = header ? header.getBoundingClientRect().bottom : 0;
       const available = footerTop - headerBot;
       const outerBase = available / (1 + BREATHE);
