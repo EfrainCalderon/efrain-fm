@@ -1826,7 +1826,7 @@ body.mode-show #show-next-btn {
   font-family: 'Inter', sans-serif;
   background: transparent;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;   /* the small-control corner, as on the header chips: rows are compact */
   padding: 8px;
   cursor: pointer;
   color: var(--text-primary);
@@ -2285,5 +2285,47 @@ body.mode-show.show-picking #show-next-btn {
 
   #header-right {
     gap: 8px;
+  }
+}
+
+/* ── Desktop episode layout ──
+   The playlist is a full-height sidebar, wide enough for most song titles, and the footer
+   button sits under the content column only. #show-view and .show-body are flattened with
+   display: contents so the header, masthead, sidebar, content and footer can share one grid
+   on the card. The content column at 400px is wider than a phone, so embeds are unaffected. */
+@media (min-width: 769px) {
+  body.mode-show #app-card {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  body.mode-show #header,
+  body.mode-show .show-masthead {
+    grid-column: 1 / -1;
+  }
+
+  body.mode-show #show-view,
+  body.mode-show .show-body {
+    display: contents;
+  }
+
+  body.mode-show .show-list {
+    grid-column: 1;
+    grid-row: 3 / 5;   /* runs past the footer, to the bottom of the card */
+    min-height: 0;
+    background-color: var(--bg-secondary);
+  }
+
+  body.mode-show .show-stage {
+    grid-column: 2;
+    grid-row: 3;
+    min-height: 0;
+    background-color: var(--bg-secondary);
+  }
+
+  body.mode-show #input-footer {
+    grid-column: 2;
+    grid-row: 4;
   }
 }
