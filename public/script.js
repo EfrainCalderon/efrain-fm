@@ -2824,6 +2824,13 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
 
   const ICON_MIC  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
   const ICON_TEXT = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="13" y2="17"/></svg>';
+  // On Apple devices the service is written the way Apple writes it, with the Apple logo
+  // glyph (U+F8FF). That character only exists in Apple's own fonts; everywhere else it
+  // shows as an empty box, so other platforms get the words. Screen readers use the
+  // button's aria-label either way.
+  const ON_APPLE_DEVICE   = /Macintosh|Mac OS X|iPhone|iPad|iPod/.test(navigator.userAgent);
+  const APPLE_MUSIC_LABEL = ON_APPLE_DEVICE ? '<span class="apple-logo">\uF8FF</span>Music' : 'Apple Music';
+
   // Headphones: "listening on…" — sits before the service name in the pill
   const ICON_SOURCE = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>';
 
@@ -3225,7 +3232,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
 
     const service = getPlayerPref();
     for (const el of [pill, headerPill]) {
-      el.innerHTML = ICON_SOURCE + (service === 'spotify' ? 'Spotify' : 'Apple Music');
+      el.innerHTML = ICON_SOURCE + (service === 'spotify' ? 'Spotify' : APPLE_MUSIC_LABEL);
     }
 
     nextBtn.textContent = nextLabel();

@@ -1771,10 +1771,16 @@ body.intro-active:not(.mode-show) #mode-switch {
   font-size: 14px;
   font-weight: 500;
   border: none;
-  border-radius: 999px;
+  border-radius: 8px;   /* the same corner as the header buttons */
   padding: 4px 10px 4px 8px;
   cursor: pointer;
   transition: background 0.15s ease;
+}
+
+/* The Apple logo glyph only exists in Apple's system fonts, not in Inter */
+.apple-logo {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  margin-right: 2px;
 }
 
 /* Extends the tap area without changing the pill's size */
@@ -2202,9 +2208,30 @@ body.mode-show.show-picking #show-next-btn {
     margin-bottom: 0;
   }
 
+  /* In the header it takes the shape of its neighbours (Grooves, Explore): same corner,
+     padding, icon size and resting transparency, with a fill only on hover or press. */
   body.mode-show #show-service-pill-header {
     display: inline-flex;
     margin: 0 auto;
+    padding: 6px 10px 6px 8px;
+    background: transparent;
+    color: var(--link-color);
+    white-space: nowrap;
+  }
+
+  body.mode-show #show-service-pill-header:hover {
+    background: var(--live-tag-bg);
+    color: var(--link-hover);
+  }
+
+  body.mode-show #show-service-pill-header:active {
+    background: var(--live-tag-hover-bg);
+  }
+
+  #show-service-pill-header svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 1.75;
   }
 
   body.mode-show #header-right {
