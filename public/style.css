@@ -2169,17 +2169,6 @@ body.mode-show.show-picking #show-next-btn {
   body.mode-show #header-right {
     margin-left: 0;   /* the pill's auto margins do the spacing, so it sits centred */
   }
-}
-
-/* Phones narrower than an iPhone: the header pill drops its icon to keep its breathing room */
-@media (max-width: 374px) {
-  #show-service-pill-header svg {
-    display: none;
-  }
-
-  #show-service-pill-header {
-    padding-left: 10px;
-  }
 
   #show-list-toggle:focus-visible {
     outline: 2px solid var(--input-focus-border);
@@ -2216,5 +2205,16 @@ body.mode-show.show-picking #show-next-btn {
     padding: 12px 16px;
     padding-bottom: max(12px, calc(12px + env(safe-area-inset-bottom)));
     align-items: flex-start;
+  }
+}
+
+/* Phones narrower than an iPhone: the header pill drops its icon to keep its breathing room */
+@media (max-width: 374px) {
+  #show-service-pill-header svg {
+    display: none;
+  }
+
+  #show-service-pill-header {
+    padding-left: 10px;
   }
 }
