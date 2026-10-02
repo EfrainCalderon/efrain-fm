@@ -1987,7 +1987,7 @@ textarea.show-note__input {
 }
 
 .show-note__send {
-  align-self: flex-start;
+  align-self: flex-end;   /* on the right, where a send control sits in a message box */
   height: 44px;
   margin-top: 8px;
   padding: 0 20px;
@@ -2050,12 +2050,14 @@ body.mode-show.show-at-end:not(.show-picking) #input-footer {
 /* ── Support link (under the sign-off and note form) ──
    Secondary on purpose: same outline treatment as "Send note". The footer's
    "Explore" button stays the main action. */
+/* Centred as a closing block of its own, set a little apart from the form above it */
 .show-support {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 32px;
+  text-align: center;
 }
 
 .show-support__line {
