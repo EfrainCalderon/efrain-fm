@@ -2841,7 +2841,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   let items           = [];      // intro + episode steps + outro
   let reached         = 1;       // how many items have been revealed
   let current         = 0;       // which revealed item is loaded
-  let needsServicePick = false;  // first visit with no Spotify/Apple choice yet
   let pickerEl        = null;
   let resumeOnReturn  = null;    // transmission <audio> we paused when leaving show mode
   let heldExplore     = [];      // Explore iframes detached while show mode is in front
@@ -3170,10 +3169,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   // so nothing else can be playing over it.
   function renderStage({ autoplay = false } = {}) {
     clearStage();
-    if (needsServicePick) {
-      stageEl.appendChild(buildTextBlock('Which do you use to listen to music?', null));
-      return;
-    }
     const item = items[current];
     if (!item) return;
     if (item.type === 'song') stageEl.appendChild(buildSongEmbed(item));
@@ -3307,21 +3302,16 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
       setMode('explore');
       return;
     }
-    // Ask Spotify or Apple Music only when it's first needed: just before the first
-    // song embed, not before the spoken introduction.
-    if (items[current + 1].type === 'song' && !localStorage.getItem(PLAYER_KEY)) {
-      needsServicePick = true;
-      renderStage();
-      openPicker();
-      return;
-    }
+    // The episode never asks Spotify or Apple Music itself. Explore's first-visit flow
+    // already does, and a listener who lands here directly gets the default (Apple
+    // Music), with the service control in view to change it.
     advance();
   });
 
   // ── Spotify / Apple Music question (footer, same pattern as Explore's interrupt bar) ──
   function openPicker() {
     if (pickerEl) {
-      if (!needsServicePick) closePicker();   // tapping the pill again dismisses it
+      closePicker();   // tapping the control again dismisses it
       return;
     }
     pickerEl = document.createElement('div');
@@ -3334,17 +3324,13 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
       btn.textContent = opt.label;
       btn.style.animationDelay = `${i * 70}ms`;
       btn.addEventListener('click', () => {
-        const wasFirstPick = needsServicePick;   // the stage is showing the question, not an item
-        const changed      = getPlayerPref() !== opt.val;
+        const changed = getPlayerPref() !== opt.val;
         setPlayerPref(opt.val);
-        needsServicePick = false;
         closePicker();
         renderControls();
-        // The first pick was asked for on the way to a song, so carry on to it. Otherwise
-        // reload only if the service changed and a song is showing — never interrupt
-        // a transmission.
-        if (wasFirstPick) advance();
-        else if (changed && items[current] && items[current].type === 'song') renderStage();
+        // Reload what's on stage only if the service changed and a song is showing —
+        // never interrupt a transmission
+        if (changed && items[current] && items[current].type === 'song') renderStage();
       });
       pickerEl.appendChild(btn);
     });
@@ -3412,7 +3398,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   // command), as opposed to loading /show directly or using back/forward
   function returnToStage(byTap = false) {
     const item = items[current];
-    const stillOnStage = item && item.type === 'transmission' && !needsServicePick && stageEl.querySelector('.voice-embed');
+    const stillOnStage = item && item.type === 'transmission' && stageEl.querySelector('.voice-embed');
     if (stillOnStage) {
       renderList();
       renderControls();
@@ -3458,7 +3444,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
         .catch(() => { if (active) renderUnavailable(); });
     } else {
       closePicker();
-      needsServicePick = false;   // an unanswered question is simply asked again later
       leaveStage();
       releaseExploreMedia();
     }

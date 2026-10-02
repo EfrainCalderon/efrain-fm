@@ -20,7 +20,7 @@ today, see the "Show mode" section of `CLAUDE.md`. To publish a new episode, use
 **Changes made after the original plan below was written**
 - The Explore/Show toggle became one header button that names its destination ("EP. 01" in Explore, "Explore" in the episode).
 - Each month is an "episode"; files live in `data/episodes/` and `public/audio/episodes/`.
-- The episode opens with a spoken Introduction instead of intro text, and the Spotify-or-Apple question moved to just before the first song.
+- The episode opens with a spoken Introduction instead of intro text. The Spotify-or-Apple question was first moved to just before the first song, then dropped from the episode entirely: onboarding already asks, and the service control makes changing it obvious.
 - First-time visitors are asked "explore or episode?" right after the Spotify-or-Apple question.
 - Button labels: "Drop the needle", "Next up", "Transmission from Efrain", "Final message", "Explore". ("Sign off" was renamed because it read as leaving, and listeners might skip the closing message.)
 - The final message has no footer button; the header's Explore button is enough, and it keeps attention on the message and the note. Its parts fade in one after another.
