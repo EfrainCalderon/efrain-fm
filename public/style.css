@@ -2001,6 +2001,29 @@ textarea.show-note__input {
   min-height: 21px;
 }
 
+/* ── Final message: parts arrive one after another ──
+   Same slow fade the embeds use. initShow adds .is-in to each part in turn. */
+.show-reveal {
+  opacity: 0;
+  transition: var(--embed-transition);
+}
+
+.show-reveal.is-in {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .show-reveal {
+    transition: none;
+  }
+}
+
+/* The final message has no footer button. The footer comes back while the Spotify or
+   Apple Music question is open, since that question lives in it. */
+body.mode-show.show-at-end:not(.show-picking) #input-footer {
+  display: none;
+}
+
 /* ── Support link (under the sign-off and note form) ──
    Secondary on purpose: same outline treatment as "Send note". The footer's
    "Explore" button stays the main action. */

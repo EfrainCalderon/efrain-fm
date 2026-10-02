@@ -23,6 +23,8 @@ today, see the "Show mode" section of `CLAUDE.md`. To publish a new episode, use
 - The episode opens with a spoken Introduction instead of intro text, and the Spotify-or-Apple question moved to just before the first song.
 - First-time visitors are asked "explore or episode?" right after the Spotify-or-Apple question.
 - Button labels: "Drop the needle", "Next up", "Transmission from Efrain", "Final message", "Explore". ("Sign off" was renamed because it read as leaving, and listeners might skip the closing message.)
+- The final message has no footer button; the header's Explore button is enough, and it keeps attention on the message and the note. Its parts fade in one after another.
+- Phones: song count and minutes sit in the playlist bar and the service pill sits in the header, so the title block is shorter. The pill is neutral grey everywhere. The count is the total from the start, and the minutes cover songs plus transmissions (64).
 - On phones the playlist folds away at the final message, with a "Playlist" bar to bring it back, so the note form has room.
 - Voice breaks are "Transmission 1", "Transmission 2"…, placed after songs 4, 7, 10 and 14 in Episode 01.
 - A listener note form sits under the sign-off (`/api/feedback`, emailed through Resend).

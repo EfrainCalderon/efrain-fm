@@ -154,7 +154,13 @@
       // Ring geometry — origin at footer top edge
       const footer    = document.getElementById('input-footer');
       const header    = document.getElementById('header');
-      const footerTop = footer ? footer.getBoundingClientRect().top : H;
+      // Explore hangs the rings and stars from the footer's top edge. Show mode hides the
+      // footer on the final message, so there the star field hangs from the card's bottom
+      // edge instead, and stays put when the footer goes.
+      const card      = document.getElementById('app-card');
+      const footerTop = document.body.classList.contains('mode-show') && card
+        ? card.getBoundingClientRect().bottom
+        : (footer ? footer.getBoundingClientRect().top : H);
       const headerBot = header ? header.getBoundingClientRect().bottom : 0;
       const available = footerTop - headerBot;
       const outerBase = available / (1 + BREATHE);

@@ -3166,17 +3166,28 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
       stageEl.appendChild(wrapper);
       if (autoplay) wrapper.querySelector('.voice-embed').resume();
     } else {
+      const firstVisit = !typedText.has(current);   // read before buildTextBlock marks it typed
       const block = buildTextBlock(item.text, current);
       stageEl.appendChild(block);
-      // Once the sign-off has finished typing: the note form (only when the server says
-      // notes can be delivered, so nobody meets a form that can't send), then the
+      // Once the final message has finished typing: the note form (only when the server
+      // says notes can be delivered, so nobody meets a form that can't send), then the
       // support link. The link is a sibling of the form, so it is still there on the
       // "note sent" confirmation.
       if (item.type === 'outro') {
         block.typed.then(() => {
           if (!stageEl.contains(block)) return;
-          if (episode.notes) stageEl.appendChild(buildNoteForm());
-          stageEl.appendChild(buildSupportBlock());
+          const parts = [];
+          if (episode.notes) parts.push(buildNoteForm());
+          parts.push(buildSupportBlock());
+          // The first time, each part fades in after the one before it, so the ending
+          // arrives in order instead of all at once. On a return visit they are just there.
+          parts.forEach((part, i) => {
+            if (firstVisit) {
+              part.classList.add('show-reveal');
+              setTimeout(() => part.classList.add('is-in'), 500 + i * 1100);
+            }
+            stageEl.appendChild(part);
+          });
         });
       }
     }
@@ -3210,6 +3221,9 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     }
 
     nextBtn.textContent = nextLabel();
+    // The final message is the end state: no footer button under it. The header's
+    // Explore button is the way on, and nothing competes with the message and the note.
+    document.body.classList.toggle('show-at-end', items.length > 0 && current === items.length - 1);
   }
 
   // ── Folding the playlist (phones) ──────────────────────────────────────
@@ -3256,6 +3270,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     view.querySelector('.show-info').style.display = 'none';
     listEl.replaceChildren();
     stageEl.replaceChildren(buildTextBlock('No episode is available right now.', null));
+    document.body.classList.remove('show-at-end');
     nextBtn.textContent = 'Back to exploring';
   }
 
