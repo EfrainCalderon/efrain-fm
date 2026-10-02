@@ -371,9 +371,6 @@
       <h1 id="site-title">
         <span class="logo-efr">efr</span><span class="logo-ai">ai</span><span class="logo-n">n</span><span class="logo-dot">.</span><span class="logo-fm">fm</span>
       </h1>
-      <!-- Phones, in an episode: the music service, centred between the logo and the mode switch.
-           On desktop the same control sits in the episode's info line instead. -->
-      <button type="button" class="service-pill" id="show-service-pill-header" aria-label="Change music service"></button>
       <!-- Right side controls -->
       <div id="header-right">
         <!-- Grooves button — disc icon + label. Always shown in Explore once past the first-visit screen. -->
@@ -385,6 +382,10 @@
           </svg>
           <span class="groove-map-btn__label">Grooves</span>
         </button>
+
+        <!-- Music service control: shown only inside an episode. Tapping it asks Spotify or
+             Apple Music in the footer. -->
+        <button type="button" id="show-service-pill-header" aria-label="Change music service"></button>
 
         <!-- Mode switch: one button that names where it takes you. In Explore it reads
              "EP. 01" (the current episode); in the episode it reads "Explore".
@@ -451,12 +452,13 @@
     <div id="show-view" hidden>
       <div class="show-masthead">
         <div class="show-edition" id="show-edition"></div>
-        <h2 class="show-title" id="show-title"></h2>
-        <div class="show-info">
-          <span id="show-count"></span>
-          <span class="sep" aria-hidden="true">•</span>
-          <span id="show-duration"></span>
-          <button type="button" class="service-pill" id="show-service-pill" aria-label="Change music service"></button>
+        <div class="show-title-row">
+          <h2 class="show-title" id="show-title"></h2>
+          <div class="show-meta">
+            <span id="show-count"></span>
+            <span class="sep" aria-hidden="true">•</span>
+            <span id="show-duration"></span>
+          </div>
         </div>
       </div>
       <div class="show-body" id="show-body">

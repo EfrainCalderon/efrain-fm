@@ -89,6 +89,7 @@ function loadEpisodes() {
         number: Number.isInteger(raw.number) ? raw.number : null,
         edition: raw.edition || '',
         title: raw.title || '',
+        name: raw.name || '',   // the title without its "Episode 01:" prefix, shown under the EP label
         duration_minutes: raw.duration_minutes || null,
         intro: raw.intro || '',
         outro: raw.outro || '',

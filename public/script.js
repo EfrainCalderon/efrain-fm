@@ -2811,8 +2811,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   const listEl        = document.getElementById('show-list');
   const stageEl       = document.getElementById('show-stage');
   const nextBtn       = document.getElementById('show-next-btn');
-  const pill          = document.getElementById('show-service-pill');          // desktop: in the info line
-  const headerPill    = document.getElementById('show-service-pill-header');   // phones: in the header
+  const headerPill    = document.getElementById('show-service-pill-header');   // music service control, in the header
   const listMetaEl    = document.getElementById('show-list-meta');
   const countEl       = document.getElementById('show-count');
   const durationEl    = document.getElementById('show-duration');
@@ -2890,6 +2889,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   }
 
   const songNumber   = index => items.slice(0, index + 1).filter(i => i.type === 'song').length;
+  const songsReached = () => items.slice(0, reached).filter(i => i.type === 'song').length;
 
   // ── Playlist ───────────────────────────────────────────────────────────
   function renderList() {
@@ -3213,25 +3213,34 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     return songNumber(current + 1) === 1 ? 'Drop the needle' : 'Next up';
   }
 
-  function renderControls() {
-    editionEl.textContent = episode.edition;
-    titleEl.textContent   = episode.title;
+  // "2026-10" → "Oct 2026", for the label line above the title
+  const shortEdition = () => {
+    const m = /^(\d{4})-(\d{2})$/.exec(episode.id || '');
+    if (!m) return episode.edition;
+    return new Date(Number(m[1]), Number(m[2]) - 1, 1).toLocaleString('en-US', { month: 'short', year: 'numeric' });
+  };
 
-    // The episode's size: total songs and total minutes (songs plus transmissions). It is
-    // shown from the start and never counts up; the numbered playlist shows progress.
-    const songsText   = `${episode.song_count} songs`;
+  function renderControls() {
+    // Label line: "EP. 01 // OCT 2026" (same wording as the header button). The title is
+    // the episode's own name, without the "Episode 01:" prefix the label already carries.
+    editionEl.textContent = `${episodeLabel()} // ${shortEdition()}`;
+    titleEl.textContent   = episode.name || episode.title.replace(/^Episode\s+\d+\s*[:\-–—]\s*/i, '');
+
+    // Progress ("4 of 15 songs") and total minutes (songs plus transmissions). Desktop
+    // shows both beside the title; phones show the minutes there and the progress in
+    // the playlist bar.
+    const heard       = songsReached();
+    const songsText   = heard ? `${heard} of ${episode.song_count} songs` : `${episode.song_count} songs`;
     const minutesText = episode.duration_minutes ? `${episode.duration_minutes} min` : '';
     countEl.textContent    = songsText;
     durationEl.textContent = minutesText;
     durationEl.previousElementSibling.hidden = !minutesText;
-    listMetaEl.textContent = minutesText ? `${songsText} • ${minutesText}` : songsText;   // phones: in the playlist bar
+    listMetaEl.textContent = songsText;
 
     const service = getPlayerPref();
-    for (const el of [pill, headerPill]) {
-      el.innerHTML = ICON_SOURCE + (service === 'spotify' ? 'Spotify' : APPLE_MUSIC_LABEL);
-      // "Apple Music" spelled out is the longest label; the phone header drops the icon for it
-      el.classList.toggle('is-long', service !== 'spotify' && !ON_APPLE_DEVICE);
-    }
+    headerPill.innerHTML = ICON_SOURCE + (service === 'spotify' ? 'Spotify' : APPLE_MUSIC_LABEL);
+    // "Apple Music" spelled out is the longest label; the phone header drops the icon for it
+    headerPill.classList.toggle('is-long', service !== 'spotify' && !ON_APPLE_DEVICE);
 
     nextBtn.textContent = nextLabel();
     // The final message is the end state: no footer button under it. The header's
@@ -3280,7 +3289,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     items = [];
     editionEl.textContent = '';
     titleEl.textContent = 'Show';
-    view.querySelector('.show-info').style.display = 'none';
+    view.querySelector('.show-meta').style.display = 'none';
     listEl.replaceChildren();
     stageEl.replaceChildren(buildTextBlock('No episode is available right now.', null));
     document.body.classList.remove('show-at-end');
@@ -3350,7 +3359,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     setTimeout(() => el.remove(), 300);
   }
 
-  pill.addEventListener('click', openPicker);
   headerPill.addEventListener('click', openPicker);
 
   // ── Keeping the hidden mode quiet ──────────────────────────────────────

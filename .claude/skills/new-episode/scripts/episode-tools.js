@@ -226,6 +226,7 @@ function check(target) {
     if (ep.title && !ep.title.includes(padded)) warn(`Title "${ep.title}" does not mention ${padded}.`);
   }
   for (const field of ['edition', 'title']) if (!ep[field]) err(`"${field}" is missing.`);
+  if (!ep.name) warn('"name" is missing: the title shown on screen will fall back to "title" with its "Episode NN:" prefix removed.');
   if (!ep.duration_minutes) warn('"duration_minutes" is missing; the info line will omit it.');
   if (!ep.outro) warn('"outro" (sign-off text) is empty. The note form is shown under the sign-off.');
   if (/\[.*placeholder.*\]/i.test(`${ep.title} ${ep.intro} ${ep.outro}`)) warn('Placeholder text is still present in title, intro or outro.');

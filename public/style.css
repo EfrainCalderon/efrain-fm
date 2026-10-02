@@ -51,6 +51,7 @@ html {
   --typing-dot: hsla(36, 6%, 50%, 1);
   --live-tag-bg: rgba(245, 242, 238, 0.08);
   --live-tag-hover-bg: rgba(245, 242, 238, 0.14);
+  --live-tag-active-bg: rgba(245, 242, 238, 0.2);
   --live-tag-text: hsla(36, 10%, 88%, 1);
   --link-color: hsla(36, 10%, 68%, 1);
   --link-hover: hsla(36, 10%, 90%, 1);
@@ -102,6 +103,7 @@ html {
   --typing-dot: hsla(36, 6%, 50%, 1);
   --live-tag-bg: rgba(245, 242, 238, 0.08);
   --live-tag-hover-bg: rgba(245, 242, 238, 0.14);
+  --live-tag-active-bg: rgba(245, 242, 238, 0.2);
   --live-tag-text: hsla(36, 10%, 88%, 1);
   --link-color: hsla(36, 10%, 68%, 1);
   --link-hover: hsla(36, 10%, 90%, 1);
@@ -219,44 +221,93 @@ body::after {
    GROOVE MAP BUTTON
    ===================== */
 
-/* Always shown in Explore (even before the first unlock) as a nudge to discover Grooves.
-   Hidden on the first-visit screen, before "Start exploring", and in show mode. */
-#groove-map-btn {
+/* ── Header chips ──
+   Grooves, the mode switch and (inside an episode) the music service control. One look
+   for all three: icon then label, the same text colour, and a faint fill at rest so they
+   read as buttons without needing a hover. The fill deepens on hover and again when
+   pressed. Phones use a taller version (see the phone block near the end of this file). */
+#groove-map-btn,
+#mode-switch,
+#show-service-pill-header {
+  position: relative;
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
-  background: transparent;
+  line-height: 18px;   /* one line box, so the three labels share a baseline */
+  color: var(--text-primary);
+  background: var(--live-tag-bg);
   border: none;
-  cursor: pointer;
-  padding: 6px 10px 6px 8px;
   border-radius: 8px;
-  color: var(--link-color);
-  transition: color 0.2s ease, background 0.2s ease;
-  align-items: center;
-  justify-content: center;
+  padding: 4px 10px 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease;
 }
 
+#groove-map-btn:hover,
+#mode-switch:hover,
+#show-service-pill-header:hover {
+  background: var(--live-tag-hover-bg);
+}
+
+#groove-map-btn:active,
+#mode-switch:active,
+#show-service-pill-header:active {
+  background: var(--live-tag-active-bg);
+}
+
+#groove-map-btn svg,
+#mode-switch svg,
+#show-service-pill-header svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.75;
+}
+
+/* Extends each chip's tap area to at least 44px tall without moving it */
+#groove-map-btn::after,
+#mode-switch::after,
+#show-service-pill-header::after {
+  content: '';
+  position: absolute;
+  inset: -9px 0;
+}
+
+#mode-switch-icon {
+  display: flex;
+}
+
+/* Grooves: always shown in Explore (even before the first unlock) as a nudge to discover
+   them. Hidden on the first-visit screen, before "Start exploring", and in show mode. */
 body.intro-active #groove-map-btn {
   display: none;
 }
 
-/* On the narrowest phones the label gives way when the episode button is also in the header */
+/* The mode switch names where it takes you: "EP. 01" from Explore, "Explore" from the
+   episode. Hidden until an episode is on offer, and on the first-visit screen. */
+#mode-switch[hidden],
+body.intro-active:not(.mode-show) #mode-switch {
+  display: none;
+}
+
+/* The music service control only exists inside an episode */
+#show-service-pill-header {
+  display: none;
+}
+
+body.mode-show #show-service-pill-header {
+  display: flex;
+}
+
+/* On the narrowest phones the Grooves label gives way when the episode button is also in the header */
 @media (max-width: 359px) {
   #header-right:has(#mode-switch:not([hidden])) .groove-map-btn__label {
     display: none;
   }
-}
-
-#groove-map-btn:hover {
-  color: var(--link-hover);
-  background: var(--live-tag-bg);
-}
-
-#groove-map-btn:active {
-  color: var(--link-hover);
-  background: var(--live-tag-hover-bg);
 }
 
 /* =====================
@@ -266,7 +317,7 @@ body.intro-active #groove-map-btn {
 #header-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   margin-left: auto;
 }
 
@@ -1682,63 +1733,14 @@ body.mode-show #show-next-btn {
   display: flex;
 }
 
-/* ── Mode switch (header) ──
-   Same shape as the Grooves button beside it: icon, then label. It names the
-   destination ("EP. 01" from Explore, "Explore" from the episode), and is the brighter
-   of the two because it is the invitation. */
-#mode-switch {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 10px 6px 8px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s ease;
-}
-
-#mode-switch[hidden],
-body.intro-active:not(.mode-show) #mode-switch {
-  display: none;
-}
-
-#mode-switch:hover {
-  background: var(--live-tag-bg);
-}
-
-#mode-switch:active {
-  background: var(--live-tag-hover-bg);
-}
-
-#mode-switch-icon {
-  display: flex;
-}
-
-/* Header buttons are 30px tall; this extends their tap area to 44px without moving them */
-#mode-switch,
-#groove-map-btn {
-  position: relative;
-}
-
-#mode-switch::after,
-#groove-map-btn::after {
-  content: '';
-  position: absolute;
-  inset: -7px 0;
-}
-
-/* ── Masthead: edition, title, info line ── */
+/* ── Masthead: episode label, then the title with the facts at its right edge ──
+   Set on the recessed surface, like the phone playlist below it, so the episode's own
+   chrome reads as one darker band above the content. */
 .show-masthead {
   flex-shrink: 0;
-  padding: 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border-color);
+  background: var(--show-well-bg);
 }
 
 .show-edition {
@@ -1750,42 +1752,38 @@ body.intro-active:not(.mode-show) #mode-switch {
   line-height: 1.6;
 }
 
+.show-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 2px;
+}
+
 .show-title {
+  min-width: 0;
   font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.3;
   color: var(--text-primary);
-  margin: 4px 0 12px;
 }
 
-.show-info {
+/* "4 of 15 songs • 64 min" on desktop; phones show only the minutes here, because the
+   song count lives in the playlist bar */
+.show-meta {
+  flex: none;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
   font-size: 14px;
   color: var(--text-secondary);
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-.show-info .sep {
+.show-meta .sep {
   opacity: 0.5;
-}
-
-.service-pill {
-  position: relative;
-  margin-left: auto;   /* facts sit left, the service choice sits right */
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;   /* the same corner as the header buttons */
-  padding: 4px 10px 4px 8px;
-  cursor: pointer;
-  transition: background 0.15s ease;
 }
 
 /* The Apple logo glyph only exists in Apple's system fonts, not in Inter. At the label's
@@ -1798,30 +1796,6 @@ body.intro-active:not(.mode-show) #mode-switch {
   margin-right: calc(0.04em - 2px);
   position: relative;
   top: -0.06em;
-}
-
-/* Extends the tap area without changing the pill's size */
-.service-pill::after {
-  content: '';
-  position: absolute;
-  inset: -10px -6px;
-}
-
-/* Neutral on purpose. It used to be pink or green by service, which made a rarely used
-   setting the loudest thing on the screen. The icon and name carry the meaning. */
-.service-pill {
-  background: var(--live-tag-bg);
-  color: var(--show-muted-strong);
-}
-
-.service-pill:hover {
-  background: var(--live-tag-hover-bg);
-  color: var(--text-primary);
-}
-
-/* The header copy of the pill: phones only, and only inside an episode */
-#show-service-pill-header {
-  display: none;
 }
 
 /* ── Body: playlist + current item ── */
@@ -2166,7 +2140,7 @@ body.mode-show.show-picking #show-next-btn {
 /* ── Keyboard focus ── */
 #mode-switch:focus-visible,
 #groove-map-btn:focus-visible,
-.service-pill:focus-visible,
+#show-service-pill-header:focus-visible,
 .show-row:focus-visible,
 #show-next-btn:focus-visible {
   outline: 2px solid var(--input-focus-border);
@@ -2225,54 +2199,30 @@ body.mode-show.show-picking #show-next-btn {
     font-variant-numeric: tabular-nums;
   }
 
-  /* The facts and the service pill move out of the masthead on phones (into the playlist
-     bar and the header), so the title block is shorter and the content gets the space. */
-  .show-info {
+  /* The song count lives in the playlist bar on phones, so the masthead keeps only the minutes */
+  #show-count,
+  .show-meta .sep {
     display: none;
   }
 
-  .show-title {
-    margin-bottom: 0;
-  }
-
-  /* In the header it takes the shape of its neighbours (Grooves, Explore): same corner,
-     padding, icon size, fill and colour. */
-  body.mode-show #show-service-pill-header {
-    display: inline-flex;
-    margin: 0 12px 0 auto;   /* sits with the mode switch on the right, 12px before it */
-    padding: 6px 10px 6px 8px;
-    color: var(--text-primary);   /* same label and icon colour as the mode switch */
-    white-space: nowrap;
-  }
-
-  body.mode-show #header-right {
-    margin-left: 0;
-  }
-
-  /* Phones have no hover, so the header buttons carry their hover fill at rest. Without
-     it they read as loose text and look unbalanced beside each other. Pressing deepens it. */
-  #show-service-pill-header,
+  /* Header chips are taller on phones, with larger icons, for thumbs */
+  #groove-map-btn,
   #mode-switch,
-  #groove-map-btn {
-    background: var(--live-tag-bg);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 18px;   /* one line box for all three, so their text shares a baseline */
+  #show-service-pill-header {
+    padding: 6px 10px 6px 8px;
   }
 
-  #show-service-pill-header:active,
-  #mode-switch:active,
-  #groove-map-btn:active {
-    background: var(--live-tag-hover-bg);
+  #groove-map-btn svg,
+  #mode-switch svg,
+  #show-service-pill-header svg {
+    width: 18px;
+    height: 18px;
   }
 
-  #header-right {
-    gap: 12px;
-  }
-
-  /* All three header buttons share one colour on phones, so the chips read as a set */
-  #groove-map-btn {
-    color: var(--text-primary);
+  #groove-map-btn::after,
+  #mode-switch::after,
+  #show-service-pill-header::after {
+    inset: -7px 0;
   }
 
   /* "Apple Music" in words (non-Apple phones) is too wide to sit beside the logo with its
@@ -2281,16 +2231,9 @@ body.mode-show.show-picking #show-next-btn {
     display: none;
   }
 
-  body.mode-show #show-service-pill-header.is-long {
+  #show-service-pill-header.is-long {
     padding-left: 10px;
   }
-
-  #show-service-pill-header svg {
-    width: 18px;
-    height: 18px;
-    stroke-width: 1.75;
-  }
-
 
   #show-list-toggle:focus-visible {
     outline: 2px solid var(--input-focus-border);
@@ -2342,9 +2285,5 @@ body.mode-show.show-picking #show-next-btn {
 
   #header-right {
     gap: 8px;
-  }
-
-  body.mode-show #show-service-pill-header {
-    margin-right: 8px;
   }
 }

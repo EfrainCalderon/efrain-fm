@@ -158,6 +158,7 @@ three-minute message near 2.9 MB. `T check` fails any file over the cap.
   "number": 2,
   "edition": "November 2026",
   "title": "Episode 02: Title here",
+  "name": "Title here",
   "duration_minutes": 56,
   "intro": "",
   "outro": "Sign-off text. Blank lines make paragraphs.",
@@ -172,7 +173,8 @@ three-minute message near 2.9 MB. `T check` fails any file over the cap.
 
 - `id` must equal the file name. The newest file name is the episode listeners get, so a
   new month's file replaces the old one as current the moment it is published.
-- `number` drives the header button ("EP. 02") and should be the next whole number.
+- `number` drives the header button ("EP. 02") and the label above the title, and should be the next whole number.
+- `title` is the full title, used for the lock screen and screen readers. `name` is the same thing without the "Episode 02:" prefix; it is what shows as the big title, because the label line above it already says "EP. 02".
 - A spoken introduction is a first step of type `transmission` titled "Introduction",
   with `intro` left empty. `intro` text is only for an episode with no spoken opening.
 - Transmissions are titled "Transmission 1", "Transmission 2"… in order.
