@@ -1777,10 +1777,16 @@ body.intro-active:not(.mode-show) #mode-switch {
   transition: background 0.15s ease;
 }
 
-/* The Apple logo glyph only exists in Apple's system fonts, not in Inter */
+/* The Apple logo glyph only exists in Apple's system fonts, not in Inter. At the label's
+   own size it reads small and loose next to "Music", so it is drawn larger, pulled in
+   tight, and nudged up to sit on the same optical centre as the word. */
 .apple-logo {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-  margin-right: 2px;
+  font-size: 1.22em;
+  line-height: 1;
+  margin-right: 0.04em;
+  position: relative;
+  top: -0.06em;
 }
 
 /* Extends the tap area without changing the pill's size */
@@ -2212,20 +2218,45 @@ body.mode-show.show-picking #show-next-btn {
      padding, icon size and resting transparency, with a fill only on hover or press. */
   body.mode-show #show-service-pill-header {
     display: inline-flex;
-    margin: 0 auto;
+    margin: 0 16px 0 auto;   /* sits with the mode switch on the right, 16px before it */
     padding: 6px 10px 6px 8px;
-    background: transparent;
     color: var(--link-color);
     white-space: nowrap;
   }
 
-  body.mode-show #show-service-pill-header:hover {
-    background: var(--live-tag-bg);
-    color: var(--link-hover);
+  body.mode-show #header-right {
+    margin-left: 0;
   }
 
-  body.mode-show #show-service-pill-header:active {
+  /* Phones have no hover, so the header buttons carry their hover fill at rest. Without
+     it they read as loose text and look unbalanced beside each other. Pressing deepens it. */
+  #show-service-pill-header,
+  #mode-switch,
+  #groove-map-btn {
+    background: var(--live-tag-bg);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 18px;   /* one line box for all three, so their text shares a baseline */
+  }
+
+  #show-service-pill-header:active,
+  #mode-switch:active,
+  #groove-map-btn:active {
     background: var(--live-tag-hover-bg);
+  }
+
+  #header-right {
+    gap: 16px;
+  }
+
+  /* "Apple Music" in words (non-Apple phones) is too wide to sit beside the logo with its
+     icon, so the icon gives way there */
+  #show-service-pill-header.is-long svg {
+    display: none;
+  }
+
+  body.mode-show #show-service-pill-header.is-long {
+    padding-left: 10px;
   }
 
   #show-service-pill-header svg {
@@ -2234,9 +2265,6 @@ body.mode-show.show-picking #show-next-btn {
     stroke-width: 1.75;
   }
 
-  body.mode-show #header-right {
-    margin-left: 0;   /* the pill's auto margins do the spacing, so it sits centred */
-  }
 
   #show-list-toggle:focus-visible {
     outline: 2px solid var(--input-focus-border);
@@ -2284,5 +2312,13 @@ body.mode-show.show-picking #show-next-btn {
 
   #show-service-pill-header {
     padding-left: 10px;
+  }
+
+  #header-right {
+    gap: 12px;
+  }
+
+  body.mode-show #show-service-pill-header {
+    margin-right: 12px;
   }
 }

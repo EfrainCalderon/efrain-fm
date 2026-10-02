@@ -3233,6 +3233,8 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     const service = getPlayerPref();
     for (const el of [pill, headerPill]) {
       el.innerHTML = ICON_SOURCE + (service === 'spotify' ? 'Spotify' : APPLE_MUSIC_LABEL);
+      // "Apple Music" spelled out is the longest label; the phone header drops the icon for it
+      el.classList.toggle('is-long', service !== 'spotify' && !ON_APPLE_DEVICE);
     }
 
     nextBtn.textContent = nextLabel();
