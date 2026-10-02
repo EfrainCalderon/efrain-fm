@@ -1331,8 +1331,12 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   let hasPlayed    = false;
 
   // ── Web Audio ─────────────────────────────────────────────────────
+  // With a control bar we never route playback through Web Audio. iOS suspends an
+  // AudioContext when the screen locks or Safari is backgrounded, which silences any
+  // <audio> connected to it; a plain <audio> keeps playing. The waveform is drawn from
+  // the decoded file instead (see loadPeaks), so it needs no live analyser.
   function initAudio() {
-    if (audioReady) return;
+    if (audioReady || controls) return;
     audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
     analyser  = audioCtx.createAnalyser();
     analyser.fftSize = 256;
@@ -1390,8 +1394,75 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     paintWave(true);
   }
 
+  // ── Whole-message waveform (control-bar mode) ─────────────────────
+  // Loudness of the entire recording, left to right, with the played part brighter.
+  let peaks = null;         // Float32Array of 0..1 levels once the file is decoded
+  let scrubRatio = null;    // 0..1 while a finger or mouse is dragging the scrubber
+
+  function paintPeaks() {
+    const dpr = window.devicePixelRatio || 1;
+    const W   = waveCanvas.width;
+    const H   = waveCanvas.height;
+    if (!W || !H) return;
+    const ctx      = waveCanvas.getContext('2d');
+    const colors   = getWaveColors();
+    const progress = scrubRatio !== null ? scrubRatio : (audio.duration ? audio.currentTime / audio.duration : 0);
+
+    ctx.clearRect(0, 0, W, H);
+
+    const barW    = 2 * dpr;
+    const gap     = 3 * dpr;
+    const count   = Math.max(1, Math.floor((W + gap) / (barW + gap)));
+    const maxBarH = H * 0.9;
+    const minBarH = 3 * dpr;
+    const centerY = H / 2;
+
+    for (let i = 0; i < count; i++) {
+      const level = peaks ? peaks[Math.min(peaks.length - 1, Math.floor((i / count) * peaks.length))] : 0;
+      const barH  = minBarH + level * (maxBarH - minBarH);
+      ctx.fillStyle = (i + 0.5) / count <= progress ? colors.played : colors.unplayed;
+      ctx.beginPath();
+      ctx.roundRect(i * (barW + gap), centerY - barH / 2, barW, barH, barW / 2);
+      ctx.fill();
+    }
+  }
+
+  // Decode the file once with an OfflineAudioContext (which never touches the device's
+  // audio session) and reduce it to a few hundred loudness values.
+  async function loadPeaks() {
+    try {
+      const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (!Offline) return;
+      const buffer  = await (await fetch(audioUrl)).arrayBuffer();
+      const ctx     = new Offline(1, 2, 44100);
+      const decoded = await new Promise((resolve, reject) => {
+        const maybePromise = ctx.decodeAudioData(buffer, resolve, reject);   // old Safari is callback-only
+        if (maybePromise && maybePromise.catch) maybePromise.catch(reject);
+      });
+      const samples = decoded.getChannelData(0);
+      const buckets = 240;
+      const size    = Math.max(1, Math.floor(samples.length / buckets));
+      const levels  = new Float32Array(buckets);
+      let loudest = 0;
+      for (let b = 0; b < buckets; b++) {
+        let peak = 0;
+        for (let j = b * size, end = Math.min(samples.length, j + size); j < end; j += 8) {
+          const v = Math.abs(samples[j]);
+          if (v > peak) peak = v;
+        }
+        levels[b] = peak;
+        if (peak > loudest) loudest = peak;
+      }
+      if (loudest > 0) for (let b = 0; b < buckets; b++) levels[b] = Math.pow(levels[b] / loudest, 0.8);
+      peaks = levels;
+      resizeWaveCanvas();
+      paintPeaks();
+    } catch { /* decoding failed — the flat placeholder bars stay */ }
+  }
+
   // live=false paints flat bars (used while paused), still coloured by progress
   function paintWave(live) {
+    if (controls) { paintPeaks(); return; }
     if (!audioReady) return;
     if (live) analyser.getByteFrequencyData(dataArray);
     else dataArray.fill(0);
@@ -1552,7 +1623,8 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
 
   playBtn.addEventListener('click', play);
 
-  window.addEventListener('resize', resizeWaveCanvas);
+  // Resizing clears the canvas; the peaks waveform is static, so paint it again
+  window.addEventListener('resize', () => { resizeWaveCanvas(); if (controls) paintPeaks(); });
 
   // Expose startPlayback() so the intro handler can call it synchronously
   // within the user gesture — setTimeout breaks the browser's autoplay permission.
@@ -1578,13 +1650,35 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
       toggleBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
     };
 
-    const syncProgress = () => {
-      const ratio = audio.duration ? audio.currentTime / audio.duration : 0;
+    // Put the thumb, the fill and the clock at a given 0..1 position
+    const showRatio = ratio => {
+      const seconds = ratio * (audio.duration || 0);
       seek.value = String(Math.round(ratio * 1000));
       seek.style.setProperty('--played', `${(ratio * 100).toFixed(2)}%`);
-      seek.setAttribute('aria-valuetext', `${clock(audio.currentTime)} of ${clock(audio.duration)}`);
-      currentEl.textContent = clock(audio.currentTime);
+      seek.setAttribute('aria-valuetext', `${clock(seconds)} of ${clock(audio.duration)}`);
+      currentEl.textContent = clock(seconds);
     };
+
+    // Follow the audio — except while a finger owns the thumb, or while a seek is still
+    // landing. On iOS currentTime reports the old position until the seek completes, and
+    // following it then is what made the thumb snap back under a drag.
+    let pendingSeek = false;
+    let pendingTimer = null;
+    const syncProgress = () => {
+      if (scrubRatio !== null || pendingSeek) return;
+      showRatio(audio.duration ? audio.currentTime / audio.duration : 0);
+    };
+
+    const commitSeek = ratio => {
+      if (!audio.duration) return;
+      pendingSeek = true;
+      clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(() => { pendingSeek = false; }, 1500);   // in case 'seeked' never fires
+      audio.currentTime = ratio * audio.duration;
+      showRatio(ratio);
+      paintPeaks();
+    };
+    audio.addEventListener('seeked', () => { pendingSeek = false; clearTimeout(pendingTimer); syncProgress(); });
 
     // Play from wherever the scrubber is; from the top if it had finished
     const resume = () => {
@@ -1629,13 +1723,42 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     audio.addEventListener('loadedmetadata', () => { totalEl.textContent = clock(audio.duration); syncProgress(); });
     if (audio.readyState >= 1) totalEl.textContent = clock(audio.duration);
 
-    // Scrubbing: move the audio as the thumb moves, whether playing or paused
-    seek.addEventListener('input', () => {
-      if (!audio.duration) return;
-      audio.currentTime = (Number(seek.value) / 1000) * audio.duration;
-      syncProgress();
-      if (audio.paused) paintWave(false);
+    // Scrubbing by pointer. iPhone sliders only move when you grab the thumb itself and
+    // ignore taps on the track, so we position the thumb ourselves: press anywhere on the
+    // bar to jump there, drag to scrub, and the audio seeks when you let go.
+    const THUMB_INSET = 8;   // half the thumb's width, so the ends of the track are reachable
+    const ratioAt = e => {
+      const r = seek.getBoundingClientRect();
+      return Math.min(1, Math.max(0, (e.clientX - r.left - THUMB_INSET) / (r.width - THUMB_INSET * 2)));
+    };
+    const moveScrub = e => {
+      scrubRatio = ratioAt(e);
+      showRatio(scrubRatio);
+      paintPeaks();
+    };
+    seek.addEventListener('pointerdown', e => {
+      if (!audio.duration || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      e.preventDefault();
+      try { seek.setPointerCapture(e.pointerId); } catch { /* not capturable — moves still arrive while over the bar */ }
+      moveScrub(e);
     });
+    seek.addEventListener('pointermove', e => { if (scrubRatio !== null) moveScrub(e); });
+    const endScrub = () => {
+      if (scrubRatio === null) return;
+      const ratio = scrubRatio;
+      scrubRatio = null;
+      commitSeek(ratio);
+    };
+    seek.addEventListener('pointerup', endScrub);
+    seek.addEventListener('pointercancel', endScrub);
+
+    // Arrow keys (and any native slider movement) arrive as input events
+    seek.addEventListener('input', () => {
+      if (scrubRatio !== null) return;
+      commitSeek(Number(seek.value) / 1000);
+    });
+
+    loadPeaks();
 
     setToggle(false);
     syncProgress();
@@ -3005,6 +3128,16 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     title.innerHTML = baseTitle;
 
     const audio = embed.querySelector('audio');
+    // Name what's playing on the lock screen and in the system's media controls
+    audio.addEventListener('play', () => {
+      if (!('mediaSession' in navigator) || !window.MediaMetadata) return;
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title:  item.title,
+        artist: 'Efrain',
+        album:  episode.title,
+        artwork: [{ src: '/og-image.png', type: 'image/png' }],
+      });
+    });
     audio.addEventListener('ended', () => {
       if (title.dataset.durationSet) return;
       title.innerHTML = `${baseTitle}<span class="voice-embed__time"> [${Math.round(audio.duration)}s]</span>`;

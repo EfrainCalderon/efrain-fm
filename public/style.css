@@ -4,6 +4,12 @@
   box-sizing: border-box;
 }
 
+/* iOS paints a dark flash over anything tapped. Every control here has its own pressed
+   state, so the default highlight is switched off site-wide. */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* =====================
    COLOR VARIABLES
    ===================== */
@@ -1400,6 +1406,22 @@ body.intro-active #groove-map-btn {
   -webkit-appearance: none;
   appearance: none;
   touch-action: none;   /* dragging the thumb must not scroll the page */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* A bigger thumb for fingers */
+@media (pointer: coarse) {
+  .voice-embed__seek::-webkit-slider-thumb {
+    width: 22px;
+    height: 22px;
+    margin-top: -9px;
+  }
+
+  .voice-embed__seek::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+  }
 }
 
 .voice-embed__seek::-webkit-slider-runnable-track {
