@@ -365,6 +365,9 @@
       <h1 id="site-title">
         <span class="logo-efr">efr</span><span class="logo-ai">ai</span><span class="logo-n">n</span><span class="logo-dot">.</span><span class="logo-fm">fm</span>
       </h1>
+      <!-- Phones, in an episode: the music service, centred between the logo and the mode switch.
+           On desktop the same control sits in the episode's info line instead. -->
+      <button type="button" class="service-pill" id="show-service-pill-header" aria-label="Change music service"></button>
       <!-- Right side controls -->
       <div id="header-right">
         <!-- Grooves button — disc icon + label. Always shown in Explore once past the first-visit screen. -->
@@ -455,7 +458,8 @@
              It folds itself when the final message is reached, so there is room to write a note. -->
         <button type="button" id="show-list-toggle" aria-expanded="true" aria-controls="show-list">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-          <span>Playlist</span>
+          <span class="show-list-toggle__label">Playlist</span>
+          <span class="show-list-toggle__meta" id="show-list-meta"></span>
           <svg class="show-list-toggle__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="show-list" id="show-list" aria-label="Played so far"></div>

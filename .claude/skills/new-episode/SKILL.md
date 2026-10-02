@@ -44,7 +44,7 @@ From Efrain:
 - **Audio files** and where each sits: an introduction, and transmissions "after song N".
 - **Episode title**, usually "Episode 02: Something".
 - **Sign-off text** shown at the end. An intro is normally spoken, not text.
-- **Total minutes of music**.
+- Nothing for running time: you measure it (step 7).
 - Optional: a story (commentary) for any new song, and cluster preferences.
 
 You work out: which songs are already in the library, Apple Music links, the episode
@@ -179,7 +179,17 @@ three-minute message near 2.9 MB. `T check` fails any file over the cap.
 - `short_title` is for titles whose important part gets cut off in the narrow playlist
   column, mostly classical.
 
-### 7. Check it
+### 7. Measure the running time
+
+```bash
+node .claude/skills/new-episode/scripts/episode-tools.js duration 2026-11
+```
+
+This adds up every song and every transmission and prints the number for
+`duration_minutes`. The figure listeners see is the whole episode, music plus Efrain's
+messages, so don't use a music-only total. Put the printed number in the episode file.
+
+### 7b. Check it
 
 ```bash
 node .claude/skills/new-episode/scripts/episode-tools.js check 2026-11
@@ -221,6 +231,6 @@ the audio or see the page as a listener does).
 ## Changing an existing episode
 
 Reordering, moving a transmission, swapping a song, or fixing a title are edits to the
-episode file followed by steps 7 to 9. Listeners' saved place is stored by position, so
+episode file followed by steps 7 to 9. Re-run `duration` if a song or audio file changed. Listeners' saved place is stored by position, so
 after a reorder someone mid-episode may land an item away from where they were; mention
 that if the episode has been live for a while.

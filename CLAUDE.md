@@ -106,7 +106,9 @@ The `initShow` IIFE at the end of `script.js`, markup in `#show-view`, styles un
 - **Switching modes:** `body.mode-show` swaps the chat thread and text input for the show view. Neither mode is torn down, so each keeps its place. The address updates (`/show` ↔ `/`), and back/forward follow it.
 - **One embed at a time.** Spotify and Apple embeds can't be paused from outside, so leaving a mode takes its iframes off the page (they restart on return). Our own `<audio>` is paused and resumed.
 - **Transmissions** are voice messages with a control bar (see "Voice message player"). They autoplay when the listener arrives by a tap (footer button, playlist row, or entering the episode by a button), and never on a direct page load, since browsers block audio that starts without a tap. Moving to another item or to Explore pauses one and keeps its position; returning resumes it only if leaving is what paused it. A listener who paused it themselves finds it still paused.
-- **Phones:** the playlist stacks above the current item and takes about a third of the screen. A bar above it (`#show-list-toggle`, "Playlist") folds it away or brings it back, and it folds itself when the final message is reached so there is room to read it and write a note. Desktop never folds; the CSS only honours `.list-collapsed` at phone widths.
+- **Episode facts:** the masthead shows the total song count and total minutes ("15 songs • 64 min") from the start; it never counts up. `duration_minutes` is the whole episode, songs plus transmissions, measured with `episode-tools.js duration`.
+- **Service pill:** neutral grey, icon then name; tapping it asks Spotify or Apple Music in the footer. There are two copies kept in step by `renderControls`: `#show-service-pill` in the masthead's info line on desktop, and `#show-service-pill-header`, centred in the header, on phones.
+- **Phones:** the info line is hidden; its facts move into the playlist bar ("Playlist 15 songs • 64 min") and the pill moves to the header, which makes the masthead shorter. The playlist stacks above the current item and takes about a third of the screen. A bar above it (`#show-list-toggle`) folds it away or brings it back, and it folds itself when the final message is reached so there is room to read it and write a note. Desktop never folds; the CSS only honours `.list-collapsed` at phone widths.
 - **Flow:** a spoken Introduction opens the episode. The Spotify-or-Apple question is asked only when a listener without a saved choice is about to reach the first song.
 - **State:** progress is saved in `localStorage` as `efrain_fm_show_progress`, keyed by episode id and stored by position. Show plays never touch Groove counts or Explore's played list.
 - **Listener notes:** a form under the final message (the episode's `outro`) posts to `/api/feedback`. Guards: rate limit, length caps, strict email pattern, honeypot field, plain-text email. Nothing typed is stored or rendered back.
@@ -156,7 +158,7 @@ The type and spacing scales are documented in a comment at the top of the "SHOW 
 
 ## Publishing an episode
 
-Use the **`new-episode` skill** (`.claude/skills/new-episode/`). It covers matching a song list against the library, getting links, tagging, audio, the episode file, checking, and publishing, and bundles `scripts/episode-tools.js` (`status`, `match`, `apple`, `spotify`, `vocab`, `check`).
+Use the **`new-episode` skill** (`.claude/skills/new-episode/`). It covers matching a song list against the library, getting links, tagging, audio, the episode file, checking, and publishing, and bundles `scripts/episode-tools.js` (`status`, `match`, `apple`, `spotify`, `vocab`, `check`, `duration`).
 
 ## Adding songs
 

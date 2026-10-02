@@ -1784,10 +1784,22 @@ body.intro-active:not(.mode-show) #mode-switch {
   inset: -10px -6px;
 }
 
-.service-pill.apple   { background: rgba(250, 87, 108, 0.16); color: #ff9aa9; }
-.service-pill.spotify { background: rgba(30, 215, 96, 0.14);  color: #6fe39b; }
-.service-pill.apple:hover   { background: rgba(250, 87, 108, 0.26); }
-.service-pill.spotify:hover { background: rgba(30, 215, 96, 0.24); }
+/* Neutral on purpose. It used to be pink or green by service, which made a rarely used
+   setting the loudest thing on the screen. The icon and name carry the meaning. */
+.service-pill {
+  background: var(--live-tag-bg);
+  color: var(--show-muted-strong);
+}
+
+.service-pill:hover {
+  background: var(--live-tag-hover-bg);
+  color: var(--text-primary);
+}
+
+/* The header copy of the pill: phones only, and only inside an episode */
+#show-service-pill-header {
+  display: none;
+}
 
 /* ── Body: playlist + current item ── */
 .show-body {
@@ -2127,8 +2139,46 @@ body.mode-show.show-picking #show-next-btn {
     text-align: left;
   }
 
-  #show-list-toggle span {
+  /* "Playlist", then the episode's facts, then the chevron pushed to the right edge */
+  .show-list-toggle__meta {
     flex: 1;
+    min-width: 0;
+    font-weight: 400;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The facts and the service pill move out of the masthead on phones (into the playlist
+     bar and the header), so the title block is shorter and the content gets the space. */
+  .show-info {
+    display: none;
+  }
+
+  .show-title {
+    margin-bottom: 0;
+  }
+
+  body.mode-show #show-service-pill-header {
+    display: inline-flex;
+    margin: 0 auto;
+  }
+
+  body.mode-show #header-right {
+    margin-left: 0;   /* the pill's auto margins do the spacing, so it sits centred */
+  }
+}
+
+/* Phones narrower than an iPhone: the header pill drops its icon to keep its breathing room */
+@media (max-width: 374px) {
+  #show-service-pill-header svg {
+    display: none;
+  }
+
+  #show-service-pill-header {
+    padding-left: 10px;
   }
 
   #show-list-toggle:focus-visible {

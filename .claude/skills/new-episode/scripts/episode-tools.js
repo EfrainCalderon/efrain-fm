@@ -8,11 +8,13 @@
 //   node .claude/skills/new-episode/scripts/episode-tools.js spotify <track url or id> [...]
 //   node .claude/skills/new-episode/scripts/episode-tools.js vocab
 //   node .claude/skills/new-episode/scripts/episode-tools.js check <episode id, e.g. 2026-11>
+//   node .claude/skills/new-episode/scripts/episode-tools.js duration <episode id>
 //
-// Only `apple` and `spotify` use the network. Nothing here writes to the project.
+// `apple`, `spotify` and `duration` use the network. Nothing here writes to the project.
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 const SONGS_PATH = path.join(ROOT, 'data', 'songs.json');
@@ -292,6 +294,77 @@ function check(target) {
   }
 }
 
+// ── duration ────────────────────────────────────────────────────────────
+// Total running time of an episode: every song plus every transmission. Song lengths
+// come from Spotify's public embed page (Apple's lookup as a fallback); transmission
+// lengths come from the audio files via macOS `afinfo`. The result is the number to
+// put in the episode's "duration_minutes".
+async function songSeconds(song) {
+  const spotifyId = (song.streaming.spotify || '').match(/track\/([A-Za-z0-9]{22})/);
+  if (spotifyId) {
+    try {
+      const html = await (await fetch(`https://open.spotify.com/embed/track/${spotifyId[1]}`, { headers: { 'User-Agent': 'Mozilla/5.0' } })).text();
+      const data = html.match(/<script id="__NEXT_DATA__"[^>]*>(.*?)<\/script>/s);
+      const ms = data && JSON.parse(data[1]).props?.pageProps?.state?.data?.entity?.duration;
+      if (ms) return ms / 1000;
+    } catch { /* fall through to Apple */ }
+  }
+  const appleId = (song.streaming.apple_music || '').match(/[?&]i=(\d+)/);
+  if (appleId) {
+    try {
+      const res = await (await fetch(`https://itunes.apple.com/lookup?id=${appleId[1]}&country=us`)).json();
+      const ms = res.results[0] && res.results[0].trackTimeMillis;
+      if (ms) return ms / 1000;
+    } catch { /* unknown */ }
+  }
+  return null;
+}
+
+function audioSeconds(audioPath) {
+  try {
+    const out = execFileSync('afinfo', [audioPath], { encoding: 'utf8' });
+    const m = out.match(/estimated duration: ([\d.]+)/);
+    return m ? parseFloat(m[1]) : null;
+  } catch {
+    return null;   // afinfo is macOS-only, or the file is missing
+  }
+}
+
+async function duration(target) {
+  if (!target) throw new Error('Usage: duration <episode id, e.g. 2026-11>');
+  const file = target.endsWith('.json') ? path.resolve(target) : path.join(EPISODES_DIR, `${target}.json`);
+  if (!fs.existsSync(file)) throw new Error(`No episode file at ${path.relative(ROOT, file)}`);
+  const ep = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const byId = new Map(loadSongs().map(s => [s.id, s]));
+  const clock = s => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, '0')}`;
+  let songTotal = 0;
+  let voiceTotal = 0;
+  const unknown = [];
+
+  for (const step of ep.steps || []) {
+    if (step.type === 'song') {
+      const song = byId.get(step.song_id);
+      const seconds = song ? await songSeconds(song) : null;
+      if (seconds === null) unknown.push(song ? song.title : step.song_id);
+      else songTotal += seconds;
+      console.log(`song   ${seconds === null ? '  ?  ' : clock(seconds).padStart(5)}  ${song ? song.title : step.song_id}`);
+    } else if (step.type === 'transmission') {
+      const seconds = audioSeconds(path.join(PUBLIC_DIR, step.audio || ''));
+      if (seconds === null) unknown.push(step.title);
+      else voiceTotal += seconds;
+      console.log(`voice  ${seconds === null ? '  ?  ' : clock(seconds).padStart(5)}  ${step.title}`);
+    }
+  }
+
+  const total = (songTotal + voiceTotal) / 60;
+  console.log(`\nSongs ${(songTotal / 60).toFixed(1)} min + transmissions ${(voiceTotal / 60).toFixed(1)} min = ${total.toFixed(1)} min`);
+  console.log(`Set "duration_minutes": ${Math.round(total)}  (currently ${ep.duration_minutes})`);
+  if (unknown.length) {
+    console.log(`\nCould not measure: ${unknown.join(', ')}. The total above leaves them out.`);
+    process.exitCode = 1;
+  }
+}
+
 // ── main ────────────────────────────────────────────────────────────────
 (async () => {
   const [command, ...args] = process.argv.slice(2);
@@ -302,8 +375,9 @@ function check(target) {
     else if (command === 'spotify') await spotify(args);
     else if (command === 'vocab') vocab();
     else if (command === 'check') check(args[0]);
+    else if (command === 'duration') await duration(args[0]);
     else {
-      console.log('Commands: status | match <file or -> | apple "<artist>" "<title>" | spotify <url>... | vocab | check <episode id>');
+      console.log('Commands: status | match <file or -> | apple "<artist>" "<title>" | spotify <url>... | vocab | check <episode id> | duration <episode id>');
       process.exitCode = command ? 1 : 0;
     }
   } catch (e) {

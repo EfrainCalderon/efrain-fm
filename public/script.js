@@ -2810,7 +2810,9 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   const listEl        = document.getElementById('show-list');
   const stageEl       = document.getElementById('show-stage');
   const nextBtn       = document.getElementById('show-next-btn');
-  const pill          = document.getElementById('show-service-pill');
+  const pill          = document.getElementById('show-service-pill');          // desktop: in the info line
+  const headerPill    = document.getElementById('show-service-pill-header');   // phones: in the header
+  const listMetaEl    = document.getElementById('show-list-meta');
   const countEl       = document.getElementById('show-count');
   const durationEl    = document.getElementById('show-duration');
   const editionEl     = document.getElementById('show-edition');
@@ -2881,7 +2883,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   }
 
   const songNumber   = index => items.slice(0, index + 1).filter(i => i.type === 'song').length;
-  const songsReached = () => items.slice(0, reached).filter(i => i.type === 'song').length;
 
   // ── Playlist ───────────────────────────────────────────────────────────
   function renderList() {
@@ -3194,15 +3195,19 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     editionEl.textContent = episode.edition;
     titleEl.textContent   = episode.title;
 
-    const total = episode.song_count;
-    const heard = songsReached();
-    countEl.textContent    = heard ? `${heard} of ${total} songs` : `${total} songs`;
-    durationEl.textContent = episode.duration_minutes ? `${episode.duration_minutes} min` : '';
-    durationEl.previousElementSibling.hidden = !episode.duration_minutes;
+    // The episode's size: total songs and total minutes (songs plus transmissions). It is
+    // shown from the start and never counts up; the numbered playlist shows progress.
+    const songsText   = `${episode.song_count} songs`;
+    const minutesText = episode.duration_minutes ? `${episode.duration_minutes} min` : '';
+    countEl.textContent    = songsText;
+    durationEl.textContent = minutesText;
+    durationEl.previousElementSibling.hidden = !minutesText;
+    listMetaEl.textContent = minutesText ? `${songsText} • ${minutesText}` : songsText;   // phones: in the playlist bar
 
     const service = getPlayerPref();
-    pill.className = `service-pill ${service === 'spotify' ? 'spotify' : 'apple'}`;
-    pill.innerHTML = ICON_SOURCE + (service === 'spotify' ? 'Spotify' : 'Apple Music');
+    for (const el of [pill, headerPill]) {
+      el.innerHTML = ICON_SOURCE + (service === 'spotify' ? 'Spotify' : 'Apple Music');
+    }
 
     nextBtn.textContent = nextLabel();
   }
@@ -3327,6 +3332,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   }
 
   pill.addEventListener('click', openPicker);
+  headerPill.addEventListener('click', openPicker);
 
   // ── Keeping the hidden mode quiet ──────────────────────────────────────
   // Spotify/Apple embeds can't be paused from outside, so the only way to stop one is to
