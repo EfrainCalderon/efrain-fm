@@ -899,6 +899,14 @@ body.intro-active #groove-map-btn {
 }
 
 @media (max-width: 768px) {
+  /* A set of short labels (the Spotify / Apple Music / Neither question): each button is
+     as wide as its text needs and stays on one line, so three fit in a row at 44px. */
+  #interrupt-buttons.is-compact .interrupt-btn {
+    flex: 1 1 auto;
+    white-space: nowrap;
+    padding: 11px 12px;
+  }
+
   .interrupt-btn {
     flex: 1 1 calc(50% - 4px);
     white-space: normal;
@@ -1784,7 +1792,7 @@ body.intro-active:not(.mode-show) #mode-switch {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
   font-size: 1.22em;
   line-height: 1;
-  margin-right: 0.04em;
+  margin-right: calc(0.04em - 2px);
   position: relative;
   top: -0.06em;
 }
@@ -2215,12 +2223,12 @@ body.mode-show.show-picking #show-next-btn {
   }
 
   /* In the header it takes the shape of its neighbours (Grooves, Explore): same corner,
-     padding, icon size and resting transparency, with a fill only on hover or press. */
+     padding, icon size, fill and colour. */
   body.mode-show #show-service-pill-header {
     display: inline-flex;
-    margin: 0 16px 0 auto;   /* sits with the mode switch on the right, 16px before it */
+    margin: 0 12px 0 auto;   /* sits with the mode switch on the right, 12px before it */
     padding: 6px 10px 6px 8px;
-    color: var(--link-color);
+    color: var(--text-primary);   /* same label and icon colour as the mode switch */
     white-space: nowrap;
   }
 
@@ -2246,7 +2254,12 @@ body.mode-show.show-picking #show-next-btn {
   }
 
   #header-right {
-    gap: 16px;
+    gap: 12px;
+  }
+
+  /* All three header buttons share one colour on phones, so the chips read as a set */
+  #groove-map-btn {
+    color: var(--text-primary);
   }
 
   /* "Apple Music" in words (non-Apple phones) is too wide to sit beside the logo with its
@@ -2315,10 +2328,10 @@ body.mode-show.show-picking #show-next-btn {
   }
 
   #header-right {
-    gap: 12px;
+    gap: 8px;
   }
 
   body.mode-show #show-service-pill-header {
-    margin-right: 12px;
+    margin-right: 8px;
   }
 }

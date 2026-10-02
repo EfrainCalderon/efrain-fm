@@ -78,11 +78,12 @@ async function showPlayerPicker(promptText, { offerEpisode = false } = {}) {
 
   const btnRow = document.createElement('div');
   btnRow.id = 'interrupt-buttons';
+  btnRow.classList.add('is-compact');   // three short labels: one row on phones, no wrapping
 
   const options = [
     { label: 'Spotify',        val: 'spotify' },
     { label: 'Apple Music',    val: 'apple'   },
-    { label: 'Something else', val: 'apple'   }, // save apple — longer previews
+    { label: 'Neither',        val: 'apple'   }, // save apple — longer previews
   ];
 
   options.forEach((opt, i) => {
