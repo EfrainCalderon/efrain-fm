@@ -2924,7 +2924,13 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
         render({ autoplay: true });
       });
       listEl.appendChild(row);
-      if (i === current) requestAnimationFrame(() => row.scrollIntoView({ block: 'nearest' }));
+      // Keep the current row in view. When it is the newest row, go all the way to the
+      // bottom: "nearest" stops at the row's edge and leaves it pressed against the edge
+      // of the list, short of the list's own bottom padding.
+      if (i === current) requestAnimationFrame(() => {
+        if (i === reached - 1) listEl.scrollTop = listEl.scrollHeight;
+        else row.scrollIntoView({ block: 'nearest' });
+      });
     });
   }
 
