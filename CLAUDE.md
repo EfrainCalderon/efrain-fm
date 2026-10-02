@@ -92,7 +92,7 @@ Songs belong to clusters: C1 Outsider, C2 Night, C3 Raw, C4 Cosmic, C5 Soul, C6 
 - **Spotify playback copy is conditional and hedged.** Spotify's embed plays full songs only when it can tell the listener is logged in, and Safari and phones are limited to 30-second previews; we can't detect a login. `spotifyPlaybackNote()` (client) and `describeSpotifyPlayback()` (server, by User-Agent) word this per browser and must stay in step. Don't write copy that says Spotify can never play full songs, or that promises it will.
 - `isTyping` gates all input while the assistant is responding.
 - Choices appear as buttons in the footer (`#interrupt-bar`), temporarily replacing the text input. The footer's height never changes.
-- `addMessageToChatWithTyping` does the typewriter effect; `createVoiceEmbed` builds the voice-message player used for the welcome, keystones, and transmissions (it exposes `startPlayback`, `stop`, and with `controls`, `resume` and `pause`).
+- `addMessageToChatWithTyping` does the typewriter effect. `createVoiceEmbed` builds the voice-message player; see "Voice message player" below before changing it.
 - **First-visit flow:** "Start exploring" → welcome audio (`public/audio/AIntro.m4a`) → Spotify / Apple Music / Something else → "explore or episode?" (`showModeChoice`).
 - The header holds the logo, the Grooves button, and the **mode switch**: one button naming its destination, `EP. 01` (from the episode's `number`) in Explore and `Explore` in the episode.
 - **Background canvas** (inline script in `index.html`): rings + star field, 24fps, paused when the tab is hidden. With `body.mode-show` it drops the disc and rings and adds inner stars that fade in from the centre.
@@ -105,8 +105,7 @@ The `initShow` IIFE at the end of `script.js`, markup in `#show-view`, styles un
 - **Audio:** `public/audio/episodes/<year-month>/`, AAC at 128 kbit/s to stay under the 4.5 MB cap.
 - **Switching modes:** `body.mode-show` swaps the chat thread and text input for the show view. Neither mode is torn down, so each keeps its place. The address updates (`/show` ↔ `/`), and back/forward follow it.
 - **One embed at a time.** Spotify and Apple embeds can't be paused from outside, so leaving a mode takes its iframes off the page (they restart on return). Our own `<audio>` is paused and resumed.
-- **Transmissions** use `createVoiceEmbed(url, title, { controls: true })`, which adds a control bar: play/pause, a draggable scrubber (a native range input, so touch and keyboard work), and timecodes. They autoplay when the listener arrives by a tap (footer button, playlist row, or entering the episode by a button), never on a direct page load, since browsers block audio without a tap. Moving to another item or to Explore pauses a transmission and keeps its position; returning resumes it only if leaving is what paused it. The welcome and Groove messages in Explore use the same component without `controls` and are unchanged.
-- **iOS rules for the control-bar player** (learned by testing on an iPhone): playback is a plain `<audio>` element, never routed through Web Audio, because iOS silences an `AudioContext` when the screen locks. Its waveform is therefore drawn from the decoded file (`loadPeaks`, via an `OfflineAudioContext`), not a live analyser. The scrubber is positioned by our own pointer handlers (iPhone sliders ignore taps on the track), the thumb is never driven by `currentTime` during a drag or while a seek is landing, and the audio seeks on release. `MediaMetadata` names the transmission on the lock screen. The no-`controls` player still uses the live analyser, so the welcome and Groove messages do stop when an iPhone locks.
+- **Transmissions** are voice messages with a control bar (see "Voice message player"). They autoplay when the listener arrives by a tap (footer button, playlist row, or entering the episode by a button), and never on a direct page load, since browsers block audio that starts without a tap. Moving to another item or to Explore pauses one and keeps its position; returning resumes it only if leaving is what paused it. A listener who paused it themselves finds it still paused.
 - **Flow:** a spoken Introduction opens the episode. The Spotify-or-Apple question is asked only when a listener without a saved choice is about to reach the first song.
 - **State:** progress is saved in `localStorage` as `efrain_fm_show_progress`, keyed by episode id and stored by position. Show plays never touch Groove counts or Explore's played list.
 - **Listener notes:** a form under the sign-off posts to `/api/feedback`. Guards: rate limit, length caps, strict email pattern, honeypot field, plain-text email. Nothing typed is stored or rendered back.
@@ -114,9 +113,45 @@ The `initShow` IIFE at the end of `script.js`, markup in `#show-view`, styles un
 - **Launch switch:** `SHOW_PUBLIC` in `initShow` (true since 2026-10-01). Set it to false to offer the episode only in browsers that have already entered Show mode.
 - Text-box commands for testing: `/show` (enter), `/show-reset` (forget progress), plus `/reset`, `/push c1`–`c9`, `/groove-reset`, `/player`.
 
+### Voice message player (`createVoiceEmbed`)
+
+One component, two variants. Explore and Show share it, so a change here affects both.
+
+| | Without `controls` | With `{ controls: true }` |
+|---|---|---|
+| Used by | Welcome message, Groove (keystone) messages | Episode Introduction and transmissions |
+| Controls | One play button, shown before and after playback | Play/pause, draggable scrubber, current and total time |
+| Waveform | Live bars from a Web Audio analyser, mirrored from the centre | The whole recording's shape, left to right, played part brighter |
+| Audio path | `<audio>` routed through an `AudioContext` | Plain `<audio>` only |
+| Methods on the element | `startPlayback()`, `stop()` | also `resume()`, `pause()` |
+
+Rules for the control-bar variant. Each one fixed a real bug found on an iPhone, so keep them:
+
+- **Never route its audio through Web Audio.** iOS silences an `AudioContext` when the screen locks or Safari is backgrounded. `initAudio()` is a no-op when `controls` is on, and the waveform comes from `loadPeaks()`, which decodes the file once with an `OfflineAudioContext` (that never touches the device's audio session).
+- **We position the scrubber ourselves.** iPhone sliders only respond to dragging the thumb and ignore taps on the track, so `pointerdown` / `pointermove` / `pointerup` handlers set the position: press anywhere to jump, drag to scrub. The `<input type="range">` stays for semantics and arrow-key support.
+- **The thumb is never driven by `audio.currentTime` during a drag or while a seek is landing** (`scrubRatio`, `pendingSeek`). On iOS `currentTime` reports the old position until the seek completes, and following it makes the thumb snap back under the finger.
+- **The audio seeks on release**, not continuously; the time readout and waveform update during the drag.
+- `touch-action: none` on the scrubber stops a drag from scrolling the page. The visible track is 4px; the touch area is 44px tall, and the thumb grows to 22px on touch screens.
+- `MediaMetadata` (set in `initShow`) names the transmission on the lock screen.
+- After `ended`, the title returns with its length stamped on (`[57s]`); pressing play restarts from the top and the label reads "replaying transmission".
+
+The no-`controls` variant still uses the live analyser, so the welcome and Groove messages stop if an iPhone locks mid-message. Moving them to the control-bar variant would fix that.
+
 ### Design system
 
 The type and spacing scales are documented in a comment at the top of the "SHOW MODE" section of `style.css` and apply site-wide. In short: text is 18 / 16 / 14 / 11-mono with emphasis from weight and colour; spacing is 4 / 8 / 12 / 16 / 24 with a 16px side gutter; colours come from the CSS variables in `:root`. Put new text and spacing on those scales.
+
+- **Touch:** interactive elements get a 44px tap area, usually by an `::after` that extends past a smaller visible control (header buttons, service pill, player button). The iOS tap highlight is turned off site-wide (`-webkit-tap-highlight-color` on `html`), so every control needs its own pressed state.
+- **Contrast:** `--text-secondary` only reaches about 3:1 on a highlighted row or filled control. Use `--show-muted-strong` there to stay at WCAG AA (4.5:1).
+- **Header and footer are shared by both modes.** The header fits the logo plus two icon-and-label buttons on a 375px phone; the Grooves label drops below 360px.
+
+## Verifying changes
+
+- Use the preview for structure, state, and layout: read values with script, resize to phone width, check the console.
+- **The preview pane is often hidden while Claude works, and a hidden page does not run animations or transitions.** Fades and entrance animations can look frozen or dim in screenshots; that is not a bug. Screenshots can also lag a state change by a moment.
+- **Audio can't be heard.** Confirm playback by `audio.paused` and `currentTime` advancing, and say so.
+- **iOS behaviour needs a real iPhone:** touch dragging, tap highlights, lock-screen playback, autoplay rules, and Safari's privacy prompts. Simulated pointer events and a phone-sized viewport are not proof. Ask Efrain to check, and say exactly what to try.
+- After a deploy, request the live file or route and check for the change. The first response or two after a push can still be the old version.
 
 ## Publishing an episode
 
@@ -149,3 +184,5 @@ A Spotify client secret was once committed in a since-deleted helper script (`fe
 - Keystone songs stay withheld in Explore until their cluster is unlocked; an episode may still include one.
 - Haiku is used for keyword extraction, artist trait inference, short-message classification, and conversational replies. `EFRAIN_CHARACTER` sets the persona for all conversational replies.
 - Nothing a visitor types is ever rendered back as HTML.
+- The welcome recording (`public/audio/AIntro.m4a`) and the `EFRAIN_CHARACTER` prompt both describe how the site works: the two modes, how to switch players, and what Spotify and Apple Music can play. When that behaviour or its on-screen wording changes, update the prompt, and tell Efrain the recording may now be out of date, since only they can re-record it.
+- Episode transmissions autoplay on a tap. This is only safe because Show mode keeps one item on screen at a time; if that ever changes, audio could overlap.
