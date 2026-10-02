@@ -450,7 +450,14 @@
           <button type="button" class="service-pill" id="show-service-pill" aria-label="Change music service"></button>
         </div>
       </div>
-      <div class="show-body">
+      <div class="show-body" id="show-body">
+        <!-- Phones only: folds the playlist away to give the current item the whole screen.
+             It folds itself when the final message is reached, so there is room to write a note. -->
+        <button type="button" id="show-list-toggle" aria-expanded="true" aria-controls="show-list">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>Playlist</span>
+          <svg class="show-list-toggle__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
         <div class="show-list" id="show-list" aria-label="Played so far"></div>
         <div class="show-stage" id="show-stage"></div>
       </div>

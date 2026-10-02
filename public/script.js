@@ -2854,7 +2854,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
           items = [];
           if (data.intro) items.push({ type: 'intro', title: 'Intro', artist: 'Efrain', text: data.intro });
           items.push(...data.steps);
-          if (data.outro) items.push({ type: 'outro', title: 'Sign-off', artist: 'Efrain', text: data.outro });
+          if (data.outro) items.push({ type: 'outro', title: 'Final message', artist: 'Efrain', text: data.outro });
           restoreProgress();
           return data;
         })
@@ -3186,7 +3186,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     const next = items[current + 1];
     if (!next) return 'Explore';
     if (next.type === 'transmission') return 'Transmission from Efrain';
-    if (next.type === 'outro') return 'Sign off';
+    if (next.type === 'outro') return 'Final message';
     return songNumber(current + 1) === 1 ? 'Drop the needle' : 'Next up';
   }
 
@@ -3207,7 +3207,38 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     nextBtn.textContent = nextLabel();
   }
 
+  // ── Folding the playlist (phones) ──────────────────────────────────────
+  // On a phone the playlist takes about a third of the screen, which leaves too little
+  // room to read the final message and write a note, more so with the keyboard up. So
+  // it folds away when the final message is reached. The bar above it always lets the
+  // listener bring it back, or fold it themselves at any point. Desktop never folds:
+  // the CSS only honours the folded state at phone widths.
+  const showBody   = document.getElementById('show-body');
+  const listToggle = document.getElementById('show-list-toggle');
+  let listCollapsed = false;
+  let lastRendered  = -1;
+
+  function syncListFold() {
+    showBody.classList.toggle('list-collapsed', listCollapsed);
+    listToggle.setAttribute('aria-expanded', String(!listCollapsed));
+  }
+
+  listToggle.addEventListener('click', () => {
+    listCollapsed = !listCollapsed;
+    syncListFold();
+    if (!listCollapsed) {
+      const row = listEl.querySelector('.show-row[aria-current="true"]');
+      if (row) row.scrollIntoView({ block: 'nearest' });
+    }
+  });
+
   function render({ autoplay = false } = {}) {
+    // Fold once on arriving at the final message; after that it's the listener's call
+    if (current !== lastRendered) {
+      if (items[current] && items[current].type === 'outro') listCollapsed = true;
+      lastRendered = current;
+    }
+    syncListFold();
     renderList();
     renderStage({ autoplay });
     renderControls();

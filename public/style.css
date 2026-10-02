@@ -2095,11 +2095,59 @@ body.mode-show.show-picking #show-next-btn {
   outline-offset: 2px;
 }
 
+/* Playlist fold control — phones only (see the media query below) */
+#show-list-toggle {
+  display: none;
+}
+
 /* ── Phones: playlist stacks on top with a capped height; current item sits under it ── */
 @media (max-width: 768px) {
   .show-body {
     display: flex;
     flex-direction: column;
+  }
+
+  /* A slim bar above the playlist. Tapping it folds the playlist away or brings it back. */
+  #show-list-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+    width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--show-muted-strong);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  #show-list-toggle span {
+    flex: 1;
+  }
+
+  #show-list-toggle:focus-visible {
+    outline: 2px solid var(--input-focus-border);
+    outline-offset: -2px;
+  }
+
+  /* Chevron points down when folded (tap to open), up when open (tap to fold) */
+  .show-list-toggle__chevron {
+    transition: transform 0.2s ease-out;
+    transform: rotate(180deg);
+  }
+
+  .show-body.list-collapsed .show-list-toggle__chevron {
+    transform: rotate(0deg);
+  }
+
+  .show-body.list-collapsed .show-list {
+    display: none;
   }
 
   .show-list {

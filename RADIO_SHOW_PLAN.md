@@ -22,7 +22,8 @@ today, see the "Show mode" section of `CLAUDE.md`. To publish a new episode, use
 - Each month is an "episode"; files live in `data/episodes/` and `public/audio/episodes/`.
 - The episode opens with a spoken Introduction instead of intro text, and the Spotify-or-Apple question moved to just before the first song.
 - First-time visitors are asked "explore or episode?" right after the Spotify-or-Apple question.
-- Button labels: "Drop the needle", "Next up", "Transmission from Efrain", "Sign off", "Explore".
+- Button labels: "Drop the needle", "Next up", "Transmission from Efrain", "Final message", "Explore". ("Sign off" was renamed because it read as leaving, and listeners might skip the closing message.)
+- On phones the playlist folds away at the final message, with a "Playlist" bar to bring it back, so the note form has room.
 - Voice breaks are "Transmission 1", "Transmission 2"…, placed after songs 4, 7, 10 and 14 in Episode 01.
 - A listener note form sits under the sign-off (`/api/feedback`, emailed through Resend).
 - In show mode the background drops the rings and fades stars in from the centre.
