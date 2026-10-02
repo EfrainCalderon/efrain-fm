@@ -2975,15 +2975,9 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
 
     const line = document.createElement('p');
     line.className = 'show-support__line';
-    // Phones get the short line, which runs straight into the button; the full sentence
-    // wrapped awkwardly at that width. CSS shows one or the other.
-    const full = document.createElement('span');
-    full.className = 'show-support__full';
-    full.textContent = 'If this hour was worth a coffee to you, you can buy me one.';
-    const short = document.createElement('span');
-    short.className = 'show-support__short';
-    short.textContent = 'If this hour was worth a coffee to you…';
-    line.append(full, short);
+    // A short lead-in that runs straight into the button and fits on one line at every
+    // width; the full sentence it replaced wrapped awkwardly.
+    line.textContent = 'If this hour was worth a coffee to you…';
 
     const link = document.createElement('a');
     link.className = 'show-support__link';

@@ -2040,16 +2040,6 @@ body.mode-show.show-at-end:not(.show-picking) #input-footer {
   color: var(--show-muted-strong);
 }
 
-/* Shown one at a time: the full sentence on desktop, the short lead-in on phones */
-.show-support__short {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .show-support__full  { display: none; }
-  .show-support__short { display: inline; }
-}
-
 /* The light, filled button used for the choices in the footer (.interrupt-btn): same
    colours, radius, shadow and press behaviour. With the footer gone on the final message,
    this is the one prominent action on the screen. */
