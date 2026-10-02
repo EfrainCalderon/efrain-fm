@@ -1650,6 +1650,9 @@ body:not(.intro-active) #intro-start-btn {
   /* --text-secondary only reaches 3:1 on a highlighted row or the toggle's fill.
      This lighter step clears WCAG AA (4.5:1) on both. */
   --show-muted-strong: hsla(36, 8%, 72%, 1);
+  /* A recessed surface: darker than the card and mostly opaque. In a dark interface,
+     lighter reads as raised and darker as set in, so this marks a tray, not a panel. */
+  --show-well-bg: rgba(10, 11, 13, 0.62);
 }
 
 /* ── Mode switching ── */
@@ -2198,6 +2201,14 @@ body.mode-show.show-picking #show-next-btn {
     border-bottom: 1px solid var(--border-color);
     cursor: pointer;
     text-align: left;
+  }
+
+  /* The playlist (its bar and its rows) is one recessed tray between the title above and
+     the current item below, so the three blocks read as separate layers. The stars are
+     dimmed behind it and stay bright behind the content. */
+  #show-list-toggle,
+  .show-list {
+    background: var(--show-well-bg);
   }
 
   /* "Playlist", then the episode's facts, then the chevron pushed to the right edge */

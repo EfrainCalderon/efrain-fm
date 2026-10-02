@@ -147,6 +147,7 @@ The type and spacing scales are documented in a comment at the top of the "SHOW 
 
 - **Touch:** interactive elements get a 44px tap area, usually by an `::after` that extends past a smaller visible control (header buttons, service pill, player button). The iOS tap highlight is turned off site-wide (`-webkit-tap-highlight-color` on `html`), so every control needs its own pressed state.
 - **Contrast:** `--text-secondary` only reaches about 3:1 on a highlighted row or filled control. Use `--show-muted-strong` there to stay at WCAG AA (4.5:1).
+- **Layers:** in this dark interface lighter means raised and darker means set in. On phones the playlist (bar and rows) uses `--show-well-bg`, a darker, mostly opaque tray, so the title, the playlist and the current item read as three separate blocks; stars stay bright behind the content and dim behind the list.
 - **Phones have no hover**, so the header buttons (Grooves, mode switch, service control) carry their hover fill at rest there, share one text colour, and sit 12px apart; pressing deepens the fill. On desktop they stay transparent until hovered.
 - **Header and footer are shared by both modes.** The header fits the logo plus two icon-and-label buttons on a 375px phone; the Grooves label drops below 360px.
 
