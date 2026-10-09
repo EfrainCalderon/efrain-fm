@@ -451,7 +451,6 @@ async function sendMessage() {
 
   const message = userInput.value.trim();
   if (!message) return;
-  if (window.showMode) window.showMode.nudge.hide();
 
   if (message.startsWith('/')) {
     const handled = handleSecretCommand(message);
@@ -3410,8 +3409,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   // who hasn't opened it. It appears at a pause rather than on a bare clock: after 20
   // seconds with the text box open and nothing sent (they may not know what to ask for),
   // or a few seconds after their first song arrives. It never covers or disables anything;
-  // it goes away on its ✕, on Escape, when they send a message, or when they open the
-  // episode by any route.
+  // it stays until they dismiss it (✕ or Escape) or open the episode by any route.
   const NUDGE_KEY        = 'efrain_fm_show_nudge';   // holds the id of the episode nudged
   const NUDGE_IDLE_MS    = 20000;
   const NUDGE_SONG_MS    = 6000;
@@ -3500,7 +3498,6 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     },
     // A song has just been shared in Explore
     afterSong() { if (!active) nudgeWhenQuiet(NUDGE_SONG_MS); },
-    hide: hideNudge,
   };
 
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nudgeEl) hideNudge(); });
