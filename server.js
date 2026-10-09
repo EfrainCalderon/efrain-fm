@@ -1646,7 +1646,7 @@ app.post('/api/chat', async (req, res) => {
     // Strip common filler prefixes before keyword extraction
     // "something melancholic" → "melancholic", "give me something dark" → "dark"
     const strippedMessage = message
-      .replace(/^(give\s+me\s+)?(something|anything|a\s+song|some\s+music|play\s+me\s+something)\s+(that'?s?\s+)?(kind\s+of\s+)?/i, '')
+      .replace(/^(give\s+me\s+)?(something|anything|a\s+song|some\s+music|play\s+me\s+something)\s+(that(?:'?s|\s+is)?\s+)?(kind\s+of\s+)?/i, '')
       .replace(/^(i\s+want\s+)(something|a\s+song)\s+/i, '')
       .trim() || message;
 
