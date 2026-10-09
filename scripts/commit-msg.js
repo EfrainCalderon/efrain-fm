@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env'), quiet: true });
 const { execSync } = require('child_process');
 const Anthropic = require('@anthropic-ai/sdk');
 
