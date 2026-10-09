@@ -603,7 +603,10 @@ function findSongsByArtist(message) {
       const hasExplicitArtistSignal = new RegExp(`\\bby\\s+${artistNorm}\\b|\\b${artistNorm}\\s+(song|music|track|band|album)\\b`, 'i').test(message);
       if (!hasExplicitArtistSignal) continue;
     }
-    if (msgNorm.includes(artistNorm) || (isMultiWord && artistNorm.includes(msgNorm))) {
+    // Whole words only, so "a song for a princess" doesn't find Prince
+    const escaped = artistNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const namesArtist = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`).test(msgNorm);
+    if (namesArtist || (isMultiWord && artistNorm.includes(msgNorm))) {
       return songsData.songs.filter(s => normalize(s.artist) === artistNorm);
     }
   }
@@ -628,10 +631,11 @@ function findSongsByArtist(message) {
 const EXTRACT_KEYWORDS_SYSTEM = [{ type: 'text', cache_control: { type: 'ephemeral' }, text:
 `You are a music search assistant. Convert any request — including moods, situations, metaphors, and feelings — into music trait keywords.
 
-Return a JSON object: { "keywords": [...], "interpretation": "..." }
+Return a JSON object: { "keywords": [...], "interpretation": "...", "artist": "..." }
 
 "keywords": 3–8 trait vocabulary terms or artist/song names (see vocabulary below).
 "interpretation": include ONLY when the query uses abstract, situational, or concrete non-music words that required meaningful translation — things like "children singing", "library", "forest fire", "driving at 3am", "apocalypse", "a guitar solo that's too long". The value is two or three plain adjectives describing how the music sounds, joined with "and" (e.g. "playful and joyful", "dark and cinematic", "warm and nostalgic", "dramatic and guitar-heavy"). It must read naturally after both "here's something ___" and "it's ___", so: adjectives only, all lowercase, no nouns, no "with…" or "for…" phrases, no full stop, and never repeat the listener's own words. Set to null or omit for any straightforward genre, mood, artist, or era request ("sad songs", "some jazz", "80s pop", "something dark").
+"artist": include ONLY when the request is asking for music by, or about, one specific real artist or band — "eminem", "play some radiohead", "Any songs by Air that you like", "Do you like Prince?". The value is the artist's usual name, correctly spelled and capitalised ("Eminem", "Radiohead", "Air", "Prince"). A capitalised word in the middle of a sentence is a strong sign that it is a name; a lowercase common word used in its ordinary sense is not one: "something with an air of romance", "a song that makes me feel like a prince" and "a song for a princess" name no artist. When unsure, set it to null. When you do name an artist, the keywords must include that artist's main genre trait.
 
 MAP TO THESE TRAIT VOCABULARY TERMS WHERE POSSIBLE:
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
@@ -687,7 +691,8 @@ async function extractKeywords(userMessage) {
     if (objMatch) {
       const parsed = JSON.parse(objMatch[0]);
       const keywords = (parsed.keywords || []).map(k => k.toLowerCase().trim()).filter(k => k.length >= 2);
-      return { keywords, interpretation: parsed.interpretation || null };
+      const artist = typeof parsed.artist === 'string' ? parsed.artist.replace(/[<>"]/g, '').trim() : '';
+      return { keywords, interpretation: parsed.interpretation || null, artist: artist && artist.length <= 40 ? artist : null };
     }
     // Fallback: Haiku returned a plain array
     const arrMatch = text.match(/\[[\s\S]*\]/);
@@ -718,6 +723,10 @@ function detectLikeArtist(message) {
   ];
   // Negation words that can precede "like" — "not like X", "nothing like X", "anything but X"
   const NEGATION_RE = /\b(not|nothing|never|no|opposite\s+of|anything\s+but|far\s+from)\s+(?:like\s+|sounds?\s+like\s+|reminds?\s+me\s+of\s+)?/i;
+
+  // "Do you like Prince?" and "I like Prince" are about the artist, and "feel like a
+  // prince" is about a feeling. Neither asks for something similar to an artist.
+  if (/\b(i|you|u|we|they)\s+(really\s+|also\s+)?like\s/i.test(message) || /\bfeel(s|ing)?\s+like\b/i.test(message)) return null;
 
   for (const re of patterns) {
     const m = message.match(re);
@@ -1077,6 +1086,8 @@ function isNegativeReaction(msg) {
 }
 
 function isOffScript(msg) {
+  // "Do you have any Beyoncé?" / "do you play any jazz?" are requests, not small talk
+  if (/\bdo\s+you\s+(have|play)\s+(any|some|anything|something|songs?|music|stuff|more)\b/i.test(msg)) return false;
   return /\b(who\s+(are|is)\s+(you|efrain)|what\s+(are|is)\s+(you|this|efrain\.?fm|this\s+site|this\s+place)|tell\s+me\s+about\s+(yourself|you|efrain)|are\s+you\s+(a\s+)?(real|bot|ai|human|person|robot)|do\s+you\s+(have|make|play|listen)|what\s+do\s+you\s+do|where\s+are\s+you\s+from|what'?s\s+your\s+(deal|story|background)|how\s+(does\s+this\s+work|did\s+you|old\s+are)|did\s+you\s+(make|build|create)\s+this|is\s+this\s+your|what\s+kind\s+of\s+music\s+do\s+you|do\s+you\s+like\s+music|what'?s\s+efrain|why\s+did\s+you|what\s+inspired)\b/i.test(msg);
 }
 
@@ -1637,10 +1648,16 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // Artist lookup
+    // A one-word name inside a longer message may just be an ordinary word ("feel like a
+    // prince", "watching television"). Unless it is capitalised as a name, leave it to
+    // Haiku, which reads the sentence and reports an artist only when one is meant.
     const artistSongs = findSongsByArtist(message);
     if (artistSongs) {
+      const name = artistSongs[0].artist;
+      const capitalised = new RegExp(`(^|[^A-Za-z0-9])${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Za-z0-9]|$)`).test(message);
+      const ambiguous = !/\s/.test(name) && wordCount >= 2 && !capitalised;
       const av = artistSongs.filter(s => !session.playedSongs.has(s.title));
-      if (av.length) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
+      if (av.length && !ambiguous) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
     }
 
     // Strip common filler prefixes before keyword extraction
@@ -1651,8 +1668,52 @@ app.post('/api/chat', async (req, res) => {
       .trim() || message;
 
     // Keyword extraction (API call)
-    const { keywords, interpretation } = await extractKeywords(strippedMessage);
-    console.log('Keywords:', keywords, interpretation ? `| heard as: "${interpretation}"` : '');
+    const { keywords, interpretation, artist: namedArtist } = await extractKeywords(strippedMessage);
+    console.log('Keywords:', keywords, interpretation ? `| heard as: "${interpretation}"` : '', namedArtist ? `| artist: ${namedArtist}` : '');
+
+    // The request names an artist the collection has nothing by. Say so instead of
+    // silently playing whatever shares their traits. (findSongsByArtist skips short
+    // names like "Air" without a "by", so also check for an exact artist match.)
+    const missingArtist = namedArtist
+      && !songsData.songs.some(s => normalize(s.artist) === normalize(namedArtist))
+      && !findSongsByArtist(namedArtist)
+      ? namedArtist : null;
+
+    // Haiku named an artist the collection does have (a lowercase or misspelled name the
+    // lookup above passed over): play them.
+    if (namedArtist && !missingArtist) {
+      const av = available().filter(s => normalize(s.artist) === normalize(namedArtist));
+      if (av.length) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
+    }
+
+    // Nothing strong enough to just play: offer the closest artists as buttons (tapping
+    // one sends its name, which the artist lookup then plays), or directions if there
+    // is nothing close at all.
+    const missingArtistChoices = (scored = []) => {
+      const avTitles = new Set(available().map(s => s.title));
+      const closest = [];
+      // If the artist's genre isn't here at all, nothing scored. Rank by their other
+      // traits (mood, energy, texture) so there is still something close to offer.
+      if (!scored.some(s => s.score > 0 && avTitles.has(s.title))) {
+        const looser = keywords.filter(k => k.includes(':') && !/^(genre|origin):/.test(k));
+        scored = looser.length ? scoreSongs(songsData.songs, looser, false, null) : [];
+      }
+      for (const s of scored.filter(s => s.score > 0 && avTitles.has(s.title)).sort((a, b) => b.score - a.score)) {
+        if (closest.includes(s.artist) || s.artist.length > 17) continue; // longer names wrap to three lines on a phone and outgrow the footer
+        const found = findSongsByArtist(s.artist);
+        if (!found || found[0].artist !== s.artist) continue; // the button must lead back to this artist
+        closest.push(s.artist);
+        if (closest.length === 3) break;
+      }
+      if (closest.length >= 2) {
+        return { response: null, song: null, interrupt: { type: 'genre_suggest', message: `I don't have any ${missingArtist} in here. These are the closest I've got.`, options: closest } };
+      }
+      const directions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
+      const text = `I don't have any ${missingArtist} in here, or anything close.`;
+      return directions.length >= 2
+        ? { response: null, song: null, interrupt: { type: 'genre_suggest', message: `${text} Try one of these instead.`, options: directions } }
+        : { response: `${text} What else are you in the mood for?`, song: null, interrupt: null };
+    };
 
     const preferVideo = isVideoRequest(message);
     const conversational = isConversational(message);
@@ -1703,6 +1764,7 @@ app.post('/api/chat', async (req, res) => {
     // No keywords extracted — input was gibberish, typo, or unrecognizable
     // Haiku is instructed to return [] for nonsense; this is the safety net for anything that slips through
     if (keywords.length === 0) {
+      if (missingArtist) return res.json(missingArtistChoices());
       const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
       const trimmed = message.trim().slice(0, 40);
       const interrupt = genreOptions.length >= 2
@@ -1769,6 +1831,8 @@ app.post('/api/chat', async (req, res) => {
 
     const titleKeywords = keywords.filter(k => {
       const n = normalize(k);
+      // A missing artist's name must not play a song that merely has that word in its title
+      if (missingArtist && normalize(missingArtist).includes(n)) return false;
       return k.length >= 4 && !TITLE_MATCH_STOPWORDS.has(n) && !GENRE_WORDS.has(n) && !n.includes(':');
     });
 
@@ -1802,6 +1866,7 @@ app.post('/api/chat', async (req, res) => {
         return requestedGenres.some(t => traits[t] !== undefined && traits[t] >= 0.5);
       });
       if (!collectionHasAny) {
+        if (missingArtist) return res.json(missingArtistChoices());
         const labels = formatGenreLabelList(requestedGenres);
         const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
         const interrupt = genreOptions.length >= 2
@@ -1816,6 +1881,7 @@ app.post('/api/chat', async (req, res) => {
       // Use .some() with the genre gate logic instead of a full scoreSongs pass.
       const comboExists = songsData.songs.some(s => matchesRequiredGenres(s.traits || {}, requestedGenres));
       if (!comboExists) {
+        if (missingArtist) return res.json(missingArtistChoices());
         const labels = formatGenreLabelList(requestedGenres);
         const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
         const interrupt = genreOptions.length >= 2
@@ -1833,6 +1899,7 @@ app.post('/api/chat', async (req, res) => {
     const hasAnyMatch = bestScore >= MIN_SCORE;
 
     if (!hasAnyMatch) {
+      if (missingArtist) return res.json(missingArtistChoices(allScored));
       // Fallback: nothing scored, and the message doesn't name any concrete genre/mood —
       // Haiku had nothing to extract from, which is the signature of vague continuation
       // phrasing ("something else like this", "more of the last one") that isMoreRequest's
@@ -1855,6 +1922,7 @@ app.post('/api/chat', async (req, res) => {
     // Low confidence — best match exists but score is weak
     // Better to offer choices than serve a song that won't land
     if (bestScore < CONFIDENCE_FLOOR) {
+      if (missingArtist) return res.json(missingArtistChoices(allScored));
       const genreOptions = getDynamicOptions(session.lastSong || songsData.songs[0], session.playedSongs);
       if (genreOptions.length >= 2) {
         return res.json({
@@ -1921,6 +1989,17 @@ app.post('/api/chat', async (req, res) => {
 
     const top = Math.max(...avMatches.map(s => s.score));
     const topPicks = avMatches.filter(s => s.score >= top * 0.85); // top 15% range, not just exact top
+
+    if (missingArtist) {
+      // A strong match shares the artist's genre and at least half of everything else
+      // Haiku said about them. Anything weaker is a stretch, so let the visitor choose.
+      const traitCount = keywords.filter(k => k.includes(':')).length;
+      const strong = requestedGenres.length > 0 && top >= Math.max(1.2, traitCount * 0.5);
+      if (!strong) return res.json(missingArtistChoices(avMatches));
+      const artistPreface = `I don't have any ${missingArtist} in here, but this is in the same neighbourhood.`;
+      return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session, null, bridge, artistPreface));
+    }
+
     return res.json({ ...buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session, null, bridge, preface), prefaceIndex });
 
   } catch (error) {
