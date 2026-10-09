@@ -631,7 +631,7 @@ const EXTRACT_KEYWORDS_SYSTEM = [{ type: 'text', cache_control: { type: 'ephemer
 Return a JSON object: { "keywords": [...], "interpretation": "..." }
 
 "keywords": 3–8 trait vocabulary terms or artist/song names (see vocabulary below).
-"interpretation": include ONLY when the query uses abstract, situational, or concrete non-music words that required meaningful translation — things like "children singing", "library", "forest fire", "driving at 3am", "apocalypse". The value is a brief natural phrase that completes "here's something ___" (e.g. "playful and joyful", "dark and cinematic", "warm and nostalgic"). Set to null or omit for any straightforward genre, mood, artist, or era request ("sad songs", "some jazz", "80s pop", "something dark").
+"interpretation": include ONLY when the query uses abstract, situational, or concrete non-music words that required meaningful translation — things like "children singing", "library", "forest fire", "driving at 3am", "apocalypse", "a guitar solo that's too long". The value is two or three plain adjectives describing how the music sounds, joined with "and" (e.g. "playful and joyful", "dark and cinematic", "warm and nostalgic", "dramatic and guitar-heavy"). It must read naturally after both "here's something ___" and "it's ___", so: adjectives only, all lowercase, no nouns, no "with…" or "for…" phrases, no full stop, and never repeat the listener's own words. Set to null or omit for any straightforward genre, mood, artist, or era request ("sad songs", "some jazz", "80s pop", "something dark").
 
 MAP TO THESE TRAIT VOCABULARY TERMS WHERE POSSIBLE:
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
@@ -1207,6 +1207,42 @@ function buildSongResponse(song, session, interrupt = null, bridge = null, prefa
 }
 
 // =====================
+// APPROXIMATE-MATCH PREFACE
+// Shown before a song when the request was abstract or situational and Haiku had to
+// translate it ("impress a job recruiter" → "confident and triumphant"). ___ is where
+// Haiku's phrase goes. The copy is Efrain's; keep a hedge in most of them, since the
+// song is a best guess.
+// =====================
+const PREFACE_TEMPLATES = [
+  "Hmm – try this out, it's ___.",
+  "This might not be exactly right but maybe something ___?",
+  "Closest I've found to that is something ___.",
+  "Let's see, how about something ___?",
+  "I went through my collection (kind of a mess, now) and found something ___.",
+  "Could I interest you in a song that's ___?",
+  "Sounds like you're in the mood for something ___.",
+  "I'm sensing – like – something ___.",
+];
+// Quoting the request back only reads naturally when it is a word or three ("forest fire").
+const PREFACE_ECHO_MAX_WORDS = 3;
+
+// lastIndex is the template used last time (mirrored by the client), so the same line
+// never comes up twice in a row. The echo line is index PREFACE_TEMPLATES.length.
+function buildPreface(interpretation, request, lastIndex = null) {
+  const phrase = String(interpretation || '').trim().replace(/[.!?,;:]+$/, '');
+  if (!phrase || phrase.length > 60) return { preface: null, prefaceIndex: null };
+  const tidy = phrase.charAt(0).toLowerCase() + phrase.slice(1);
+
+  const options = PREFACE_TEMPLATES.map((t, i) => ({ i, text: t.replace('___', tidy) }));
+  if (request.split(/\s+/).length <= PREFACE_ECHO_MAX_WORDS) {
+    options.push({ i: PREFACE_TEMPLATES.length, text: `Not sure I have anything specifically for "${request}", but here's something ${tidy}.` });
+  }
+  const fresh = options.filter(o => o.i !== lastIndex);
+  const pick = fresh[Math.floor(Math.random() * fresh.length)];
+  return { preface: pick.text, prefaceIndex: pick.i };
+}
+
+// =====================
 // FAVORITE ENDPOINT
 // =====================
 app.post('/api/favorite', async (req, res) => {
@@ -1252,7 +1288,7 @@ app.post('/api/chat', async (req, res) => {
       message, sessionId = 'default', unlockedClusters = [], clusterCounts = {}, pushCluster = null, playedSongTitles = [],
       lastSongTitle = null, lastSongArtist = null, lastSongInfoText = null, lastSongInfoExhausted = false,
       songCount = 0, askedMoreOf = false, lastInterruptSong = 0,
-      pendingRelatedSongTitle = null, pendingRelatedSongBridge = null,
+      pendingRelatedSongTitle = null, pendingRelatedSongBridge = null, lastPrefaceIndex = null,
     } = req.body;
     if (!message || !message.trim()) return res.json({ response: "Say something and I'll find you a song.", song: null });
     if (message.length > 500) return res.json({ response: "Keep it short — I just need a vibe, not an essay.", song: null });
@@ -1662,9 +1698,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // Build preface for queries that needed interpretation (abstract/situational)
-    const preface = interpretation
-      ? `Not sure I have anything specifically for "${strippedMessage}", but here's something ${interpretation}.`
-      : null;
+    const { preface, prefaceIndex } = buildPreface(interpretation, strippedMessage, lastPrefaceIndex);
 
     // No keywords extracted — input was gibberish, typo, or unrecognizable
     // Haiku is instructed to return [] for nonsense; this is the safety net for anything that slips through
@@ -1887,7 +1921,7 @@ app.post('/api/chat', async (req, res) => {
 
     const top = Math.max(...avMatches.map(s => s.score));
     const topPicks = avMatches.filter(s => s.score >= top * 0.85); // top 15% range, not just exact top
-    return res.json(buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session, null, bridge, preface));
+    return res.json({ ...buildSongResponse(topPicks[Math.floor(Math.random() * topPicks.length)], session, null, bridge, preface), prefaceIndex });
 
   } catch (error) {
     console.error('Error:', error);

@@ -28,6 +28,8 @@ let lastInterruptSongCount = 0;
 // Mirrors server-side session._pendingRelatedSong / _pendingBridge — the "want to hear
 // it?" suggestion the server is waiting on an "Okay"/"No thank you" reply for.
 let pendingRelatedSong = { title: null, bridge: null };
+// Which wording the last "closest I've found…" line used, so the server doesn't repeat it.
+let lastPrefaceIndex = null;
 
 // =====================
 // PLAYER PREFERENCE
@@ -571,6 +573,7 @@ async function sendMessage() {
           lastInterruptSong:      lastInterruptSongCount,
           pendingRelatedSongTitle:  outgoingPendingRelated.title,
           pendingRelatedSongBridge: outgoingPendingRelated.bridge,
+          lastPrefaceIndex,
         };
 
     const wasFavoriteInput = pendingFavoriteInput;
@@ -632,6 +635,7 @@ async function sendMessage() {
           saveClusterCounts();
         }
         if (data.preface) {
+          if (Number.isInteger(data.prefaceIndex)) lastPrefaceIndex = data.prefaceIndex;
           await addMessageToChatWithTyping(data.preface, 'assistant');
         }
         await displaySong(data.song, data.response);
