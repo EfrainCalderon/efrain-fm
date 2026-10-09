@@ -62,7 +62,7 @@ function spotifyPlaybackNote() {
 // showPlayerPicker  — first-time setup, three options, called after intro audio ends
 // showPlayerSwitchPrompt — mid-session, two options, called when user mentions a platform
 // =====================
-async function showPlayerPicker(promptText, { offerEpisode = false } = {}) {
+async function showPlayerPicker(promptText) {
   isTyping = true;
   fadeOutInput();
 
@@ -107,26 +107,20 @@ async function showPlayerPicker(promptText, { offerEpisode = false } = {}) {
       await new Promise(r => setTimeout(r, 500));
       removeTypingIndicator(t);
 
-      // First visit only: once the service is settled, offer the two ways to listen
-      const offer = offerEpisode && window.showMode && window.showMode.isOffered();
-
       let reply;
       if (opt.label === 'Spotify') {
         reply = `Cool, I'll use Spotify. ${spotifyPlaybackNote()}`;
       } else if (opt.label === 'Apple Music') {
-        reply = "Awesome — I'll show Apple Music versions. You can listen to the full song if you sign in."
-          + (offer ? '' : ' What would you like to hear?');
+        reply = "Awesome — I'll show Apple Music versions. You can listen to the full song if you sign in. What would you like to hear?";
       } else {
         reply = "Got it — I'll use Apple Music to share songs because its previews are longer than Spotify.";
       }
 
       await addMessageToChatWithTyping(reply, 'assistant');
-      if (offer) {
-        showModeChoice();
-        return;
-      }
       isTyping = false;
       setTimeout(fadeInInput, 600);
+      // The text box is theirs now: start the clock on the episode nudge
+      if (window.showMode) window.showMode.nudge.arm();
     });
     btnRow.appendChild(btn);
   });
@@ -135,65 +129,6 @@ async function showPlayerPicker(promptText, { offerEpisode = false } = {}) {
   footer.appendChild(interruptEl);
   requestAnimationFrame(() => requestAnimationFrame(() => interruptEl.classList.add('visible')));
   // Note: input stays hidden — fadeInInput fires inside the button click handler
-}
-
-// First visit, after the service question: explain the two ways to listen in one message,
-// then offer them as two buttons in the footer (same slot as every other choice).
-async function showModeChoice() {
-  isTyping = true;
-  fadeOutInput();
-  const typingIndicator = showTypingIndicator();
-  await new Promise(r => setTimeout(r, 700));
-  removeTypingIndicator(typingIndicator);
-
-  const { label, enter } = window.showMode;
-  await addMessageToChatWithTyping(
-    'There are two ways to listen. Explore: tell me a mood, a genre, or an artist, and I’ll find you a song. Or, listen to monthly episodes where I share about an hour of music with some banter scattered in between.',
-    'assistant'
-  );
-
-  const footer = document.querySelector('footer') || document.getElementById('chat-footer');
-  const interruptEl = document.createElement('div');
-  interruptEl.id = 'interrupt-bar';
-  const btnRow = document.createElement('div');
-  btnRow.id = 'interrupt-buttons';
-
-  const options = [
-    { label: 'Explore',           episode: false },
-    { label: `Hear ${label()}`,   episode: true  },
-  ];
-
-  options.forEach((opt, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'interrupt-btn';
-    btn.textContent = opt.label;
-    btn.style.animationDelay = `${i * 70}ms`;
-    btn.addEventListener('click', async () => {
-      interruptEl.classList.remove('visible');
-      await new Promise(r => setTimeout(r, 350));
-      interruptEl.remove();
-
-      if (opt.episode) {
-        // Leave Explore ready for whenever they come back, then open the episode
-        isTyping = false;
-        fadeInInput();
-        enter();
-        return;
-      }
-
-      const t = showTypingIndicator();
-      await new Promise(r => setTimeout(r, 500));
-      removeTypingIndicator(t);
-      await addMessageToChatWithTyping('What would you like to hear?', 'assistant');
-      isTyping = false;
-      setTimeout(fadeInInput, 600);
-    });
-    btnRow.appendChild(btn);
-  });
-
-  interruptEl.appendChild(btnRow);
-  footer.appendChild(interruptEl);
-  requestAnimationFrame(() => requestAnimationFrame(() => interruptEl.classList.add('visible')));
 }
 
 async function showPlayerSwitchPrompt() {
@@ -516,6 +451,7 @@ async function sendMessage() {
 
   const message = userInput.value.trim();
   if (!message) return;
+  if (window.showMode) window.showMode.nudge.hide();
 
   if (message.startsWith('/')) {
     const handled = handleSecretCommand(message);
@@ -782,6 +718,7 @@ async function displaySong(song, storyText) {
   }
   lastPlayedSong = song;
   songsThisSession++;
+  if (window.showMode) window.showMode.nudge.afterSong();
   const songContainer = document.createElement('div');
   songContainer.classList.add('message', 'song');
 
@@ -1911,6 +1848,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
         showPlayerPicker("Welcome back — I made some changes and can now share music in new ways. Which do you use to listen to music?");
       } else {
         addMessageToChatWithTyping("Thanks for coming back. What are you looking for?", 'assistant');
+        if (window.showMode) window.showMode.nudge.arm();
       }
     }, 1400);
     return;
@@ -1962,7 +1900,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
           localStorage.setItem(STORAGE_KEY, fullTitle);
         }
         // Show player picker after a short breath
-        setTimeout(() => showPlayerPicker(undefined, { offerEpisode: true }), 800);
+        setTimeout(() => showPlayerPicker(), 800);
       });
     }
 
@@ -3450,9 +3388,10 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     if (toShow) {
       view.hidden = false;
       localStorage.setItem(UNLOCK_KEY, '1');
+      hideNudge();
       holdExploreMedia();
       loadEpisode()
-        .then(() => { if (active) returnToStage(byTap); syncSwitch(); })
+        .then(() => { spendNudge(); if (active) returnToStage(byTap); syncSwitch(); })
         .catch(() => { if (active) renderUnavailable(); });
     } else {
       closePicker();
@@ -3465,6 +3404,106 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   }
 
   modeSwitch.addEventListener('click', () => setMode(active ? 'explore' : 'show', { byTap: true }));
+
+  // ── Episode nudge ──────────────────────────────────────────────────────
+  // A small chip under the header's episode button, shown once per episode to a visitor
+  // who hasn't opened it. It appears at a pause rather than on a bare clock: after 20
+  // seconds with the text box open and nothing sent (they may not know what to ask for),
+  // or a few seconds after their first song arrives. It never covers or disables anything;
+  // it goes away on its ✕, on Escape, when they send a message, or when they open the
+  // episode by any route.
+  const NUDGE_KEY        = 'efrain_fm_show_nudge';   // holds the id of the episode nudged
+  const NUDGE_IDLE_MS    = 20000;
+  const NUDGE_SONG_MS    = 6000;
+  const NUDGE_RETRY_MS   = 2000;
+  let nudgeEl    = null;
+  let nudgeTimer = null;
+
+  // "2026-10" → "October"
+  const episodeMonth = () => {
+    const m = /^(\d{4})-(\d{2})$/.exec((episode && episode.id) || '');
+    return m ? new Date(Number(m[1]), Number(m[2]) - 1, 1).toLocaleString('en-US', { month: 'long' }) : '';
+  };
+
+  // Has this visitor already been nudged about, or opened, the current episode?
+  function nudgeSpent() {
+    if (!episode) return true;
+    if (localStorage.getItem(NUDGE_KEY) === episode.id) return true;
+    try {
+      const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY));
+      return Boolean(saved && saved.id === episode.id);
+    } catch { return false; }
+  }
+  const spendNudge = () => { if (episode) localStorage.setItem(NUDGE_KEY, episode.id); };
+
+  // Only at a pause: nothing being typed, no reply on its way, no question in the footer
+  const nudgeMomentIsRight = () =>
+    !document.hidden && !isTyping && !userInput.value.trim()
+    && !document.getElementById('interrupt-bar')
+    && !document.body.classList.contains('intro-active');
+
+  function hideNudge() {
+    clearTimeout(nudgeTimer);
+    nudgeTimer = null;
+    if (!nudgeEl) return;
+    const el = nudgeEl;
+    nudgeEl = null;
+    el.classList.remove('is-in');
+    setTimeout(() => el.remove(), 200);
+  }
+
+  function showNudge() {
+    if (nudgeEl || active || !isOffered() || nudgeSpent()) return;
+    spendNudge();
+
+    const el = document.createElement('div');
+    el.id = 'episode-nudge';
+    el.setAttribute('role', 'status');
+
+    const go = document.createElement('button');
+    go.type = 'button';
+    go.className = 'episode-nudge__go';
+    const month = episodeMonth();
+    go.textContent = month ? `Listen to ${month}’s episode` : 'Listen to this month’s episode';
+    go.addEventListener('click', () => setMode('show', { byTap: true }));
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'episode-nudge__close';
+    close.setAttribute('aria-label', 'Dismiss');
+    close.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg>';
+    close.addEventListener('click', hideNudge);
+
+    el.append(go, close);
+    // The pointer sits under the middle of the episode button
+    el.style.setProperty('--nudge-pointer', `${Math.round(modeSwitch.offsetWidth / 2)}px`);
+    modeSwitch.parentElement.appendChild(el);
+    nudgeEl = el;
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('is-in')));
+  }
+
+  // Wait for a pause, then show. `stillWanted` lets a trigger withdraw itself.
+  function nudgeWhenQuiet(delay, stillWanted = () => true) {
+    clearTimeout(nudgeTimer);
+    nudgeTimer = setTimeout(function attempt() {
+      if (active || nudgeSpent() || !stillWanted()) return;
+      if (nudgeMomentIsRight()) showNudge();
+      else nudgeTimer = setTimeout(attempt, NUDGE_RETRY_MS);
+    }, delay);
+  }
+
+  const nudge = {
+    // The text box has just become available. Only for someone who then sends nothing.
+    arm() {
+      const nothingSent = () => !chatMessages.querySelector('.message.user');
+      if (nothingSent()) nudgeWhenQuiet(NUDGE_IDLE_MS, nothingSent);
+    },
+    // A song has just been shared in Explore
+    afterSong() { if (!active) nudgeWhenQuiet(NUDGE_SONG_MS); },
+    hide: hideNudge,
+  };
+
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && nudgeEl) hideNudge(); });
   window.addEventListener('popstate', () => setMode(isShowPath() ? 'show' : 'explore', { push: false }));
 
   // Used by the /show and /show-reset commands
@@ -3472,14 +3511,16 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
   window.resetShowMode = () => {
     localStorage.removeItem(PROGRESS_KEY);
     localStorage.removeItem(UNLOCK_KEY);
+    localStorage.removeItem(NUDGE_KEY);
     typedText.clear();
     txEmbeds.clear();
     if (episode) restoreProgress();
     syncSwitch();
   };
 
-  // What Explore's first-visit flow needs to offer the episode
+  // What Explore needs from the episode
   window.showMode = {
+    nudge,
     isOffered,
     label:     episodeLabel,
     name:      episodeName,

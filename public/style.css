@@ -299,6 +299,123 @@ body.intro-active:not(.mode-show) #mode-switch {
   display: none;
 }
 
+/* ── Episode nudge ──
+   A one-time chip that hangs under the episode button and points up at it (see "Episode
+   nudge" in script.js). It is one step more raised than the header chips, and opaque so
+   the chat behind it doesn't show through. Only the chip itself takes taps. */
+#episode-nudge {
+  --nudge-bg: hsl(215, 8%, 22%);
+  --nudge-edge: rgba(245, 242, 238, 0.14);
+  position: absolute;
+  top: calc(100% + 20px);   /* clears the header's 12px padding, plus 8px */
+  right: 0;
+  display: flex;
+  align-items: stretch;
+  background: var(--nudge-bg);
+  border: 1px solid var(--nudge-edge);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease-in, transform 0.15s ease-in;
+}
+
+#episode-nudge.is-in {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition: opacity 0.22s ease-out, transform 0.22s ease-out;
+}
+
+/* Pointer, centred under the episode button (--nudge-pointer is set from its width) */
+#episode-nudge::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: calc(var(--nudge-pointer, 32px) - 5px);
+  width: 8px;
+  height: 8px;
+  background: var(--nudge-bg);
+  border-left: 1px solid var(--nudge-edge);
+  border-top: 1px solid var(--nudge-edge);
+  transform: rotate(45deg);
+}
+
+.episode-nudge__go,
+.episode-nudge__close {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.episode-nudge__go {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--text-primary);
+  padding: 8px 8px 8px 12px;
+  border-radius: 7px 0 0 7px;
+}
+
+.episode-nudge__close {
+  width: 36px;
+  color: var(--show-muted-strong);
+  border-radius: 0 7px 7px 0;
+}
+
+.episode-nudge__go:hover,
+.episode-nudge__close:hover {
+  background: var(--live-tag-bg);
+}
+
+.episode-nudge__go:active,
+.episode-nudge__close:active {
+  background: var(--live-tag-active-bg);
+}
+
+.episode-nudge__close:hover {
+  color: var(--text-primary);
+}
+
+/* Both reach a 44px tap area; the ✕ also extends into the header's side gutter */
+.episode-nudge__go::after,
+.episode-nudge__close::after {
+  content: '';
+  position: absolute;
+  inset: -5px 0;
+}
+
+.episode-nudge__close::after {
+  right: -8px;
+}
+
+.episode-nudge__go:focus-visible,
+.episode-nudge__close:focus-visible {
+  outline: 2px solid var(--input-focus-border);
+  outline-offset: 2px;
+}
+
+body.mode-show #episode-nudge,
+body.intro-active #episode-nudge {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #episode-nudge,
+  #episode-nudge.is-in {
+    transform: none;
+    transition: none;
+  }
+}
+
 body.mode-show #show-service-pill-header {
   display: flex;
 }
@@ -319,6 +436,7 @@ body.mode-show #show-service-pill-header {
   align-items: center;
   gap: 12px;
   margin-left: auto;
+  position: relative;   /* anchors the episode nudge */
 }
 
 
