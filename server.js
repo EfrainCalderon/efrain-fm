@@ -32,15 +32,30 @@ const favoritesPath = path.join(__dirname, 'data', 'favorites.json');
 const sessions = new Map();
 
 // What a Spotify listener can expect from the embeds, tailored to their browser.
-// Spotify's embed plays full songs only when it can tell the listener is logged in, and
-// Safari and phones are limited to 30-second previews. Mirrors spotifyPlaybackNote() in
-// public/script.js; keep the two in step. Never promise full songs outright.
+// Spotify's embed plays full songs when the listener is logged in to Spotify in a desktop
+// browser such as Chrome; Safari and phones are limited to 30-second previews. We can't
+// detect a login. Mirrors spotifyPlaybackNote() in public/script.js; keep the two in step.
+function spotifyBrowser(userAgent = '') {
+  if (/iPhone|iPad|iPod|Android/i.test(userAgent)) return 'phone';
+  if (/Safari/i.test(userAgent) && !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Android/i.test(userAgent)) return 'safari';
+  return 'desktop';
+}
+
 function describeSpotifyPlayback(userAgent = '') {
-  const isPhone = /iPhone|iPad|iPod|Android/i.test(userAgent);
-  const isSafari = /Safari/i.test(userAgent) && !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Android/i.test(userAgent);
-  if (isPhone) return 'On phones and tablets, Spotify only plays 30-second previews here.';
-  if (isSafari) return "Safari limits Spotify to 30-second previews here; Chrome may play full songs if you're logged in to Spotify.";
-  return "Spotify can play full songs when you're logged in to it in this browser, and 30-second previews otherwise.";
+  const browser = spotifyBrowser(userAgent);
+  if (browser === 'phone') return 'On phones and tablets, Spotify only plays 30-second previews here.';
+  if (browser === 'safari') return 'Heads up: Safari only plays 30-second previews of Spotify songs. For full songs, open efrain.fm in Chrome and log in to Spotify there.';
+  return "You'll hear full songs as long as you're logged in to Spotify in this browser.";
+}
+
+// The answer to "why do I only get 30 seconds?". We don't know which player the listener
+// is on, so it covers Spotify first (the usual cause) and Apple Music second.
+function explainPreviews(userAgent = '') {
+  const browser = spotifyBrowser(userAgent);
+  const apple = 'On Apple Music, sign in from the player itself.';
+  if (browser === 'phone') return `On phones and tablets, Spotify only plays 30-second previews here; tap a song to open it in Spotify. ${apple} Type "switch to Apple Music" to change players.`;
+  if (browser === 'safari') return `Safari only plays 30-second previews of Spotify songs. For full songs, open efrain.fm in Chrome and log in to Spotify there, or type "switch to Apple Music" and sign in from the player.`;
+  return `You're getting previews because you're not logged in. On Spotify, log in at spotify.com in this browser, then come back here and you'll get full songs. ${apple}`;
 }
 
 // =====================
@@ -787,7 +802,7 @@ const EFRAIN_CHARACTER = `You are Efrain — a product designer and music obsess
 
 Background: You made music in your teens and 20s. You've spent years in health tech and design. You love talking about music, sharing cool discoveries, and recommending songs to people. Your design work is at www.efrain.design if anyone's curious.
 
-About the site: Visitors pick Spotify or Apple Music when they arrive, and can change it any time by typing "switch to Spotify" or "switch to Apple Music". Apple Music plays full songs if they're signed in. Spotify can play full songs when its player can tell the listener is logged in to Spotify in that browser; otherwise it plays 30-second previews, and on Safari and on phones it is always limited to previews, so Chrome on a computer is the better bet for Spotify listeners. Some songs aren't on either platform, or you specifically wanted to share a live performance or music video — in those cases you share a YouTube link instead. If someone asks about hearing full songs, switching players, or mentions Spotify or Apple Music, explain the difference briefly and tell them what to type to switch. There is also a monthly episode, reached from the "EP" button in the top bar: about an hour of music in a set order, with you talking in between.
+About the site: Visitors pick Spotify or Apple Music when they arrive, and can change it any time by typing "switch to Spotify" or "switch to Apple Music". Apple Music plays full songs if they're signed in. Spotify plays full songs in Chrome on a computer when the listener is logged in to Spotify in that browser; if they only get 30-second previews there, tell them plainly to log in at spotify.com and come back. On Safari and on phones Spotify is always limited to 30-second previews, so Spotify listeners on Safari should open the site in Chrome. Some songs aren't on either platform, or you specifically wanted to share a live performance or music video — in those cases you share a YouTube link instead. If someone asks about hearing full songs, switching players, or mentions Spotify or Apple Music, explain the difference briefly and tell them what to type to switch. There is also a monthly episode, reached from the "EP" button in the top bar: about an hour of music in a set order, with you talking in between.
 
 Personality: Warm, direct, a little dry. Deep music knowledge — outsider, lo-fi, experimental, jazz, proto-punk, international. Never pretentious. You share because you genuinely love it, not to impress anyone.
 
@@ -1506,7 +1521,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     if (/\b(whole\s+song|full\s+(song|track|version)|can'?t\s+(hear|play|listen)|only\s+(hear|get|playing)\s+(30|thirty)|30\s+seconds|thirty\s+seconds|why\s+(only|can'?t)|preview|just\s+a\s+clip|stream\s+full|listen\s+in\s+full|full\s+playback)\b/i.test(message)) {
-      return res.json({ response: `Apple Music plays full songs if you're signed in. ${describeSpotifyPlayback(req.headers['user-agent'])} Type "switch to Apple Music" or "switch to Spotify" to change players.`, song: null });
+      return res.json({ response: explainPreviews(req.headers['user-agent']), song: null });
     }
 
     if (/\bapple\s+music\b/i.test(message)) {

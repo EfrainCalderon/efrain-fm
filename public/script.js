@@ -43,18 +43,18 @@ function setPlayerPref(val) { localStorage.setItem(PLAYER_KEY, val); }
 // =====================
 // SPOTIFY PLAYBACK NOTE
 // What a Spotify listener can expect from the embeds, said only to the people it affects.
-// Spotify's embed plays full songs only when it can tell the listener is logged in to
-// Spotify, which depends on the browser: Safari and phones are limited to 30-second
-// previews. We can't detect a Spotify login, so the wording stays conditional and never
-// promises full songs.
+// Spotify's embed plays full songs when the listener is logged in to Spotify in a desktop
+// browser such as Chrome; Safari and phones are limited to 30-second previews. We can't
+// detect a Spotify login, so desktop listeners are told plainly to be logged in, and
+// Safari listeners are told upfront to use Chrome.
 // =====================
 function spotifyPlaybackNote() {
   const ua = navigator.userAgent;
   const isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   const isSafari = /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Android/i.test(ua);
   if (isPhone) return 'On phones and tablets, Spotify only plays 30-second previews here. Tap a song to hear the rest in Spotify.';
-  if (isSafari) return 'Safari limits Spotify to 30-second previews here. You may get full songs in Chrome if you’re logged in to Spotify there.';
-  return 'Being logged in to Spotify in this browser can unlock full songs. If one stops at 30 seconds, click it to hear the rest on Spotify.';
+  if (isSafari) return 'Heads up: Safari only plays 30-second previews of Spotify songs. For full songs, open efrain.fm in Chrome and log in to Spotify there.';
+  return 'You’ll hear full songs as long as you’re logged in to Spotify in this browser.';
 }
 
 // =====================
