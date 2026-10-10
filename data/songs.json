@@ -68,7 +68,8 @@
         "char:weird": 0.6,
         "texture:lo-fi": 0.7,
         "energy:low": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6cbCWhDbKgd8oMV3dRESRt",
@@ -201,7 +202,8 @@
         "origin:us": 1,
         "char:existential": 0.7,
         "texture:quiet": 0.8,
-        "char:acoustic": 0.8
+        "char:acoustic": 0.8,
+        "char:missouri": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3A9GSJ9CCOO4JEI3JAiBU3",
@@ -228,7 +230,8 @@
         "energy:medium": 0.7,
         "mood:dreamlike": 0.8,
         "origin:us": 1,
-        "char:baltimore": 0.8
+        "char:baltimore": 0.8,
+        "char:maryland": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3t9gSrm7NRb2PB9y4ACy49",
@@ -255,7 +258,8 @@
         "texture:lush": 0.7,
         "mood:spiritual": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/37YJOz90ri4sjyo4uyCLXA",
@@ -282,7 +286,8 @@
         "texture:sparse": 0.7,
         "mood:spiritual": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1AHPsqF3EtHeWpOM06Y3Y4",
@@ -309,7 +314,8 @@
         "texture:sparse": 0.8,
         "energy:low": 0.9,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2zl2twMixCqTk6OP2Jd5a6",
@@ -339,7 +345,8 @@
         "char:existential": 0.8,
         "char:introspective": 0.8,
         "mood:cathartic": 0.7,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4W1sol1em9Wo2o7daeAOJY",
@@ -393,7 +400,8 @@
         "texture:lo-fi": 0.7,
         "origin:us": 1,
         "char:strings": 0.7,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3yOLfMOsF2s8fTEan7SRMq",
@@ -475,7 +483,8 @@
         "texture:noisy": 0.6,
         "char:weird": 0.7,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3M9Wu7Ub2OrQjGWQ8wRHeH",
@@ -502,7 +511,8 @@
         "char:weird": 0.7,
         "texture:cold": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5O8IbmlRKLvNNk5NRRwMFl",
@@ -529,7 +539,8 @@
         "era:60s": 1,
         "char:weird": 0.5,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7BO7ZbaEmgCSSp3znPMxN4",
@@ -556,7 +567,8 @@
         "era:70s": 0.8,
         "mood:melancholic": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/17qLiavc8woWHAPAGZD0Py",
@@ -583,7 +595,8 @@
         "energy:low": 0.8,
         "char:late-night": 0.7,
         "origin:us": 1,
-        "char:baltimore": 0.8
+        "char:baltimore": 0.8,
+        "char:maryland": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2NfxtzCIrpCmJX5Z2KMdD5",
@@ -610,7 +623,8 @@
         "char:danceable": 0.8,
         "texture:noisy": 0.5,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5fpizYGbi5IQoEraj6FP0R",
@@ -637,7 +651,8 @@
         "era:90s": 1,
         "texture:noisy": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0Puj4YlTm6xNzDDADXHMI9",
@@ -663,7 +678,8 @@
         "mood:playful": 0.8,
         "energy:medium": 0.6,
         "era:80s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:washington": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7KYdD3qlOEZZTop4MYtS2Z",
@@ -689,7 +705,8 @@
         "mood:dreamlike": 0.6,
         "energy:low": 0.7,
         "era:80s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:washington": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/44WN5USMbVhEH8NGpsICfq",
@@ -742,7 +759,8 @@
         "era:00s": 0.8,
         "char:danceable": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1ELY3KTgI83N1k0xXqabMe",
@@ -769,7 +787,8 @@
         "energy:low": 0.9,
         "char:nostalgic": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4oYfMQ6NDGHq0GcbICqsDw",
@@ -799,7 +818,8 @@
         "genre:chamber-pop": 0.8,
         "mood:defeated": 0.8,
         "char:literate": 0.7,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/29i8axWOLDmgbiutJb9prB",
@@ -826,7 +846,8 @@
         "energy:medium": 0.7,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6aLmvz0CPeCNHCXK2H5QIC",
@@ -853,7 +874,8 @@
         "mood:dreamlike": 0.6,
         "era:modern": 0.8,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4KOaLPxA3FrJA10mFRCDFo",
@@ -972,7 +994,8 @@
         "energy:medium": 0.7,
         "era:10s": 0.8,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/37CA2be4dmNBDdf8tbZhv3",
@@ -999,7 +1022,8 @@
         "era:10s": 0.8,
         "char:beautiful": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0eZOJXchBHl8jEEhAM7EY3",
@@ -1052,7 +1076,8 @@
         "char:intimate": 0.9,
         "era:70s": 0.9,
         "origin:us": 1,
-        "char:memphis": 0.8
+        "char:memphis": 0.8,
+        "char:tennessee": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1i17Ub8xAMDMvIAJNvBmjJ",
@@ -1079,7 +1104,8 @@
         "era:70s": 1,
         "char:danceable": 0.5,
         "origin:us": 1,
-        "char:philly": 0.8
+        "char:philly": 0.8,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7MJgHOKfiffKRPLQTSLlgo",
@@ -1106,7 +1132,8 @@
         "texture:warm": 0.8,
         "era:70s": 1,
         "origin:us": 1,
-        "char:philly": 0.8
+        "char:philly": 0.8,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6Ro2z4RtAUew9Kz2HZWZUi",
@@ -1211,7 +1238,8 @@
         "mood:playful": 0.7,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:atlanta": 0.8
+        "char:atlanta": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/23TbgDzcYjVwPtM8QKv1dq",
@@ -1263,7 +1291,8 @@
         "texture:lo-fi": 0.8,
         "energy:low": 0.7,
         "char:weird": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/70PEZ5qdaO5on2NvyA3Rok",
@@ -1370,7 +1399,8 @@
         "energy:hypnotic": 0.7,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7B6f6HcVLIJdTcuclriXfT",
@@ -1400,7 +1430,8 @@
         "char:driving": 0.8,
         "mood:tense": 0.7,
         "genre:blues-rock": 0.7,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2fUUIfU0WurkHNLoUJwGnH",
@@ -1456,7 +1487,8 @@
         "char:harpsichord": 0.9,
         "theme:accident": 1,
         "char:cinematic": 0.7,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2mweWXUplavtY2YCANfmwO",
@@ -1483,7 +1515,8 @@
         "energy:low": 0.8,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0UoNf959GhSzpsrJodEC4i",
@@ -1510,7 +1543,8 @@
         "era:60s": 1,
         "mood:defiant": 0.7,
         "origin:us": 1,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7J8A3XOuGFnGheoSsHUXC8",
@@ -1537,7 +1571,8 @@
         "era:50s": 1,
         "texture:lo-fi": 0.7,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3v30QiQtdQQAUIWwfKByN7",
@@ -1564,7 +1599,8 @@
         "era:70s": 1,
         "char:beautiful": 0.7,
         "origin:us": 1,
-        "char:literate": 0.8
+        "char:literate": 0.8,
+        "char:minnesota": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7xRemq7GLu0Tbqe9OckG87",
@@ -1591,7 +1627,8 @@
         "era:70s": 1,
         "char:intimate": 0.7,
         "origin:us": 1,
-        "char:literate": 0.8
+        "char:literate": 0.8,
+        "char:minnesota": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/64MISVB9IIchhOKmWHftoz",
@@ -1618,7 +1655,8 @@
         "energy:low": 0.8,
         "char:intimate": 0.7,
         "origin:us": 1,
-        "char:literate": 0.8
+        "char:literate": 0.8,
+        "char:minnesota": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5pAWVctic0ClLM714mmqAI",
@@ -1644,7 +1682,8 @@
         "char:intimate": 1,
         "genre:folk": 0.7,
         "energy:low": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:wisconsin": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2nilAlGEZmwyaLTMMyDdLo",
@@ -1670,7 +1709,8 @@
         "char:intimate": 0.9,
         "texture:sparse": 0.8,
         "energy:low": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:wisconsin": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/15WbjBy1bzH1UsUldBwwlW",
@@ -1696,7 +1736,8 @@
         "char:danceable": 0.9,
         "energy:medium": 0.8,
         "era:70s": 1,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:ohio": 0.8
       },
       "streaming": {
         "spotify": "",
@@ -1881,7 +1922,8 @@
         "mood:defiant": 0.5,
         "char:deadpan": 0.8,
         "char:brass": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4KF92hpwTpYBC8rdfKd7Po",
@@ -1910,7 +1952,8 @@
         "origin:us": 1,
         "theme:showbiz": 1,
         "char:satirical": 0.8,
-        "char:literate": 0.6
+        "char:literate": 0.6,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2qQCU22yQXKjhytKUBxa59",
@@ -2041,7 +2084,8 @@
         "texture:lo-fi": 0.7,
         "era:70s": 0.9,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3hagVWqSXg1pekqZuLeqds",
@@ -2146,7 +2190,8 @@
         "energy:low": 0.9,
         "texture:cold": 0.7,
         "origin:us": 1,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2wAR7KJDn75E9tpwxFH3Z7",
@@ -2173,7 +2218,8 @@
         "char:weird": 0.8,
         "era:80s": 0.9,
         "origin:us": 1,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1eHjPo0GdsuLgN7yRpmzBW",
@@ -2352,7 +2398,8 @@
         "energy:hypnotic": 0.8,
         "texture:noisy": 0.6,
         "char:weird": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/103qLOOdEg7HslWeGtTvaZ",
@@ -2379,7 +2426,8 @@
         "era:60s": 1,
         "char:weird": 0.5,
         "origin:us": 1,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4ekhcmbinPu8eLHtxD2lav",
@@ -2510,7 +2558,8 @@
         "energy:medium": 0.7,
         "era:10s": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7yAji4t1cAxthnsE3WcsIc",
@@ -2536,7 +2585,8 @@
         "mood:erotic": 0.7,
         "char:beautiful": 0.9,
         "energy:low": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:virginia": 0.8
       },
       "streaming": {
         "spotify": "",
@@ -2562,7 +2612,8 @@
         "energy:low": 0.7,
         "texture:warm": 0.9,
         "char:beautiful": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:virginia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4oPNN7syJYSjzDhRerF966",
@@ -2756,7 +2807,8 @@
         "texture:noisy": 0.6,
         "era:modern": 0.9,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5VRVvhMA1szwwiv7Z7Jfrk",
@@ -2783,7 +2835,8 @@
         "texture:noisy": 0.6,
         "era:modern": 0.9,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4tU1vbxn9rvUv9VuAUXERx",
@@ -2918,7 +2971,8 @@
         "theme:monsters": 0.9,
         "char:children": 0.8,
         "char:nostalgic": 0.6,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/14Vua5sMxKiPDcRS5pmoYW",
@@ -2947,7 +3001,8 @@
         "genre:noise": 0.7,
         "mood:defiant": 1,
         "mood:tense": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7y8X0Z04gJCKtfrnSAMywJ",
@@ -2973,7 +3028,8 @@
         "mood:defiant": 1,
         "texture:noisy": 0.9,
         "mood:tense": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3IrcvqIf3ZiBhf3xdsctRX",
@@ -2999,7 +3055,8 @@
         "mood:melancholic": 0.7,
         "texture:lush": 0.7,
         "era:00s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2jSJm3Gv6GLxduWLenmjKS",
@@ -3025,7 +3082,8 @@
         "mood:defiant": 0.7,
         "texture:noisy": 0.7,
         "era:90s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1158ckiB5S4cpsdYHDB9IF",
@@ -3051,7 +3109,8 @@
         "texture:noisy": 0.6,
         "era:00s": 0.8,
         "char:cinematic": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6kgihDrYlPoh5jDBg3nKl1",
@@ -3240,7 +3299,8 @@
         "era:00s": 0.8,
         "genre:folk": 0.5,
         "origin:us": 1,
-        "char:philly": 0.8
+        "char:philly": 0.8,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6eEzsLkalgUSIvcwQXdK3j",
@@ -3267,7 +3327,8 @@
         "era:10s": 0.8,
         "texture:warm": 0.7,
         "origin:us": 1,
-        "char:philly": 0.8
+        "char:philly": 0.8,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6J0lmOQ2fzAkgKowAyoGdz",
@@ -3297,7 +3358,8 @@
         "char:vocal-harmony": 0.8,
         "genre:indie-folk": 0.7,
         "char:literate": 0.6,
-        "char:philly": 0.8
+        "char:philly": 0.8,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6Tkzu8rYqGxpBjfD6zbHsG",
@@ -3330,7 +3392,8 @@
         "theme:dreams": 0.9,
         "char:vocal-harmony": 0.8,
         "char:closer": 0.9,
-        "char:philly": 0.8
+        "char:philly": 0.8,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0Tsu53w3VpIOJp0gMpe5p7",
@@ -3382,7 +3445,9 @@
         "texture:lo-fi": 0.7,
         "mood:playful": 0.6,
         "era:90s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5Z13kJAqqkzj6F4MkjsOsL",
@@ -3408,7 +3473,9 @@
         "genre:experimental": 0.7,
         "texture:lo-fi": 0.7,
         "era:90s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1xQ1v0xnKgZyQX90f75bKt",
@@ -3515,7 +3582,8 @@
         "era:00s": 0.8,
         "origin:us": 1,
         "char:samples": 0.8,
-        "char:boston": 0.8
+        "char:boston": 0.8,
+        "char:massachusetts": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3FnzzFJxIrcIxQ3JJNFalO",
@@ -3567,7 +3635,8 @@
         "texture:lo-fi": 0.8,
         "era:50s": 1,
         "char:beautiful": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:north-carolina": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5UlokrsKgBObpODBXwTW0B",
@@ -3594,7 +3663,8 @@
         "genre:folk": 0.6,
         "char:beautiful": 0.8,
         "origin:us": 1,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1JbUMtVkQuaAPdHOvncVTm",
@@ -3621,7 +3691,8 @@
         "genre:folk": 0.6,
         "char:beautiful": 0.7,
         "origin:us": 1,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3aU2ui8JQOtmgHYH0g1qFL",
@@ -3651,7 +3722,8 @@
         "char:sweet": 0.8,
         "char:fragile": 0.7,
         "mood:bittersweet": 0.8,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4IKMZtDIqyQDA6a4YvsgpK",
@@ -3730,7 +3802,8 @@
         "texture:lo-fi": 0.8,
         "mood:playful": 0.6,
         "era:90s": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:ohio": 0.8
       },
       "streaming": {
         "spotify": "",
@@ -3887,7 +3960,8 @@
         "era:90s": 0.9,
         "texture:warm": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/51HiIbv8gO0HvwpmAxXAFe",
@@ -3914,7 +3988,8 @@
         "mood:joyful": 0.6,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:seattle": 0.8
+        "char:seattle": 0.8,
+        "char:washington": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2SDtvOPEVO6NBDXsKcibY2",
@@ -4110,7 +4185,8 @@
         "era:70s": 1,
         "origin:us": 1,
         "char:nj": 0.8,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5lc9L9FeLBwlJPgEbq9uEw",
@@ -4162,7 +4238,8 @@
         "mood:erotic": 0.6,
         "mood:playful": 0.5,
         "era:70s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5TwOz1RcvvrDHR84z9ubzN",
@@ -4188,7 +4265,8 @@
         "mood:dreamlike": 0.6,
         "mood:playful": 0.5,
         "era:70s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5953iC9OlJY2buxkLdD59c",
@@ -4293,7 +4371,8 @@
         "texture:lush": 0.7,
         "energy:low": 0.7,
         "origin:us": 1,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7pUTAc79NGnOYoDxFUXbf1",
@@ -4371,7 +4450,8 @@
         "energy:high": 0.7,
         "era:90s": 0.9,
         "mood:defiant": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:ohio": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4dftKNQqg8kWquNuDd6CDe",
@@ -4398,7 +4478,8 @@
         "texture:noisy": 0.7,
         "era:80s": 0.9,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4dQAbNxIxeySyXcNCMRsnS",
@@ -4453,7 +4534,8 @@
         "texture:lo-fi": 0.7,
         "mood:melancholic": 0.6,
         "origin:us": 1,
-        "char:nashville": 0.8
+        "char:nashville": 0.8,
+        "char:tennessee": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4ztdfd8eTApixD6Aglhk1z",
@@ -4480,7 +4562,8 @@
         "energy:low": 0.7,
         "era:70s": 0.9,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6MrILERJLA3Jcq0E9poZsp",
@@ -4507,7 +4590,8 @@
         "era:60s": 0.9,
         "char:intimate": 0.7,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1jcPcDu2YawPfLhwjYnqK2",
@@ -4534,7 +4618,8 @@
         "texture:warm": 0.7,
         "era:70s": 0.9,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7cnjQrcChwN0Nn8KlrGbrE",
@@ -4563,7 +4648,8 @@
         "origin:us": 1,
         "theme:friendship": 0.9,
         "char:drinking": 0.8,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1xcJNBxc4MYFEN6UoE2HUY",
@@ -4592,7 +4678,8 @@
         "texture:lo-fi": 1,
         "char:weird": 0.8,
         "era:80s": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:west-virginia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5ZeMGAJVrndrE0pVLo593J",
@@ -4619,7 +4706,8 @@
         "energy:medium": 0.8,
         "era:70s": 1,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4Ce66JznW8QbeyTdSzdGwR",
@@ -4646,7 +4734,8 @@
         "mood:joyful": 0.7,
         "era:00s": 0.9,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2P6QV6D4E3TxcYoYYz8ANJ",
@@ -4672,7 +4761,10 @@
         "energy:low": 0.8,
         "texture:sparse": 0.7,
         "era:modern": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:nj": 0.8,
+        "char:long-island": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/19A1QF48vssMl778b4QlNl",
@@ -4699,7 +4791,8 @@
         "texture:cold": 0.7,
         "era:70s": 1,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6WPGAupim73K9XQL4iIefZ",
@@ -4726,7 +4819,8 @@
         "texture:noisy": 0.6,
         "era:70s": 1,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4pU9OwAXdwghkgUhaZQQ3Q",
@@ -4807,7 +4901,8 @@
         "energy:medium": 0.7,
         "era:modern": 0.9,
         "mood:defiant": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:north-carolina": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7yotKA30dwTKNEGomV9ZsI",
@@ -4888,7 +4983,8 @@
         "mood:defiant": 0.8,
         "energy:chaotic": 0.6,
         "origin:us": 1,
-        "char:memphis": 0.8
+        "char:memphis": 0.8,
+        "char:tennessee": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6qOwmc4uXXMmZY2D5XOaBJ",
@@ -4915,7 +5011,8 @@
         "mood:defiant": 0.7,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:memphis": 0.8
+        "char:memphis": 0.8,
+        "char:tennessee": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/334KWMv6pxI4aUZbBjeZpp",
@@ -4942,7 +5039,8 @@
         "mood:dark": 0.7,
         "mood:defiant": 0.8,
         "origin:us": 1,
-        "char:memphis": 0.8
+        "char:memphis": 0.8,
+        "char:tennessee": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5zSRaUFR1yTB60FRl2ll9n",
@@ -4969,7 +5067,8 @@
         "mood:dreamlike": 0.6,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/39DqjGQSh3UvzQxueQSauA",
@@ -4996,7 +5095,8 @@
         "genre:folk": 0.6,
         "char:intimate": 0.7,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7zpiyRmNts4r3Ejz44trns",
@@ -5104,7 +5204,8 @@
         "char:intimate": 0.8,
         "char:weird": 0.5,
         "origin:us": 1,
-        "char:literate": 0.9
+        "char:literate": 0.9,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "",
@@ -5366,7 +5467,8 @@
         "energy:chaotic": 0.7,
         "era:modern": 0.9,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6HZILIRieu8S0iqY8kIKhj",
@@ -5393,7 +5495,8 @@
         "mood:playful": 0.8,
         "era:00s": 0.9,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4zBRdLegVtJFYsxVZMHDUt",
@@ -5497,7 +5600,8 @@
         "mood:defiant": 0.8,
         "era:90s": 1,
         "texture:noisy": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6nJPHXRpKYv2yqtalEjKy5",
@@ -5523,7 +5627,8 @@
         "mood:dark": 0.8,
         "era:90s": 1,
         "texture:noisy": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1pr9TZGOXeJUggIal1Wq3R",
@@ -5629,7 +5734,8 @@
         "era:00s": 1,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1XlDNpWy8dyEljyRd0RC2J",
@@ -5682,7 +5788,8 @@
         "mood:playful": 0.7,
         "era:00s": 0.9,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3m8KgKtNqtdMieItf9xA8X",
@@ -5709,7 +5816,8 @@
         "energy:medium": 0.7,
         "era:00s": 0.9,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/36jHzg3f6e3WZdSfAlpKPP",
@@ -5839,7 +5947,8 @@
         "char:heavy": 0.7,
         "era:50s": 1,
         "char:nostalgic": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:north-carolina": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0VRVGoJ8KhiKeyWDh3sSWu",
@@ -5865,7 +5974,8 @@
         "era:50s": 1,
         "char:nostalgic": 0.6,
         "mood:joyful": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:north-carolina": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/65zjmQVpzZYWM8zN3zu4B6",
@@ -5893,7 +6003,8 @@
         "char:intimate": 0.6,
         "char:narrative": 0.8,
         "char:new-york": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1mrfZ1VZj8hdm39K0HUu7R",
@@ -6000,7 +6111,8 @@
         "texture:sparse": 0.7,
         "energy:low": 0.9,
         "origin:us": 1,
-        "char:seattle": 0.8
+        "char:seattle": 0.8,
+        "char:washington": 0.8
       },
       "streaming": {
         "spotify": "",
@@ -6028,7 +6140,8 @@
         "char:weird": 0.6,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5F0Me1EoJAhcWMlc4R9RZz",
@@ -6058,7 +6171,8 @@
         "char:guitar-tapping": 1,
         "genre:math-rock": 0.9,
         "char:brooklyn": 0.8,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0urk0BVP4HElnf8faNUQV5",
@@ -6089,7 +6203,8 @@
         "char:danceable": 0.6,
         "era:10s": 0.8,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/24dc5yY34SSdIffnSXKzOY",
@@ -6116,7 +6231,8 @@
         "mood:dreamlike": 0.7,
         "char:beautiful": 0.9,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1LzNfuep1bnAUR9skqdHCK",
@@ -6143,7 +6259,8 @@
         "texture:noisy": 0.8,
         "era:60s": 0.9,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1cLfXnBwTFuRngRZfQeLof",
@@ -6200,7 +6317,8 @@
         "era:modern": 0.8,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3oxFVT3NByUX7qeQZGivGF",
@@ -6226,7 +6344,8 @@
         "energy:high": 0.9,
         "mood:joyful": 1,
         "era:70s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:indiana": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/46eu3SBuFCXWsPT39Yg3tJ",
@@ -6252,7 +6371,8 @@
         "mood:melancholic": 0.8,
         "char:beautiful": 0.9,
         "texture:warm": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:washington": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1QjC9B1pHKITqNQlBGI2H1",
@@ -6278,7 +6398,8 @@
         "char:danceable": 0.6,
         "texture:lush": 0.7,
         "era:70s": 1,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7fPuSaXg3DsuNfnZCI3lBn",
@@ -6307,7 +6428,8 @@
         "origin:us": 1,
         "theme:youth": 1,
         "char:anthemic": 0.8,
-        "char:nashville": 0.8
+        "char:nashville": 0.8,
+        "char:tennessee": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2y4lAQpi5VTNLu2ldeTdUH",
@@ -6360,7 +6482,8 @@
         "texture:lo-fi": 0.6,
         "era:60s": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4UmbeC90BA5lzt7R7KFzHZ",
@@ -6387,7 +6510,8 @@
         "texture:lo-fi": 0.6,
         "era:60s": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2ZFVisbnKQ9YIBu2TvuQ04",
@@ -6413,7 +6537,8 @@
         "texture:lush": 0.7,
         "energy:low": 0.8,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:kentucky": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4TIONK6tnZWlNl5HdKpWby",
@@ -6443,7 +6568,8 @@
         "origin:us": 1,
         "char:anthemic": 0.8,
         "char:bombastic": 0.7,
-        "genre:indie-rock": 0.8
+        "genre:indie-rock": 0.8,
+        "char:kentucky": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6mHcbczLuUtELuAa6Boxkb",
@@ -6472,7 +6598,8 @@
         "origin:us": 1,
         "genre:americana": 0.8,
         "mood:romantic": 0.7,
-        "char:acoustic": 0.8
+        "char:acoustic": 0.8,
+        "char:kentucky": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3kQDykkw9HVowlm3HxTcuR",
@@ -6578,7 +6705,8 @@
         "era:90s": 0.9,
         "origin:us": 1,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2UK8zttoZdKmvgaz9RV1r0",
@@ -6606,7 +6734,8 @@
         "era:90s": 0.9,
         "origin:us": 1,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2RYxbWcA1vDEIi8bstruGH",
@@ -6634,7 +6763,8 @@
         "era:90s": 0.9,
         "origin:us": 1,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1ZcX9khYwLeaBAblOEUZNs",
@@ -6662,7 +6792,8 @@
         "era:90s": 0.9,
         "origin:us": 1,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4QgMnTz4ceedQI3Ex6YkBT",
@@ -6690,7 +6821,8 @@
         "era:90s": 0.9,
         "origin:us": 1,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4ZhNktkJqWP24tKJJAMGlH",
@@ -6718,7 +6850,8 @@
         "era:90s": 0.9,
         "origin:us": 1,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4UfrZPm2fMjfwb2gUA3OUG",
@@ -6848,7 +6981,8 @@
         "genre:soul": 0.6,
         "char:intimate": 0.8,
         "era:50s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:north-carolina": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2es1IszSccn9Dzx0SD2uHj",
@@ -6874,7 +7008,8 @@
         "mood:defiant": 0.9,
         "char:heavy": 0.9,
         "era:90s": 1,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:ohio": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/56NATwQKP7m64hFLFlKzXe",
@@ -6900,7 +7035,8 @@
         "char:late-night": 0.6,
         "texture:noisy": 0.7,
         "era:90s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:ohio": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/55Ilqi0tkzElAOqDPixuDU",
@@ -6928,7 +7064,8 @@
         "era:00s": 0.8,
         "origin:us": 1,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6x4qzGWMdN7EM7Qy9Vhkxc",
@@ -6956,7 +7093,8 @@
         "era:00s": 0.8,
         "origin:us": 1,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5w0YVh60jFg0ArevIoMsUH",
@@ -6987,7 +7125,8 @@
         "mood:playful": 0.7,
         "genre:glam": 0.6,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/36N7p13JjbRfOby8DWV8Nn",
@@ -7017,7 +7156,8 @@
         "char:vocal-harmony": 0.8,
         "char:multi-part": 0.8,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7cRnsaZAdPQNM4Oxq0kidC",
@@ -7052,7 +7192,8 @@
         "genre:indie-rock": 0.7,
         "char:vocal-harmony": 0.7,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7bx2SaRNKp1WOB1jeZuOVl",
@@ -7131,7 +7272,8 @@
         "char:danceable": 0.7,
         "era:90s": 1,
         "origin:us": 1,
-        "char:atlanta": 0.8
+        "char:atlanta": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0shK5iZQppbHPQYiy60xs9",
@@ -7158,7 +7300,8 @@
         "char:danceable": 0.7,
         "era:00s": 1,
         "origin:us": 1,
-        "char:atlanta": 0.8
+        "char:atlanta": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0I3q5fE6wg7LIfHGngUTnV",
@@ -7274,7 +7417,8 @@
         "texture:noisy": 0.7,
         "era:80s": 0.9,
         "origin:us": 1,
-        "char:boston": 0.8
+        "char:boston": 0.8,
+        "char:massachusetts": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0p5eZCY0R7uNCZS1YDtIYI",
@@ -7327,7 +7471,8 @@
         "energy:high": 0.8,
         "era:80s": 1,
         "origin:us": 1,
-        "char:minneapolis": 0.8
+        "char:minneapolis": 0.8,
+        "char:minnesota": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/62LJFaYihsdVrrkgUOJC05",
@@ -7405,7 +7550,8 @@
         "energy:medium": 0.7,
         "mood:defiant": 0.7,
         "era:10s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:virginia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7aK5rlTVxSgcqShPMI1TTH",
@@ -7495,7 +7641,8 @@
         "texture:lush": 0.7,
         "energy:low": 0.9,
         "char:beautiful": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:kentucky": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3P4wV4Y6zIZ7Ju2s71EqoT",
@@ -7574,7 +7721,8 @@
         "char:heavy": 0.8,
         "era:90s": 1,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/59WN2psjkt1tyaxjspN8fp",
@@ -7818,7 +7966,8 @@
         "era:20s": 1,
         "texture:lo-fi": 0.9,
         "mood:playful": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "",
@@ -7846,7 +7995,8 @@
         "energy:low": 0.8,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1u1PzGnsWKjAwSZ9Rg1kjD",
@@ -7878,7 +8028,8 @@
         "char:defiant": 0.6,
         "char:new-york": 0.8,
         "char:brooklyn": 0.8,
-        "char:nj": 0.8
+        "char:nj": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5th3rj1nW25bm5iSLiK3i9",
@@ -7905,7 +8056,8 @@
         "mood:dreamlike": 0.7,
         "era:70s": 1,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4W8IEREeLldaSQyGXcZQ2I",
@@ -7932,7 +8084,8 @@
         "char:weird": 0.8,
         "era:60s": 1,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0wwbxSLnXXws3sD0AKMfUT",
@@ -8010,7 +8163,8 @@
         "char:nostalgic": 0.8,
         "era:30s": 1,
         "texture:lo-fi": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:arkansas": 0.8
       },
       "streaming": {
         "spotify": "",
@@ -8064,7 +8218,8 @@
         "era:10s": 0.8,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0Z7b5GlC70FAES1YduhhqQ",
@@ -8091,7 +8246,8 @@
         "energy:medium": 0.7,
         "era:70s": 1,
         "origin:us": 1,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4f3u4Oy0JqJRIhMmTqRcxj",
@@ -8121,7 +8277,8 @@
         "char:slow-burn": 0.8,
         "mood:hypnotic": 0.7,
         "char:psychedelic": 0.6,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1aPFLpNNczxjY34qdKVJLg",
@@ -8149,7 +8306,8 @@
         "era:70s": 1,
         "origin:us": 1,
         "theme:empowerment": 0.9,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2VHALpy5ewC9SAZS6n1hqm",
@@ -8176,7 +8334,8 @@
         "texture:noisy": 0.9,
         "era:90s": 1,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1ZozGivTAYsOwhy6LVHsPX",
@@ -8203,7 +8362,8 @@
         "energy:low": 0.7,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4UJhMnv5Y00AtNatGrC629",
@@ -8230,7 +8390,8 @@
         "mood:playful": 0.7,
         "era:00s": 0.9,
         "origin:us": 1,
-        "char:baltimore": 0.8
+        "char:baltimore": 0.8,
+        "char:maryland": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/26QJnrSF1Dj8lFoMdAWcP6",
@@ -8257,7 +8418,8 @@
         "mood:erotic": 0.6,
         "era:00s": 0.9,
         "origin:us": 1,
-        "char:baltimore": 0.8
+        "char:baltimore": 0.8,
+        "char:maryland": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3kDCvoTwCmvsGXYq1cG5MR",
@@ -8500,7 +8662,8 @@
         "era:00s": 0.8,
         "mood:defiant": 0.5,
         "origin:us": 1,
-        "theme:weed": 0.9
+        "theme:weed": 0.9,
+        "char:oklahoma": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6l4IO1WGooHsWXYJylgitW",
@@ -8534,7 +8697,8 @@
         "origin:us": 1,
         "theme:weed": 1,
         "char:existential": 0.8,
-        "theme:friendship": 0.6
+        "theme:friendship": 0.6,
+        "char:oklahoma": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4DzeytZE3RvyGPcUSktoki",
@@ -8645,7 +8809,8 @@
         "mood:spiritual": 0.7,
         "era:70s": 1,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0dMd4rilfd6gPbXaLpNYhu",
@@ -8672,7 +8837,8 @@
         "era:60s": 0.9,
         "texture:warm": 0.8,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4kP69y3GKHi9tXckfgp4bK",
@@ -8699,7 +8865,8 @@
         "char:weird": 0.8,
         "era:70s": 0.9,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3xn6HGZu0liOcgHUzuQJh9",
@@ -8726,7 +8893,8 @@
         "char:weird": 0.7,
         "era:70s": 0.9,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0sTMWWSms4Mt6vy33rdqgv",
@@ -8937,7 +9105,8 @@
         "energy:hypnotic": 0.7,
         "era:80s": 1,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4eBCTzBsSjYgrLH5clQf2x",
@@ -8964,7 +9133,8 @@
         "mood:spiritual": 0.6,
         "era:80s": 1,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2WDvW3o8WeGN4v4cpsYVhT",
@@ -9043,7 +9213,8 @@
         "era:modern": 0.9,
         "texture:cold": 0.5,
         "origin:us": 1,
-        "char:nashville": 0.8
+        "char:nashville": 0.8,
+        "char:tennessee": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1P17dC1amhFzptugyAO7Il",
@@ -9128,7 +9299,8 @@
         "era:70s": 1,
         "char:beautiful": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2OaXmeYBJ0hcTmS3kxjJOx",
@@ -9183,7 +9355,8 @@
         "energy:medium": 0.7,
         "char:beautiful": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4kIYRtgbZyPzAWSFLdlajW",
@@ -9394,7 +9567,8 @@
         "char:outsider": 0.6,
         "mood:playful": 0.6,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:oklahoma": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7pyPdzkn83MvU4U7xz9L3d",
@@ -9422,7 +9596,8 @@
         "era:00s": 0.8,
         "origin:us": 1,
         "char:abstract": 0.8,
-        "char:suite": 0.6
+        "char:suite": 0.6,
+        "char:oklahoma": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4emDb4uF3DbcpA3koW4sPd",
@@ -9448,7 +9623,8 @@
         "texture:lush": 0.7,
         "mood:dreamlike": 0.7,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:oklahoma": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3dl53mWkODbk3MkGuhoAx4",
@@ -9474,7 +9650,8 @@
         "mood:playful": 0.6,
         "mood:dark": 0.5,
         "era:80s": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:wisconsin": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2nr87sPQNu6IxxvOgHZpfu",
@@ -9799,7 +9976,8 @@
         "char:intimate": 0.8,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:boston": 0.8
+        "char:boston": 0.8,
+        "char:massachusetts": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6WCdVDYvWFTrWBUxo395QN",
@@ -9826,7 +10004,8 @@
         "texture:sparse": 0.7,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:boston": 0.8
+        "char:boston": 0.8,
+        "char:massachusetts": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/41Kh844iHIhSkf16WWh6He",
@@ -9879,7 +10058,8 @@
         "mood:tender": 0.8,
         "char:beautiful": 0.8,
         "texture:warm": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:ohio": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7jBaALpPWBUj7Xf25ZXZAx",
@@ -9960,7 +10140,8 @@
         "char:weird": 0.6,
         "era:70s": 0.9,
         "origin:us": 1,
-        "char:boston": 0.8
+        "char:boston": 0.8,
+        "char:massachusetts": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/13ukxpBh4Tra731pchaP4i",
@@ -9987,7 +10168,8 @@
         "era:70s": 0.9,
         "char:outsider": 0.5,
         "origin:us": 1,
-        "char:boston": 0.8
+        "char:boston": 0.8,
+        "char:massachusetts": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4VqDn9jG4RnCN00jNk7BKK",
@@ -10017,7 +10199,8 @@
         "genre:anti-folk": 0.9,
         "char:lo-fi": 0.8,
         "char:sweet": 0.6,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0TcbL2SYCCjJxgOLOWpUMS",
@@ -10047,7 +10230,8 @@
         "char:singing-saw": 1,
         "mood:tender": 0.6,
         "char:athens-ga": 0.9,
-        "char:elephant-6": 0.9
+        "char:elephant-6": 0.9,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6t54KjgOq1ExHaJAtwxzPP",
@@ -10078,7 +10262,8 @@
         "energy:low": 0.7,
         "origin:us": 1,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2r7aRCarRek0EdD4hBNCMU",
@@ -10209,7 +10394,8 @@
         "era:00s": 0.9,
         "mood:joyful": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0ZbNQQtAbdQoTWxt4avi2w",
@@ -10235,7 +10421,8 @@
         "energy:chaotic": 0.7,
         "mood:playful": 0.5,
         "era:60s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:new-hampshire": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5r4sIOsyHwBUPMg01DGtsE",
@@ -10313,7 +10500,8 @@
         "texture:noisy": 0.8,
         "era:60s": 1,
         "char:heavy": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:washington": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6u7UrwiZERRglVNSpgmxNf",
@@ -10340,7 +10528,8 @@
         "texture:noisy": 0.8,
         "era:70s": 1,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/00sydAz6PeOxYzwG1dRIPi",
@@ -10367,7 +10556,8 @@
         "era:00s": 1,
         "texture:noisy": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3SUusuA9jH1v6PVwtYMbdv",
@@ -10396,7 +10586,8 @@
         "genre:noise-rock": 0.8,
         "char:confrontational": 0.7,
         "origin:us": 1,
-        "char:philly": 0.8
+        "char:philly": 0.8,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/13YZn9f8rGCXOx306t6r1I",
@@ -10423,7 +10614,8 @@
         "era:70s": 1,
         "texture:warm": 0.7,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2PvpzJMxUqgrQxt5aM9jwy",
@@ -10453,7 +10645,8 @@
         "char:confessional": 0.8,
         "char:literary": 0.8,
         "texture:quiet": 0.8,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2Vp0ue7NNLHFF6RKSdOEuN",
@@ -10480,7 +10673,8 @@
         "era:60s": 1,
         "texture:noisy": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3vBROSNZ8V3XjfZHdCCsgT",
@@ -10614,7 +10808,8 @@
         "texture:lo-fi": 0.7,
         "char:intimate": 0.7,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2SkY1MBAolcLSpWDWCP7Kd",
@@ -10641,7 +10836,8 @@
         "char:cinematic": 0.7,
         "energy:low": 0.7,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1L0w7xn1ag3oTU4ZvSOA7N",
@@ -10670,7 +10866,8 @@
         "char:film-noir": 0.8,
         "char:narrative": 0.9,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2UZxUSA4TxbS5tXUB5QSoL",
@@ -10697,7 +10894,8 @@
         "char:political": 0.5,
         "texture:lo-fi": 0.7,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/18nVec4X5DlXfePjAZkVwO",
@@ -10805,7 +11003,8 @@
         "origin:us": 1,
         "theme:monsters": 0.8,
         "char:brooklyn": 0.8,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6Zgd7SomLTZkL1WPh4CUnV",
@@ -10832,7 +11031,8 @@
         "mood:playful": 0.7,
         "era:10s": 0.8,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6xV7Be6XEvkSnighmh2Tzj",
@@ -10885,7 +11085,8 @@
         "era:60s": 1,
         "texture:noisy": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/04ezdCPZeafm0rGdm1X6mO",
@@ -10912,7 +11113,8 @@
         "char:beautiful": 0.6,
         "era:10s": 0.8,
         "origin:us": 1,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3OwBfytpUhvPWAz2XY9c2z",
@@ -10991,7 +11193,8 @@
         "char:outsider": 0.5,
         "era:60s": 1,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6cA1usDL8nTHeSgFewQat3",
@@ -11121,7 +11324,8 @@
         "char:late-night": 0.6,
         "texture:lo-fi": 0.8,
         "char:intimate": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/75ywBq7FOIktKsM24U881V",
@@ -11147,7 +11351,8 @@
         "energy:high": 0.7,
         "char:nostalgic": 0.7,
         "era:80s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:wisconsin": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7jIAttgQTpLDoNtykIQXjH",
@@ -11232,7 +11437,8 @@
         "char:creepy": 0.9,
         "char:interlude": 0.8,
         "theme:dreams": 0.6,
-        "char:ritual": 0.7
+        "char:ritual": 0.7,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3IdA4BIIUdXBrkXjgARm6L",
@@ -11261,7 +11467,8 @@
         "origin:us": 1,
         "genre:rock": 0.7,
         "char:guitar-driven": 0.8,
-        "mood:defiant": 0.6
+        "mood:defiant": 0.6,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2rOoHtWCDcMwG1kDcMd0kq",
@@ -11287,7 +11494,8 @@
         "mood:playful": 0.7,
         "char:cinematic": 0.5,
         "era:90s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5UWcIBGizE1JNnDrXC7L1Q",
@@ -11314,7 +11522,8 @@
         "genre:garage": 0.5,
         "char:intimate": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3pdwtknFmM6xocVEpj7yAl",
@@ -11341,7 +11550,8 @@
         "genre:garage": 0.5,
         "char:intimate": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3g2gQMeeQAEPztiQKMlGSl",
@@ -11368,7 +11578,8 @@
         "char:beautiful": 0.6,
         "char:intimate": 0.7,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6VoIBz0VhCyz7OdEoRYDiA",
@@ -11395,7 +11606,8 @@
         "energy:medium": 0.7,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6L0BBPYeWnaQJeDa0ox0IA",
@@ -11424,7 +11636,8 @@
         "origin:us": 1,
         "theme:grief": 0.7,
         "char:tearjerker": 0.9,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7qTr6NXpNeVriU1jCbXqCg",
@@ -11555,7 +11768,8 @@
         "era:90s": 1,
         "texture:lo-fi": 0.7,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/119c93MHjrDLJTApCVGpvx",
@@ -11692,7 +11906,8 @@
         "char:eccentric": 0.8,
         "char:narrative": 0.7,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6QdSHQkW0jqj3chj3usP9l",
@@ -11722,7 +11937,8 @@
         "char:siblings": 0.6,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7BeAt3JCnQux4ISaSaAyas",
@@ -11753,7 +11969,8 @@
         "char:eccentric": 0.9,
         "char:angular": 0.8,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0Uk9wK9ykfIwlEMfWUj31q",
@@ -11787,7 +12004,8 @@
         "char:siblings": 0.6,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7nfkTzXBJURWAKb4SqjBBA",
@@ -11936,7 +12154,8 @@
         "char:literate": 1,
         "char:acoustic": 0.9,
         "char:narrative": 0.8,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/58ZnKjXrukDgiYaLfYWUE0",
@@ -12042,7 +12261,8 @@
         "char:weird": 0.6,
         "era:10s": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4cB6y0bXZ4prNuP36xilJJ",
@@ -12095,7 +12315,8 @@
         "era:70s": 1,
         "char:cinematic": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2rgHxOarlO4W35mg0IZ5u8",
@@ -12177,7 +12398,8 @@
         "mood:dark": 0.7,
         "era:90s": 1,
         "texture:noisy": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:florida": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2aIB1CdRRG7YLBu9hNw9nR",
@@ -12236,7 +12458,8 @@
         "char:bittersweet": 0.8,
         "texture:piano": 0.8,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/506ETErNvJ41FTYHrQ5wkb",
@@ -12263,7 +12486,8 @@
         "genre:art-rock": 0.5,
         "mood:playful": 0.7,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5jGxeAkNbep75x8JLeb52H",
@@ -12293,7 +12517,8 @@
         "char:breakup": 0.7,
         "origin:us": 1,
         "theme:high-school": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0SLOiJClXkAZluClYpke95",
@@ -12323,7 +12548,8 @@
         "char:breakup": 0.8,
         "origin:us": 1,
         "theme:high-school": 0.9,
-        "char:guilty-pleasure": 0.9
+        "char:guilty-pleasure": 0.9,
+        "char:oklahoma": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5mSVJjVzZEoVrg6amF8udl",
@@ -12349,7 +12575,8 @@
         "energy:medium": 0.7,
         "char:intimate": 0.6,
         "char:beautiful": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:oklahoma": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/003FTlCpBTM4eSqYSWPv4H",
@@ -12376,7 +12603,8 @@
         "char:beautiful": 0.6,
         "texture:warm": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6J0lmOQ2fzAkgKowAyoGdz",
@@ -12404,7 +12632,8 @@
         "char:beautiful": 0.5,
         "char:emo": 0.8,
         "char:anthem": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:arizona": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6GG73Jik4jUlQCkKg9JuGO",
@@ -12433,7 +12662,8 @@
         "genre:power-pop": 0.8,
         "char:driving": 0.7,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0BaMAM6thMwSLqGpRvXKMA",
@@ -12546,7 +12776,8 @@
         "texture:noisy": 0.7,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2mleFoqDXcD3uCP3bDTAkK",
@@ -12625,7 +12856,8 @@
         "mood:joyful": 0.6,
         "era:10s": 0.8,
         "origin:us": 1,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3DXHaJzqRCgv3rd5U9EoXU",
@@ -12678,7 +12910,8 @@
         "char:intimate": 0.8,
         "era:70s": 0.9,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1Gv6f7m5ZNDcInxGA8PsLS",
@@ -12950,7 +13183,8 @@
         "energy:high": 0.8,
         "mood:joyful": 0.7,
         "era:modern": 1,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:virginia": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5AJ9hqTS2wcFQCELCFRO7A",
@@ -13004,7 +13238,8 @@
         "era:00s": 0.9,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6iDU7XRi0cxXvUYk3s8OOk",
@@ -13088,7 +13323,8 @@
         "era:00s": 0.8,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1OYk5vsjPRPCu9BIvFqg7k",
@@ -13145,7 +13381,8 @@
         "energy:high": 0.9,
         "mood:dark": 0.8,
         "era:modern": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:florida": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3I14hFH0LjBQ3fF4oA9OMK",
@@ -13173,7 +13410,8 @@
         "era:00s": 0.8,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1EiLrPd8JMTcQUr1aLEUKi",
@@ -13317,7 +13555,8 @@
         "char:danceable": 0.7,
         "era:modern": 0.9,
         "texture:lo-fi": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:pennsylvania": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0lwkzF4dDxLp8HMVSQjpFf",
@@ -13422,7 +13661,8 @@
         "energy:medium": 0.6,
         "era:10s": 0.8,
         "origin:us": 1,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/49vzuiR9YheTFslIuO4JRV",
@@ -13538,7 +13778,8 @@
         "texture:psychedelic": 0.6,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -13591,7 +13832,8 @@
         "texture:warm": 0.8,
         "char:late-night": 0.7,
         "origin:us": 1,
-        "char:philly": 0.8
+        "char:philly": 0.8,
+        "char:pennsylvania": 0.8
       }
     },
     {
@@ -13644,7 +13886,8 @@
         "char:danceable": 0.8,
         "energy:high": 0.7,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -13701,7 +13944,8 @@
         "char:hazy": 0.7,
         "genre:jazz": 0.5,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -14066,7 +14310,8 @@
         "energy:low": 0.8,
         "char:late-night": 0.9,
         "texture:warm": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:virginia": 0.8
       }
     },
     {
@@ -14092,7 +14337,8 @@
         "char:late-night": 0.9,
         "texture:warm": 0.8,
         "char:beautiful": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:virginia": 0.8
       }
     },
     {
@@ -14151,7 +14397,9 @@
         "mood:tense": 0.6,
         "origin:us": 1,
         "char:los-angeles": 0.8,
-        "char:miami": 0.8
+        "char:miami": 0.8,
+        "char:california": 0.8,
+        "char:florida": 0.8
       }
     },
     {
@@ -14284,7 +14532,8 @@
         "mood:defiant": 0.6,
         "char:weird": 0.5,
         "origin:us": 1,
-        "char:atlanta": 0.8
+        "char:atlanta": 0.8,
+        "char:georgia": 0.8
       }
     },
     {
@@ -14338,7 +14587,8 @@
         "energy:medium": 0.7,
         "char:instrumental": 0.9,
         "char:rare-groove": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       }
     },
     {
@@ -14416,7 +14666,8 @@
         "mood:erotic": 0.5,
         "mood:playful": 0.5,
         "era:70s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -14469,7 +14720,8 @@
         "energy:high": 0.7,
         "era:90s": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -14496,7 +14748,8 @@
         "energy:high": 0.7,
         "mood:playful": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -14549,7 +14802,8 @@
         "energy:high": 0.7,
         "char:weird": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -14604,7 +14858,8 @@
         "texture:lo-fi": 0.7,
         "energy:medium": 0.7,
         "origin:us": 1,
-        "char:boston": 0.8
+        "char:boston": 0.8,
+        "char:massachusetts": 0.8
       }
     },
     {
@@ -14657,7 +14912,8 @@
         "mood:dark": 0.6,
         "genre:folk": 0.4,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -14684,7 +14940,8 @@
         "energy:hypnotic": 0.8,
         "char:cinematic": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -14710,7 +14967,8 @@
         "char:weird": 0.8,
         "texture:noisy": 0.7,
         "mood:defiant": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       }
     },
     {
@@ -14737,7 +14995,8 @@
         "energy:high": 0.9,
         "char:nostalgic": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -14764,7 +15023,8 @@
         "mood:tense": 0.7,
         "energy:chaotic": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -14817,7 +15077,8 @@
         "mood:tender": 0.8,
         "energy:low": 0.8,
         "origin:us": 1,
-        "char:seattle": 0.8
+        "char:seattle": 0.8,
+        "char:washington": 0.8
       }
     },
     {
@@ -14844,7 +15105,8 @@
         "energy:medium": 0.7,
         "texture:warm": 0.9,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -14874,7 +15136,8 @@
         "genre:dream-pop": 0.8,
         "char:ethereal": 0.7,
         "genre:synth-pop": 0.6,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       }
     },
     {
@@ -14929,7 +15192,8 @@
         "origin:us": 1,
         "theme:anti-love": 1,
         "texture:cold": 0.8,
-        "char:girl-band": 0.9
+        "char:girl-band": 0.9,
+        "char:ohio": 0.8
       },
       "for_fans_of": [
         "Le Tigre",
@@ -14959,7 +15223,8 @@
         "texture:sparse": 0.7,
         "energy:low": 0.9,
         "char:beautiful": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:kentucky": 0.8
       }
     },
     {
@@ -15039,7 +15304,8 @@
         "energy:medium": 0.8,
         "mood:erotic": 0.6,
         "texture:warm": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:ohio": 0.8
       }
     },
     {
@@ -15247,7 +15513,8 @@
         "char:nostalgic": 0.8,
         "char:intimate": 0.9,
         "energy:low": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:ohio": 0.8
       }
     },
     {
@@ -15273,7 +15540,8 @@
         "mood:dark": 0.7,
         "char:weird": 0.7,
         "energy:medium": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       }
     },
     {
@@ -15299,7 +15567,8 @@
         "mood:dark": 0.8,
         "char:weird": 0.7,
         "energy:low": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:california": 0.8
       }
     },
     {
@@ -15457,7 +15726,8 @@
         "energy:medium": 0.7,
         "char:philly": 0.8,
         "char:retro-rock": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:pennsylvania": 0.8
       }
     },
     {
@@ -15509,7 +15779,8 @@
         "texture:sparse": 0.8,
         "energy:low": 0.8,
         "char:weird": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -15670,7 +15941,8 @@
         "char:hazy": 0.7,
         "genre:jazz": 0.5,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -15700,7 +15972,8 @@
         "char:acoustic-guitar": 0.8,
         "origin:us": 1,
         "energy:hypnotic": 0.7,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       },
       "for_fans_of": [
         "Edward Sharpe and the Magnetic Zeros",
@@ -15757,7 +16030,8 @@
         "energy:high": 0.8,
         "char:political": 0.5,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -15785,7 +16059,8 @@
         "texture:cold": 0.6,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -15814,7 +16089,8 @@
         "char:weezer": 0.7,
         "char:bittersweet": 0.8,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -15977,7 +16253,8 @@
         "texture:noisy": 0.7,
         "era:60s": 1,
         "char:danceable": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:washington": 0.8
       }
     },
     {
@@ -16004,7 +16281,8 @@
         "texture:noisy": 0.6,
         "mood:joyful": 0.7,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       }
     },
     {
@@ -16031,7 +16309,8 @@
         "texture:warm": 0.8,
         "mood:joyful": 0.7,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       }
     },
     {
@@ -16057,7 +16336,8 @@
         "mood:joyful": 0.7,
         "char:danceable": 0.6,
         "energy:medium": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:ohio": 0.8
       }
     },
     {
@@ -16110,7 +16390,8 @@
         "era:60s": 0.9,
         "char:nostalgic": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -16141,7 +16422,8 @@
         "theme:ufo": 0.9,
         "char:mysterious": 0.8,
         "char:short": 0.8,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -16193,7 +16475,8 @@
         "char:late-night": 0.8,
         "texture:warm": 0.7,
         "mood:erotic": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:georgia": 0.8
       }
     },
     {
@@ -16272,7 +16555,8 @@
         "texture:sparse": 0.8,
         "energy:low": 0.8,
         "mood:dark": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:maryland": 0.8
       }
     },
     {
@@ -16326,7 +16610,8 @@
         "texture:noisy": 0.5,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -16379,7 +16664,8 @@
         "mood:erotic": 0.6,
         "texture:noisy": 0.7,
         "origin:us": 1,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       }
     },
     {
@@ -16406,7 +16692,8 @@
         "mood:playful": 0.5,
         "char:weird": 0.5,
         "origin:us": 1,
-        "char:atlanta": 0.8
+        "char:atlanta": 0.8,
+        "char:georgia": 0.8
       }
     },
     {
@@ -16467,7 +16754,8 @@
         "mood:playful": 0.7,
         "mood:dark": 0.5,
         "energy:low": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:wisconsin": 0.8
       }
     },
     {
@@ -16578,7 +16866,8 @@
         "era:50s": 0.9,
         "energy:medium": 0.7,
         "origin:us": 1,
-        "char:nashville": 0.8
+        "char:nashville": 0.8,
+        "char:tennessee": 0.8
       }
     },
     {
@@ -16605,7 +16894,8 @@
         "era:60s": 0.8,
         "energy:medium": 0.7,
         "origin:us": 1,
-        "char:nashville": 0.8
+        "char:nashville": 0.8,
+        "char:tennessee": 0.8
       }
     },
     {
@@ -16632,7 +16922,8 @@
         "era:60s": 0.9,
         "energy:medium": 0.8,
         "origin:us": 1,
-        "char:nashville": 0.8
+        "char:nashville": 0.8,
+        "char:tennessee": 0.8
       }
     },
     {
@@ -16685,7 +16976,8 @@
         "energy:low": 0.9,
         "char:nostalgic": 0.7,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       }
     },
     {
@@ -16712,7 +17004,8 @@
         "mood:joyful": 0.7,
         "mood:spiritual": 0.6,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       }
     },
     {
@@ -16739,7 +17032,8 @@
         "mood:dark": 0.6,
         "energy:low": 0.6,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       }
     },
     {
@@ -16766,7 +17060,8 @@
         "energy:medium": 0.7,
         "char:danceable": 0.6,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       }
     },
     {
@@ -16793,7 +17088,9 @@
         "energy:low": 0.8,
         "char:intimate": 0.7,
         "origin:us": 1,
-        "char:memphis": 0.8
+        "char:memphis": 0.8,
+        "char:georgia": 0.8,
+        "char:tennessee": 0.8
       }
     },
     {
@@ -16820,7 +17117,9 @@
         "energy:medium": 0.7,
         "texture:warm": 0.8,
         "origin:us": 1,
-        "char:memphis": 0.8
+        "char:memphis": 0.8,
+        "char:georgia": 0.8,
+        "char:tennessee": 0.8
       }
     },
     {
@@ -16847,7 +17146,9 @@
         "energy:medium": 0.7,
         "mood:melancholic": 0.6,
         "origin:us": 1,
-        "char:memphis": 0.8
+        "char:memphis": 0.8,
+        "char:georgia": 0.8,
+        "char:tennessee": 0.8
       }
     },
     {
@@ -16874,7 +17175,8 @@
         "texture:lush": 0.8,
         "energy:medium": 0.7,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -16901,7 +17203,8 @@
         "texture:lush": 0.8,
         "mood:dark": 0.5,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -16928,7 +17231,8 @@
         "char:cinematic": 0.7,
         "energy:medium": 0.7,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -16955,7 +17259,8 @@
         "energy:low": 0.7,
         "genre:soul": 0.5,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -16982,7 +17287,8 @@
         "mood:dark": 0.5,
         "char:intimate": 0.6,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -17009,7 +17315,8 @@
         "texture:sparse": 0.7,
         "energy:low": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -17036,7 +17343,8 @@
         "texture:lush": 0.7,
         "energy:medium": 0.7,
         "origin:us": 1,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       }
     },
     {
@@ -17063,7 +17371,8 @@
         "texture:sparse": 0.7,
         "energy:low": 0.8,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -17142,7 +17451,8 @@
         "texture:lo-fi": 0.9,
         "mood:playful": 0.7,
         "energy:medium": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:wisconsin": 0.8
       }
     },
     {
@@ -17249,7 +17559,8 @@
         "texture:lush": 0.7,
         "char:cinematic": 0.6,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -17301,7 +17612,8 @@
         "mood:dreamlike": 0.8,
         "texture:psychedelic": 0.6,
         "energy:low": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:michigan": 0.8
       }
     },
     {
@@ -17327,7 +17639,8 @@
         "mood:dreamlike": 0.7,
         "mood:spiritual": 0.6,
         "energy:low": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:michigan": 0.8
       }
     },
     {
@@ -17406,7 +17719,8 @@
         "texture:lo-fi": 0.7,
         "char:weird": 0.5,
         "origin:us": 1,
-        "char:atlanta": 0.8
+        "char:atlanta": 0.8,
+        "char:georgia": 0.8
       }
     },
     {
@@ -17435,7 +17749,8 @@
         "char:layered-vocals": 0.8,
         "char:chamber-pop": 0.7,
         "origin:us": 1,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -17491,7 +17806,8 @@
         "char:late-night": 0.7,
         "energy:low": 0.8,
         "origin:us": 1,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       }
     },
     {
@@ -17519,7 +17835,8 @@
         "char:weird": 0.4,
         "char:southern": 0.7,
         "char:atlanta": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:georgia": 0.8
       }
     },
     {
@@ -17576,7 +17893,8 @@
         "char:multi-part": 0.8,
         "char:eccentric": 0.7,
         "char:athens-ga": 0.8,
-        "char:elephant-6": 0.8
+        "char:elephant-6": 0.8,
+        "char:georgia": 0.8
       }
     },
     {
@@ -17628,7 +17946,8 @@
         "energy:medium": 0.7,
         "texture:cold": 0.6,
         "char:cinematic": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:virginia": 0.8
       }
     },
     {
@@ -17654,7 +17973,8 @@
         "energy:medium": 0.7,
         "texture:cold": 0.6,
         "mood:tense": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:virginia": 0.8
       }
     },
     {
@@ -17709,7 +18029,9 @@
         "origin:us": 1,
         "genre:dream-pop": 0.8,
         "char:yearning": 0.8,
-        "char:ethereal": 0.7
+        "char:ethereal": 0.7,
+        "char:long-island": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -17735,7 +18057,9 @@
         "char:late-night": 0.7,
         "mood:erotic": 0.5,
         "char:beautiful": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:long-island": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -17855,7 +18179,8 @@
         "texture:warm": 0.7,
         "mood:tender": 0.6,
         "char:late-night": 0.6,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -17885,7 +18210,8 @@
         "char:weird": 0.6,
         "texture:warm": 0.6,
         "mood:playful": 0.7,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -18008,7 +18334,8 @@
         "texture:warm": 0.9,
         "mood:tender": 0.8,
         "mood:dreamlike": 0.7,
-        "char:late-night": 0.8
+        "char:late-night": 0.8,
+        "char:pennsylvania": 0.8
       }
     },
     {
@@ -18039,7 +18366,8 @@
         "char:beautiful": 0.9,
         "texture:warm": 0.8,
         "mood:tender": 0.8,
-        "mood:dreamlike": 0.6
+        "mood:dreamlike": 0.6,
+        "char:illinois": 0.8
       }
     },
     {
@@ -18133,7 +18461,8 @@
         "texture:warm": 0.8,
         "mood:tender": 0.6,
         "mood:dreamlike": 0.6,
-        "char:memphis": 0.8
+        "char:memphis": 0.8,
+        "char:tennessee": 0.8
       }
     },
     {
@@ -18196,7 +18525,8 @@
         "char:beautiful": 0.7,
         "texture:lush": 0.8,
         "mood:playful": 0.6,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       }
     },
     {
@@ -18228,7 +18558,8 @@
         "texture:lush": 0.7,
         "mood:playful": 0.5,
         "char:weird": 0.7,
-        "char:portland": 0.8
+        "char:portland": 0.8,
+        "char:oregon": 0.8
       }
     },
     {
@@ -18291,7 +18622,8 @@
         "texture:lush": 0.8,
         "texture:warm": 0.7,
         "mood:dreamlike": 0.7,
-        "char:chicago": 0.8
+        "char:chicago": 0.8,
+        "char:illinois": 0.8
       }
     },
     {
@@ -18382,7 +18714,8 @@
         "era:90s": 1,
         "char:beautiful": 0.7,
         "texture:warm": 0.8,
-        "char:miami": 0.8
+        "char:miami": 0.8,
+        "char:florida": 0.8
       }
     },
     {
@@ -18475,7 +18808,8 @@
         "texture:lush": 0.8,
         "mood:dreamlike": 0.9,
         "char:late-night": 0.6,
-        "char:detroit": 0.8
+        "char:detroit": 0.8,
+        "char:michigan": 0.8
       }
     },
     {
@@ -18571,7 +18905,8 @@
         "texture:lo-fi": 0.7,
         "mood:dark": 0.8,
         "mood:dreamlike": 0.5,
-        "char:san-francisco": 0.8
+        "char:san-francisco": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -18829,7 +19164,8 @@
         "mood:dreamlike": 0.7,
         "mood:tender": 0.6,
         "char:harmonies": 0.9,
-        "char:seattle": 0.8
+        "char:seattle": 0.8,
+        "char:washington": 0.8
       }
     },
     {
@@ -18893,7 +19229,8 @@
         "texture:warm": 0.8,
         "mood:dreamlike": 0.9,
         "char:late-night": 0.8,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -18960,7 +19297,8 @@
         "texture:sparse": 0.7,
         "mood:tender": 0.6,
         "char:late-night": 0.6,
-        "char:literate": 0.9
+        "char:literate": 0.9,
+        "char:minnesota": 0.8
       }
     },
     {
@@ -18991,7 +19329,8 @@
         "char:weird": 0.7,
         "texture:lo-fi": 0.7,
         "mood:playful": 0.7,
-        "mood:dark": 0.5
+        "mood:dark": 0.5,
+        "char:california": 0.8
       }
     },
     {
@@ -19023,7 +19362,8 @@
         "char:beautiful": 0.6,
         "texture:warm": 0.7,
         "mood:playful": 0.8,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -19255,7 +19595,8 @@
         "mood:dark": 0.8,
         "mood:dreamlike": 0.5,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -19353,7 +19694,8 @@
         "mood:playful": 0.6,
         "mood:dark": 0.5,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -19418,7 +19760,8 @@
         "texture:lush": 0.7,
         "mood:playful": 0.7,
         "mood:tender": 0.5,
-        "char:philly": 0.8
+        "char:philly": 0.8,
+        "char:pennsylvania": 0.8
       }
     },
     {
@@ -19521,7 +19864,8 @@
         "texture:warm": 0.7,
         "mood:dreamlike": 1,
         "char:late-night": 0.8,
-        "char:baltimore": 0.8
+        "char:baltimore": 0.8,
+        "char:maryland": 0.8
       }
     },
     {
@@ -19615,7 +19959,8 @@
         "char:beautiful": 0.7,
         "era:60s": 1,
         "origin:us": 1,
-        "char:los-angeles": 0.8
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
       }
     },
     {
@@ -19645,7 +19990,8 @@
         "char:tropical": 0.6,
         "char:nostalgic": 0.5,
         "era:10s": 1,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:georgia": 0.8
       }
     },
     {
@@ -19770,7 +20116,8 @@
         "texture:cold": 0.6,
         "era:70s": 1,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -19801,7 +20148,8 @@
         "era:modern": 1,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:brooklyn": 0.8
+        "char:brooklyn": 0.8,
+        "char:new-york-state": 0.8
       }
     },
     {
@@ -19831,7 +20179,8 @@
         "energy:low": 0.9,
         "era:50s": 1,
         "origin:us": 1,
-        "char:new-york": 0.8
+        "char:new-york": 0.8,
+        "char:new-york-state": 0.8
       }
     }
   ]
