@@ -2029,6 +2029,20 @@ app.post('/api/chat', async (req, res) => {
 });
 
 // =====================
+// LIBRARY LIST — artist and title of every song, as CSV
+// Read by the "Library" tab of Efrain's intake Google Sheet (IMPORTDATA), which uses it
+// to flag a song that is already in the collection before it gets added twice.
+// =====================
+app.get('/library.csv', (req, res) => {
+  const cell = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+  const rows = songsData.songs
+    .slice()
+    .sort((a, b) => a.artist.localeCompare(b.artist) || a.title.localeCompare(b.title))
+    .map(s => `${cell(s.artist)},${cell(s.title)}`);
+  res.type('text/csv').send(['Artist,Song title', ...rows].join('\n'));
+});
+
+// =====================
 // GROOVE GLOW KEYSTONES — public config for frontend
 // Returns title/artist/cluster/label/audio so the frontend can track cluster membership
 // =====================

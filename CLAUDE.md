@@ -47,6 +47,7 @@ A single Express app that loads all song and episode data into memory at startup
 | `POST /api/log` | Logs Groove unlocks to stdout (no email) |
 | `GET /api/show` | The current episode with song details filled in, plus `notes` |
 | `POST /api/feedback` | Listener note → email via Resend. 3 per 10 min per IP |
+| `GET /library.csv` | Artist and title of every song. Read by the Library tab of Efrain's intake Google Sheet to flag songs already in the collection |
 | `GET /show`, `GET /episode` | Serve the same page as `/`; the frontend opens in Show mode |
 
 **Request pipeline for `/api/chat`:**
