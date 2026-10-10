@@ -67,10 +67,13 @@ A single Express app that loads all song and episode data into memory at startup
 - `cluster` and optional `cluster_secondary`: which Groove it belongs to
 - `commentary`: Efrain's note, shown with the song in Explore (may be empty)
 - `tag_title`, `tag_url`, `audio_story`: optional extras
+- `for_fans_of`: optional list of artist names Efrain would play this song for. When a visitor asks for one of those artists and the collection has nothing by them, `/api/chat` plays this song with an "I don't have any X in here, but I'd play you this" preface instead of guessing from traits
 
 ### Trait system
 
-The trait vocabulary is the central abstraction: natural language → `TRAIT_ALIASES` → trait IDs → scored against `song.traits`. Categories: `energy:`, `mood:`, `texture:`, `genre:`, `era:`, `char:`, `origin:`.
+The trait vocabulary is the central abstraction: natural language → `TRAIT_ALIASES` → trait IDs → scored against `song.traits`. Categories: `energy:`, `mood:`, `texture:`, `genre:`, `era:`, `char:`, `origin:`, `theme:`.
+
+- `theme:` is what a song is about (`theme:war`, `theme:rejection`). `char:` also holds occasions (`char:rainy-day`, `char:dinner-party`) and specific sounds (`char:theremin`). These come from Efrain's own notes in the intake sheet's "Buried songs" tab, and many sit on one or two songs on purpose: they give a song with no standout tag a request it can win. A theme counts triple in `scoreSongs`, because Haiku tends to pad a themed request with mood guesses.
 
 - `GENRE_WORDS` and `ARTIST_STOPWORDS` are guard sets: words that must never match song titles or artist names in raw text search.
 - **Adding a new trait takes three edits**, or Explore can never reach it: tag the songs, add aliases to `TRAIT_ALIASES` (append at the end, since partial matching takes the first alias that fits), and list the trait in the two Haiku keyword prompts in `server.js`. Add a line to the prompt's "SITUATIONAL MAPPINGS" if Haiku should return only that trait.

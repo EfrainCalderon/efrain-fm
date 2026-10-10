@@ -384,7 +384,8 @@
         "char:danceable": 0.6,
         "mood:dreamlike": 0.7,
         "texture:lo-fi": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:strings": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3yOLfMOsF2s8fTEan7SRMq",
@@ -394,7 +395,10 @@
       "commentary": "Discovered this through a blog that mentioned it as an inspiration for James Blake and boy they weren't kidding!",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "James Blake"
+      ]
     },
     {
       "id": "0016",
@@ -855,7 +859,10 @@
         "genre:folk": 0.6,
         "texture:warm": 0.7,
         "char:intimate": 0.7,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:acoustic": 0.8,
+        "char:literate": 0.8,
+        "char:sweet": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0e8toTNh5pK1kvvcZzGKa3",
@@ -909,7 +916,10 @@
         "char:intimate": 0.6,
         "char:bedroom-pop": 0.7,
         "texture:acoustic": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:pop-culture": 0.9,
+        "mood:playful": 0.8,
+        "genre:anti-folk": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6NmNGyQg1X0lfJhwsWjHzw",
@@ -919,7 +929,12 @@
       "commentary": "I got really into this as a teen and then got to celebrate the album's anniversary with my buddy Darren in NYC. It was fun.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "The Moldy Peaches",
+        "Kimya Dawson",
+        "Beck"
+      ]
     },
     {
       "id": "0036",
@@ -1406,7 +1421,10 @@
         "texture:lush": 0.7,
         "mood:dreamlike": 0.7,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:harpsichord": 0.9,
+        "theme:accident": 1,
+        "char:cinematic": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2mweWXUplavtY2YCANfmwO",
@@ -1742,12 +1760,13 @@
       "cluster_secondary": "C2",
       "traits": {
         "genre:art-rock": 0.8,
-        "mood:melancholic": 0.8,
+        "mood:melancholic": 0.9,
         "mood:dreamlike": 0.8,
         "char:beautiful": 0.8,
-        "texture:lush": 0.6,
         "energy:low": 0.7,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "texture:sparse": 0.9,
+        "theme:grief": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2ckhAiLT5eV5blWvyDs8Lh",
@@ -1853,7 +1872,10 @@
         "energy:medium": 0.7,
         "era:00s": 0.8,
         "genre:art-rock": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:showbiz": 1,
+        "char:satirical": 0.8,
+        "char:literate": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2qQCU22yQXKjhytKUBxa59",
@@ -2165,7 +2187,12 @@
         "texture:lo-fi": 0.8,
         "genre:folk": 0.5,
         "char:intimate": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:halloween": 0.8,
+        "theme:monsters": 0.9,
+        "theme:family": 0.9,
+        "genre:freak-folk": 0.8,
+        "origin:france": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1RgFmvtcKaMHHRtx1qrtM5",
@@ -2217,7 +2244,11 @@
         "mood:dreamlike": 0.7,
         "texture:lo-fi": 0.8,
         "energy:low": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:freak-folk": 0.9,
+        "char:children": 0.7,
+        "char:eccentric": 0.7,
+        "origin:france": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7Lr8PrBSYumkBFnVdwaAzz",
@@ -2227,7 +2258,12 @@
       "commentary": "There's a number of songs from CocoRosie in here and I like them",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Björk",
+        "Devendra Banhart",
+        "Six Organs of Admittance"
+      ]
     },
     {
       "id": "0086",
@@ -2237,13 +2273,17 @@
       "cluster": "C1",
       "cluster_secondary": "C4",
       "traits": {
-        "char:outsider": 0.8,
+        "char:outsider": 0.9,
         "char:weird": 0.8,
         "mood:dreamlike": 0.7,
         "texture:lo-fi": 0.7,
         "energy:low": 0.7,
         "mood:dark": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:freak-folk": 0.8,
+        "char:children": 0.7,
+        "char:toy-instruments": 0.9,
+        "origin:france": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0AOgipLX8UPhxARXweeaIh",
@@ -2253,7 +2293,12 @@
       "commentary": "CocoRosie is an acquired taste you'll either love or hate.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Björk",
+        "Devendra Banhart",
+        "Six Organs of Admittance"
+      ]
     },
     {
       "id": "0087",
@@ -2555,7 +2600,9 @@
         "texture:lush": 0.7,
         "energy:low": 0.8,
         "char:beautiful": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:danceable": 0.7,
+        "char:cool": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0flFvReunlJwlL9KH2F12y",
@@ -2565,7 +2612,10 @@
       "commentary": "",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Yeah Yeah Yeahs"
+      ]
     },
     {
       "id": "0099",
@@ -2815,7 +2865,11 @@
         "mood:playful": 0.6,
         "mood:dark": 0.6,
         "genre:folk": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:halloween": 1,
+        "theme:monsters": 0.9,
+        "char:children": 0.8,
+        "char:nostalgic": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/14Vua5sMxKiPDcRS5pmoYW",
@@ -2825,7 +2879,10 @@
       "commentary": "You know Ryan Gosling? Not only is he a handsome actor, but he's also a pretty good musician. I bust this one out during Halloween, this is him singing.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Ryan Gosling"
+      ]
     },
     {
       "id": "0109",
@@ -3023,7 +3080,10 @@
         "texture:lo-fi": 0.8,
         "mood:dark": 0.6,
         "energy:low": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:freak-folk": 0.8,
+        "char:acoustic": 0.9,
+        "char:existential": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4iktL6RrXqfzDxMqwCRA0n",
@@ -3033,7 +3093,10 @@
       "commentary": "A simple and beautiful tune by a key part of that freak folk revival I was so into in the early 2000s.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "T. Rex"
+      ]
     },
     {
       "id": "0117",
@@ -3179,7 +3242,11 @@
         "char:beautiful": 0.7,
         "era:10s": 0.8,
         "char:intimate": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:vocal-harmony": 0.8,
+        "genre:indie-folk": 0.7,
+        "char:literate": 0.6,
+        "char:philly": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6Tkzu8rYqGxpBjfD6zbHsG",
@@ -3189,7 +3256,10 @@
       "commentary": "I met Dr. Dog's manager - he was the sound guy at Maxwell's and helped my loop pedal sound good. Goes to show - don't be rude to sound guys. He later got them booked to tour with Wilco and let me handle merch at The Bowery Ballroom for a free ticket and I think I got some merch out of it. Nice guy, can't recall his name.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "The Beatles"
+      ]
     },
     {
       "id": "0123",
@@ -3205,7 +3275,11 @@
         "energy:medium": 0.7,
         "era:00s": 0.8,
         "char:beautiful": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:dreams": 0.9,
+        "char:vocal-harmony": 0.8,
+        "char:closer": 0.9,
+        "char:philly": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0Tsu53w3VpIOJp0gMpe5p7",
@@ -3387,7 +3461,8 @@
         "genre:experimental": 0.7,
         "mood:playful": 0.6,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:samples": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3FnzzFJxIrcIxQ3JJNFalO",
@@ -4416,7 +4491,9 @@
         "char:outsider": 0.5,
         "era:70s": 0.9,
         "energy:low": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:friendship": 0.9,
+        "char:drinking": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1xcJNBxc4MYFEN6UoE2HUY",
@@ -4426,7 +4503,10 @@
       "commentary": "What a keyboard sound on this, shimmering. Feels like vacation.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "John Lennon"
+      ]
     },
     {
       "id": "0170",
@@ -4621,10 +4701,13 @@
         "genre:electronic": 0.7,
         "char:danceable": 0.8,
         "energy:high": 0.8,
-        "mood:joyful": 0.8,
+        "mood:joyful": 0.3,
         "era:modern": 1,
         "texture:lush": 0.7,
-        "origin:korea": 1
+        "origin:korea": 1,
+        "genre:k-pop": 1,
+        "mood:melancholic": 0.7,
+        "char:intimate": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6ezYHltHYhuJckdCsYsRJI",
@@ -4912,7 +4995,10 @@
         "mood:joyful": 0.7,
         "era:modern": 1,
         "texture:lush": 0.6,
-        "origin:korea": 1
+        "origin:korea": 1,
+        "genre:k-pop": 1,
+        "theme:empowerment": 1,
+        "theme:rejection": 0.5
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5ZuF7Gfj4f1IBta90LWrxI",
@@ -4965,7 +5051,8 @@
         "mood:defiant": 0.7,
         "char:political": 0.6,
         "era:70s": 0.9,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "theme:history": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4IJovoHQkKgwmH9SzAKcB8",
@@ -5879,7 +5966,9 @@
         "energy:chaotic": 0.7,
         "texture:noisy": 0.8,
         "char:weird": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:guitar-tapping": 1,
+        "genre:math-rock": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0urk0BVP4HElnf8faNUQV5",
@@ -5889,7 +5978,11 @@
       "commentary": "A total shame more people don't know about Marnie Stern, this album was one of my favorites that year.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Van Halen",
+        "Hella"
+      ]
     },
     {
       "id": "0226",
@@ -6116,7 +6209,9 @@
         "energy:medium": 0.8,
         "era:10s": 0.9,
         "texture:lush": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:youth": 1,
+        "char:anthemic": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2y4lAQpi5VTNLu2ldeTdUH",
@@ -6798,11 +6893,13 @@
       "traits": {
         "char:nostalgic": 0.7,
         "mood:joyful": 0.8,
-        "char:weird": 0.6,
+        "char:weird": 0.8,
         "texture:lush": 0.7,
         "energy:medium": 0.7,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:vocal-harmony": 0.8,
+        "char:multi-part": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7cRnsaZAdPQNM4Oxq0kidC",
@@ -6812,7 +6909,10 @@
       "commentary": "One of the first songs by Of Montreal I discovered. They used to be on Hoboken's own Barnone Records - so the record store had sort of passed down a love of Of Montreal for like 4-5 years before I joined. I think you can even spot one of their posters in that movie High Fidelity.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Stereolab"
+      ]
     },
     {
       "id": "0261",
@@ -6828,7 +6928,11 @@
         "texture:lush": 0.7,
         "energy:medium": 0.7,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:travel": 1,
+        "genre:synth-pop": 0.7,
+        "genre:indie-rock": 0.7,
+        "char:vocal-harmony": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7bx2SaRNKp1WOB1jeZuOVl",
@@ -6958,7 +7062,9 @@
         "texture:lush": 0.7,
         "era:70s": 0.9,
         "char:intimate": 0.7,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "theme:rejection": 1,
+        "char:late-night": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4OKPaXNdYs8qwNAKBbTO9x",
@@ -6968,7 +7074,10 @@
       "commentary": "The harmonies on this are crazy good.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "The Beatles"
+      ]
     },
     {
       "id": "0267",
@@ -6984,7 +7093,10 @@
         "char:beautiful": 0.7,
         "era:70s": 0.9,
         "mood:playful": 0.5,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:multi-part": 1,
+        "texture:psychedelic": 0.6,
+        "char:sweet": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5SwgE4wA0P7f6AEz2UQMB2",
@@ -6994,7 +7106,10 @@
       "commentary": "The transition about two and a half minutes into this song - that hands across the water bridge into the admiral halsey bit is so beautiful.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "The Beatles"
+      ]
     },
     {
       "id": "0268",
@@ -7223,7 +7338,10 @@
         "era:modern": 0.7,
         "char:vocal-forward": 0.8,
         "char:collaboration": 0.6,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:synth-pop": 0.8,
+        "genre:electronic": 0.6,
+        "char:8-bit": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/093fSSkc15YLYUth74pgQg",
@@ -7233,7 +7351,10 @@
       "commentary": "I don't know how I discovered this exactly but it gave me Metric vibes in a good way.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Metric"
+      ]
     },
     {
       "id": "0278",
@@ -7889,7 +8010,8 @@
         "energy:medium": 0.7,
         "mood:defiant": 0.6,
         "era:70s": 1,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:empowerment": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2VHALpy5ewC9SAZS6n1hqm",
@@ -8233,7 +8355,8 @@
         "char:weird": 0.6,
         "era:00s": 0.8,
         "mood:defiant": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:weed": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6l4IO1WGooHsWXYJylgitW",
@@ -8243,7 +8366,10 @@
       "commentary": "Saw them at Maxwell's - one of only maybe 10 people who went. They had a full lightshow setup big enough for like Terminal 5. It was awkward. This is the nephew of Wayne Coyne of The Flaming Lips.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "The Flaming Lips"
+      ]
     },
     {
       "id": "0316",
@@ -8261,7 +8387,10 @@
         "genre:garage": 0.5,
         "char:novelty": 0.8,
         "char:stoner": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:weed": 1,
+        "char:existential": 0.8,
+        "theme:friendship": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4DzeytZE3RvyGPcUSktoki",
@@ -8271,7 +8400,10 @@
       "commentary": "Not the most subtle title but, not a bad song.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "The Flaming Lips"
+      ]
     },
     {
       "id": "0317",
@@ -9212,7 +9344,10 @@
         "energy:low": 0.7,
         "texture:lush": 0.6,
         "era:00s": 0.8,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:rainy-day": 0.9,
+        "genre:dub": 0.6,
+        "mood:dark": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/78EamTh9gPC8yKq74qCMth",
@@ -9222,7 +9357,12 @@
       "commentary": "A super group with Damon Albarn - sick.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Gorillaz",
+        "Blur",
+        "Damon Albarn"
+      ]
     },
     {
       "id": "0353",
@@ -9739,7 +9879,9 @@
         "mood:dreamlike": 0.7,
         "genre:folk": 0.4,
         "energy:low": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:singing-saw": 1,
+        "mood:tender": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6t54KjgOq1ExHaJAtwxzPP",
@@ -9749,7 +9891,10 @@
       "commentary": "My favorite Music Tapes song - it reminds me of snowy weather",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Neutral Milk Hotel"
+      ]
     },
     {
       "id": "0373",
@@ -10477,7 +10622,8 @@
         "mood:defiant": 0.7,
         "texture:noisy": 0.7,
         "era:00s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:monsters": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6Zgd7SomLTZkL1WPh4CUnV",
@@ -10895,7 +11041,12 @@
         "texture:lo-fi": 0.8,
         "mood:dreamlike": 0.6,
         "era:90s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:instrumental": 1,
+        "char:creepy": 0.9,
+        "char:interlude": 0.8,
+        "theme:dreams": 0.6,
+        "char:ritual": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3IdA4BIIUdXBrkXjgARm6L",
@@ -11075,12 +11226,14 @@
       "cluster_secondary": "C6",
       "traits": {
         "char:nostalgic": 0.8,
-        "char:beautiful": 0.8,
-        "mood:melancholic": 0.7,
+        "char:beautiful": 0.9,
+        "mood:melancholic": 0.9,
         "texture:warm": 0.7,
         "char:intimate": 0.7,
         "era:00s": 0.9,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:grief": 0.7,
+        "char:tearjerker": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7qTr6NXpNeVriU1jCbXqCg",
@@ -11314,7 +11467,9 @@
         "energy:low": 0.8,
         "texture:lush": 0.6,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:duet": 0.9,
+        "char:nj": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6bBobm1wePzB1WG7FD68zd",
@@ -11396,7 +11551,10 @@
         "energy:medium": 0.7,
         "era:00s": 0.8,
         "mood:playful": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "genre:math-rock": 0.7,
+        "char:eccentric": 0.9,
+        "char:angular": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0Uk9wK9ykfIwlEMfWUj31q",
@@ -11406,7 +11564,11 @@
       "commentary": "",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Syd Barrett",
+        "Frank Zappa"
+      ]
     },
     {
       "id": "0436",
@@ -11510,7 +11672,9 @@
         "era:10s": 0.7,
         "char:covers": 0.8,
         "char:feminine": 0.7,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "char:dinner-party": 0.9,
+        "char:cool": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6rouj6pwJgrh6whnljzXPd",
@@ -11520,7 +11684,10 @@
       "commentary": "",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Bee Gees"
+      ]
     },
     {
       "id": "0440",
@@ -11564,7 +11731,10 @@
         "mood:dreamlike": 0.6,
         "texture:warm": 0.7,
         "era:00s": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:literate": 1,
+        "char:acoustic": 0.9,
+        "char:narrative": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/58ZnKjXrukDgiYaLfYWUE0",
@@ -11773,7 +11943,8 @@
         "char:nostalgic": 0.6,
         "era:80s": 1,
         "mood:defiant": 0.6,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "genre:new-wave": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0ugShJGilOJ4zOjBOlVD7Q",
@@ -11783,7 +11954,10 @@
       "commentary": "",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Marilyn Manson"
+      ]
     },
     {
       "id": "0450",
@@ -11825,7 +11999,8 @@
         "char:nostalgic": 0.7,
         "era:80s": 1,
         "mood:playful": 0.5,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "genre:new-wave": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2tYnmGr2CTrCugCNK73uoW",
@@ -11835,7 +12010,10 @@
       "commentary": "",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Devo"
+      ]
     },
     {
       "id": "0452",
@@ -11907,7 +12085,8 @@
         "mood:playful": 0.6,
         "genre:power-pop": 0.8,
         "char:breakup": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:high-school": 1
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0SLOiJClXkAZluClYpke95",
@@ -11935,7 +12114,9 @@
         "char:beautiful": 0.5,
         "char:emo": 0.8,
         "char:breakup": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:high-school": 0.9,
+        "char:guilty-pleasure": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5mSVJjVzZEoVrg6amF8udl",
@@ -12441,7 +12622,10 @@
         "mood:joyful": 0.7,
         "era:modern": 1,
         "texture:lush": 0.6,
-        "origin:korea": 1
+        "origin:korea": 1,
+        "genre:k-pop": 1,
+        "char:late-night": 0.7,
+        "char:obscure": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/158v6lUZhHjsogdUtaPpxE",
@@ -12451,7 +12635,10 @@
       "commentary": "",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Burial"
+      ]
     },
     {
       "id": "0475",
@@ -12493,7 +12680,9 @@
         "mood:defiant": 0.7,
         "texture:lo-fi": 0.8,
         "era:modern": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:campy": 0.9,
+        "char:swagger": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3vYnWpiK6GTibzEUfUgMwP",
@@ -12705,7 +12894,9 @@
         "mood:defiant": 0.7,
         "texture:lo-fi": 0.7,
         "era:modern": 0.8,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:violence": 1,
+        "char:campy": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4E2SrUpRFBtDWMKlWvceta",
@@ -12715,7 +12906,10 @@
       "commentary": "Nasty and violent to the point of camp. Am I extracting like life lessons from this one or thinking deeply? Not really, yo.",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "JPEGMAFIA"
+      ]
     },
     {
       "id": "0485",
@@ -12777,13 +12971,15 @@
       "cluster": "C10",
       "cluster_secondary": "",
       "traits": {
-        "genre:electronic": 0.7,
+        "genre:electronic": 0.4,
         "char:danceable": 0.8,
         "energy:high": 0.8,
         "mood:joyful": 0.8,
         "era:modern": 1,
         "texture:lush": 0.6,
-        "origin:korea": 1
+        "origin:korea": 1,
+        "genre:k-pop": 1,
+        "theme:falling-in-love": 1
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4y3D5KgbqiXczHzq8MWPum",
@@ -12793,7 +12989,10 @@
       "commentary": "",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Bruno Mars"
+      ]
     },
     {
       "id": "0488",
@@ -12835,7 +13034,9 @@
         "texture:lo-fi": 0.8,
         "mood:joyful": 0.8,
         "era:00s": 0.8,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "theme:sports": 1,
+        "char:samples": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5pRs3UKzcsl6c4aoihvtJ3",
@@ -12861,7 +13062,9 @@
         "texture:lo-fi": 0.7,
         "mood:joyful": 0.7,
         "era:00s": 0.8,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:samples": 0.9,
+        "genre:soul": 0.5
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6pVTFOItC56aBNhMVjoGje",
@@ -12871,7 +13074,12 @@
       "commentary": "",
       "tag_title": "",
       "tag_url": "",
-      "audio_story": ""
+      "audio_story": "",
+      "for_fans_of": [
+        "Santigold",
+        "Chromeo",
+        "Beck"
+      ]
     },
     {
       "id": "0491",
@@ -13680,8 +13888,13 @@
         "energy:high": 0.8,
         "mood:defiant": 0.7,
         "texture:noisy": 0.8,
-        "origin:us": 1
-      }
+        "origin:us": 1,
+        "theme:despair": 1
+      },
+      "for_fans_of": [
+        "Crystal Castles",
+        "Grimes"
+      ]
     },
     {
       "id": "0524",
@@ -14466,8 +14679,15 @@
         "mood:defiant": 0.7,
         "texture:noisy": 0.6,
         "energy:chaotic": 0.5,
-        "origin:us": 1
-      }
+        "origin:us": 1,
+        "theme:anti-love": 1,
+        "texture:cold": 0.8,
+        "char:girl-band": 0.9
+      },
+      "for_fans_of": [
+        "Le Tigre",
+        "Sleater-Kinney"
+      ]
     },
     {
       "id": "0555",
@@ -15227,8 +15447,13 @@
         "energy:medium": 0.6,
         "char:communal": 0.7,
         "char:acoustic-guitar": 0.8,
-        "origin:us": 1
-      }
+        "origin:us": 1,
+        "energy:hypnotic": 0.7
+      },
+      "for_fans_of": [
+        "Edward Sharpe and the Magnetic Zeros",
+        "Edward Sharpe"
+      ]
     },
     {
       "id": "0584",
@@ -15361,8 +15586,13 @@
         "char:beautiful": 0.6,
         "char:ambient-pop": 0.8,
         "char:obscure": 0.7,
-        "origin:us": 1
-      }
+        "origin:us": 1,
+        "char:rainy-day": 0.9,
+        "char:jazzy": 0.7
+      },
+      "for_fans_of": [
+        "Yo La Tengo"
+      ]
     },
     {
       "id": "0589",
@@ -15647,7 +15877,11 @@
         "energy:medium": 0.6,
         "char:beautiful": 0.6,
         "era:60s": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:theremin": 0.9,
+        "theme:ufo": 0.9,
+        "char:mysterious": 0.8,
+        "char:short": 0.8
       }
     },
     {
@@ -15929,12 +16163,21 @@
       "traits": {
         "mood:melancholic": 0.8,
         "char:intimate": 0.8,
-        "texture:sparse": 0.7,
+        "texture:sparse": 0.9,
         "energy:low": 0.8,
         "char:late-night": 0.7,
-        "genre:folk": 0.5,
-        "origin:us": 1
-      }
+        "origin:us": 1,
+        "char:beautiful": 1,
+        "texture:piano": 1,
+        "char:instrumental": 0.9,
+        "genre:modern-classical": 0.8,
+        "char:dinner-party": 0.9,
+        "char:short": 0.7,
+        "mood:tender": 0.8
+      },
+      "for_fans_of": [
+        "Erik Satie"
+      ]
     },
     {
       "id": "0612",
@@ -16931,7 +17174,10 @@
         "char:intimate": 0.7,
         "texture:warm": 0.7,
         "energy:low": 0.7,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "theme:war": 1,
+        "char:cinematic": 0.8,
+        "char:haunting": 0.8
       }
     },
     {
@@ -17034,11 +17280,13 @@
       "traits": {
         "genre:art-rock": 0.8,
         "char:danceable": 0.8,
-        "mood:playful": 0.7,
+        "mood:playful": 0.9,
         "energy:high": 0.7,
         "texture:lush": 0.6,
         "char:weird": 0.5,
-        "origin:us": 1
+        "origin:us": 1,
+        "char:multi-part": 0.8,
+        "char:eccentric": 0.7
       }
     },
     {

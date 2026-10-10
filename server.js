@@ -370,6 +370,53 @@ const TRAIT_ALIASES = {
   'kids': 'char:children', 'kids music': 'char:children', 'children': 'char:children',
   "children's": 'char:children', "children's music": 'char:children', 'childlike': 'char:children',
   'nursery': 'char:children',
+
+  // Themes, occasions and sounds from Efrain's own notes on each song (intake sheet,
+  // "Buried songs" tab). Long, distinctive words only: partial matching is substring-based.
+  'traveling': 'theme:travel', 'travelling': 'theme:travel', 'road trip': 'theme:travel', 'touring': 'theme:travel',
+  'wartime': 'theme:war', 'soldier': 'theme:war', 'about war': 'theme:war',
+  'rejection': 'theme:rejection', 'rejected': 'theme:rejection', 'dumped': 'theme:rejection',
+  'empowering': 'theme:empowerment', 'empowerment': 'theme:empowerment', 'underdog': 'theme:empowerment',
+  'falling in love': 'theme:falling-in-love', 'new love': 'theme:falling-in-love',
+  'friendship': 'theme:friendship', 'buddies': 'theme:friendship',
+  'high school': 'theme:high-school', 'teenage': 'theme:high-school',
+  'your twenties': 'theme:youth', 'coming of age': 'theme:youth', 'being young': 'theme:youth',
+  'grief': 'theme:grief', 'mourning': 'theme:grief',
+  'hopeless': 'theme:despair', 'despair': 'theme:despair', 'depressed': 'theme:despair',
+  'halloween': 'theme:halloween', 'spooky': 'theme:halloween',
+  'werewolf': 'theme:monsters', 'zombie': 'theme:monsters', 'monster': 'theme:monsters', 'vampire': 'theme:monsters',
+  'murder': 'theme:violence', 'violent': 'theme:violence',
+  'weed': 'theme:weed', 'stoner': 'theme:weed', 'marijuana': 'theme:weed', 'smoking pot': 'theme:weed',
+  'hollywood': 'theme:showbiz', 'showbiz': 'theme:showbiz', 'fame': 'theme:showbiz',
+  'sports': 'theme:sports', 'game day': 'theme:sports',
+  'aliens': 'theme:ufo', 'flying saucer': 'theme:ufo',
+  'rainy day': 'char:rainy-day', 'rainy': 'char:rainy-day', 'gray day': 'char:rainy-day', 'grey day': 'char:rainy-day',
+  'dinner party': 'char:dinner-party', 'classy': 'char:dinner-party', 'elegant': 'char:dinner-party',
+  'drinking': 'char:drinking',
+  'theremin': 'char:theremin', 'harpsichord': 'char:harpsichord', 'singing saw': 'char:singing-saw',
+  'guitar tapping': 'char:guitar-tapping', 'shredding': 'char:guitar-tapping',
+  'violin': 'char:strings', 'cello': 'char:strings', 'strings': 'char:strings',
+  '8-bit': 'char:8-bit', '8bit': 'char:8-bit', 'chiptune': 'char:8-bit', 'video game': 'char:8-bit',
+  'toy instruments': 'char:toy-instruments',
+  'campy': 'char:campy', 'over the top': 'char:campy',
+  'creepy': 'char:creepy', 'eerie': 'char:creepy',
+  'haunting': 'char:haunting', 'haunted': 'char:haunting',
+  'mysterious': 'char:mysterious',
+  'swagger': 'char:swagger', 'badass': 'char:swagger',
+  'tearjerker': 'char:tearjerker', 'makes me cry': 'char:tearjerker', 'make me cry': 'char:tearjerker',
+  'guilty pleasure': 'char:guilty-pleasure',
+  'girl band': 'char:girl-band', 'all-female': 'char:girl-band', 'girl group': 'char:girl-band',
+  'jazzy': 'char:jazzy',
+  'satirical': 'char:satirical', 'satire': 'char:satirical',
+  'anthem': 'char:anthemic', 'anthemic': 'char:anthemic',
+  'samples': 'char:samples', 'sampled': 'char:samples',
+  'cover song': 'char:covers', 'cover version': 'char:covers',
+  'philadelphia': 'char:philly', 'philly': 'char:philly',
+  'hoboken': 'char:nj', 'new jersey': 'char:nj',
+  'freak folk': 'genre:freak-folk', 'freak-folk': 'genre:freak-folk',
+  'math rock': 'genre:math-rock', 'math-rock': 'genre:math-rock',
+  'power pop': 'genre:power-pop', 'power-pop': 'genre:power-pop',
+  'modern classical': 'genre:modern-classical', 'minimalist': 'genre:modern-classical',
 };
 
 // =====================
@@ -450,7 +497,10 @@ function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = n
       if (traits[traitId] !== undefined) {
         // Score = song's trait weight × query weight
         // A song with energy:high 1.0 scores higher than energy:high 0.5
-        score += traits[traitId] * queryWeight;
+        // A theme (what the song is about) counts triple: only a few songs carry each
+        // one, and Haiku often pads a themed request with mood guesses that would
+        // otherwise let an unrelated song outscore the one that is actually about it.
+        score += traits[traitId] * queryWeight * (traitId.startsWith('theme:') ? 3 : 1);
       }
     }
 
@@ -650,15 +700,19 @@ Return a JSON object: { "keywords": [...], "interpretation": "...", "artist": ".
 
 "keywords": 3–8 trait vocabulary terms or artist/song names (see vocabulary below).
 "interpretation": include ONLY when the query uses abstract, situational, or concrete non-music words that required meaningful translation — things like "children singing", "library", "forest fire", "driving at 3am", "apocalypse", "a guitar solo that's too long". The value is two or three plain adjectives describing how the music sounds, joined with "and" (e.g. "playful and joyful", "dark and cinematic", "warm and nostalgic", "dramatic and guitar-heavy"). It must read naturally after both "here's something ___" and "it's ___", so: adjectives only, all lowercase, no nouns, no "with…" or "for…" phrases, no full stop, and never repeat the listener's own words. Set to null or omit for any straightforward genre, mood, artist, or era request ("sad songs", "some jazz", "80s pop", "something dark").
-"artist": include ONLY when the request is asking for music by, or about, one specific real artist or band — "eminem", "play some radiohead", "Any songs by Air that you like", "Do you like Prince?". The value is the artist's usual name, correctly spelled and capitalised ("Eminem", "Radiohead", "Air", "Prince"). A capitalised word in the middle of a sentence is a strong sign that it is a name; a lowercase common word used in its ordinary sense is not one: "something with an air of romance", "a song that makes me feel like a prince" and "a song for a princess" name no artist. When unsure, set it to null. When you do name an artist, the keywords must include that artist's main genre trait.
+"artist": include ONLY when the request is asking for music by, or about, one specific real artist or band — "eminem", "play some radiohead", "Any songs by Air that you like", "Do you like Prince?", "anything for Devo fans", "I love Gorillaz, what would I like?". The value is the artist's usual name, correctly spelled and capitalised ("Eminem", "Radiohead", "Air", "Prince"). A capitalised word in the middle of a sentence is a strong sign that it is a name; a lowercase common word used in its ordinary sense is not one: "something with an air of romance", "a song that makes me feel like a prince" and "a song for a princess" name no artist. When unsure, set it to null. When you do name an artist, the keywords must include that artist's main genre trait.
 
 MAP TO THESE TRAIT VOCABULARY TERMS WHERE POSSIBLE:
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
 Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning", "mood:defeated", "mood:cathartic", "mood:hypnotic", "mood:romantic", "mood:celebratory", "mood:resigned"
 Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet", "texture:piano"
-Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk", "genre:k-pop", "genre:classical", "genre:opera"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk", "genre:k-pop", "genre:classical", "genre:opera", "genre:freak-folk", "genre:math-rock", "genre:power-pop", "genre:modern-classical", "genre:dub"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
-Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson", "char:hawaiian", "char:children"
+Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson", "char:hawaiian", "char:children", "char:instrumental", "char:satirical", "char:emo", "char:anthemic", "char:campy", "char:creepy", "char:haunting", "char:mysterious", "char:swagger", "char:tearjerker", "char:guilty-pleasure", "char:girl-band", "char:jazzy", "char:multi-part", "char:short", "char:samples", "char:covers", "char:ritual"
+Theme (what the song is about — use when the request is about a subject): "theme:travel", "theme:war", "theme:rejection", "theme:anti-love", "theme:falling-in-love", "theme:empowerment", "theme:friendship", "theme:family", "theme:youth", "theme:high-school", "theme:grief", "theme:despair", "theme:dreams", "theme:halloween", "theme:monsters", "theme:violence", "theme:weed", "theme:showbiz", "theme:pop-culture", "theme:sports", "theme:history", "theme:ufo", "theme:accident"
+Occasion (when you'd play it): "char:rainy-day", "char:dinner-party", "char:drinking", "char:closer", "char:interlude", "char:late-night"
+Sound (a specific instrument or technique): "char:theremin", "char:harpsichord", "char:singing-saw", "char:guitar-tapping", "char:strings", "char:8-bit", "char:toy-instruments", "texture:piano"
+Place (a city or scene): "char:philly", "char:nj"
 Origin (use when user specifies a country or region): "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland", "origin:spain", "origin:colombia", "origin:jamaica"
 
 SITUATIONAL MAPPINGS:
@@ -685,9 +739,19 @@ SITUATIONAL MAPPINGS:
 - "bittersweet" → ["mood:bittersweet", "char:bittersweet"]
 - "k-pop", "kpop", "korean pop" → ["genre:k-pop", "origin:korea"]
 - "kids", "kids singing", "children", "children's music", "nursery" → ["char:children"] (and nothing else)
+- "a song about X", "songs about X" where X is one of the Theme terms → that theme trait (and nothing else). "songs about war" → ["theme:war"]; "something about getting dumped" → ["theme:rejection"]; "I'm done with dating" → ["theme:anti-love"]; "songs about weed", "stoner songs" → ["theme:weed"]; "werewolves", "zombies", "vampires" → ["theme:monsters"]; "halloween", "spooky season" → ["theme:halloween"]
+- A named instrument or technique from the Sound terms → that trait (and nothing else). "something with a theremin" → ["char:theremin"]
+- "rainy day", "gray day", "it's raining" → ["char:rainy-day"]
+- "dinner party", "having people over", "something classy for guests" → ["char:dinner-party"]
+- "make me cry", "a song that makes you cry" → ["char:tearjerker", "mood:melancholic"]
+- "end of the night", "last song", "a closer" → ["char:closer"]
+- "guilty pleasure" → ["char:guilty-pleasure"]
+- "girl band", "all-female band" → ["char:girl-band"]
+- "something to feel badass", "swagger" → ["char:swagger"]
 
 RULES:
 - Prefer trait vocabulary terms over raw words whenever possible
+- When the request matches a Theme, Occasion or Sound term, return that term on its own. Do not pad it with mood, energy or texture guesses: those terms are rare and specific, and extra traits let unrelated songs outscore the one that fits. "I just got rejected" → ["theme:rejection"]; "music for a dinner party" → ["char:dinner-party"]
 - For artist names or song titles, return them as plain strings
 - Return ONLY the JSON object, no preamble or explanation
 - If the input is gibberish, a random string of characters, or clearly not a word in any language, return { "keywords": [] }. Do NOT return empty keywords for real words, genre names, mood words, artist names, or any legitimate request — even if it is very short or vague`
@@ -764,7 +828,7 @@ const EXTRACT_ARTIST_TRAITS_SYSTEM = [{ type: 'text', cache_control: { type: 'ep
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
 Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning"
 Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet", "texture:piano"
-Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:classical", "genre:opera"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:classical", "genre:opera", "genre:freak-folk", "genre:math-rock", "genre:power-pop", "genre:modern-classical", "genre:dub"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
 Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:cool"
 Origin: "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland"
@@ -1699,6 +1763,17 @@ app.post('/api/chat', async (req, res) => {
     if (namedArtist && !missingArtist) {
       const av = available().filter(s => normalize(s.artist) === normalize(namedArtist));
       if (av.length) return res.json(buildSongResponse(av[Math.floor(Math.random() * av.length)], session));
+    }
+
+    // Efrain has named this artist on a song as "I'd play this for fans of …"
+    // (`for_fans_of` in songs.json). That beats anything inferred from traits.
+    if (missingArtist) {
+      const want = normalize(missingArtist);
+      const picks = available().filter(s => (s.for_fans_of || []).some(a => normalize(a) === want));
+      if (picks.length) {
+        const pick = picks[Math.floor(Math.random() * picks.length)];
+        return res.json(buildSongResponse(pick, session, null, null, `I don't have any ${missingArtist} in here, but I'd play you this.`));
+      }
     }
 
     // Nothing strong enough to just play: offer the closest artists as buttons (tapping
