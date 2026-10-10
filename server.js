@@ -416,6 +416,13 @@ const TRAIT_ALIASES = {
   'brooklyn': 'char:brooklyn', 'chicago': 'char:chicago',
   'athens georgia': 'char:athens-ga', 'athens, ga': 'char:athens-ga',
   'elephant 6': 'char:elephant-6', 'elephant six': 'char:elephant-6',
+  'new york': 'char:new-york', 'nyc': 'char:new-york', 'manhattan': 'char:new-york',
+  'los angeles': 'char:los-angeles', 'hollywood hills': 'char:los-angeles',
+  'san francisco': 'char:san-francisco', 'bay area': 'char:san-francisco',
+  'seattle': 'char:seattle', 'portland': 'char:portland', 'detroit': 'char:detroit', 'boston': 'char:boston',
+  'austin': 'char:austin', 'texas': 'char:texas', 'texan': 'char:texas', 'memphis': 'char:memphis', 'nashville': 'char:nashville',
+  'atlanta': 'char:atlanta', 'miami': 'char:miami', 'minneapolis': 'char:minneapolis', 'baltimore': 'char:baltimore',
+  'washington dc': 'char:dc', 'd.c.': 'char:dc',
   'freak folk': 'genre:freak-folk', 'freak-folk': 'genre:freak-folk',
   'math rock': 'genre:math-rock', 'math-rock': 'genre:math-rock',
   'power pop': 'genre:power-pop', 'power-pop': 'genre:power-pop',
@@ -715,7 +722,7 @@ Character: "char:outsider", "char:political", "char:intimate", "char:beautiful",
 Theme (what the song is about — use when the request is about a subject): "theme:travel", "theme:war", "theme:rejection", "theme:anti-love", "theme:falling-in-love", "theme:empowerment", "theme:friendship", "theme:family", "theme:youth", "theme:high-school", "theme:grief", "theme:despair", "theme:dreams", "theme:halloween", "theme:monsters", "theme:violence", "theme:weed", "theme:showbiz", "theme:pop-culture", "theme:sports", "theme:history", "theme:ufo", "theme:accident"
 Occasion (when you'd play it): "char:rainy-day", "char:dinner-party", "char:drinking", "char:closer", "char:interlude", "char:late-night"
 Sound (a specific instrument or technique): "char:theremin", "char:harpsichord", "char:singing-saw", "char:guitar-tapping", "char:strings", "char:8-bit", "char:toy-instruments", "texture:piano"
-Place (a city or scene — use when the request names one): "char:philly", "char:nj", "char:brooklyn", "char:athens-ga", "char:chicago", "char:elephant-6"
+Place (a city or scene — use when the request names one): "char:new-york", "char:brooklyn", "char:nj", "char:philly", "char:baltimore", "char:dc", "char:boston", "char:chicago", "char:detroit", "char:minneapolis", "char:los-angeles", "char:san-francisco", "char:seattle", "char:portland", "char:austin", "char:texas", "char:memphis", "char:nashville", "char:atlanta", "char:athens-ga", "char:miami", "char:elephant-6". Return the place on its own: "a band from Detroit" → ["char:detroit"]; "something from the Bay Area" → ["char:san-francisco"]
 Origin (use when user specifies a country or region): "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland", "origin:spain", "origin:colombia", "origin:jamaica"
 
 SITUATIONAL MAPPINGS:
