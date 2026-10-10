@@ -5968,7 +5968,8 @@
         "char:weird": 0.6,
         "origin:us": 1,
         "char:guitar-tapping": 1,
-        "genre:math-rock": 0.9
+        "genre:math-rock": 0.9,
+        "char:brooklyn": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0urk0BVP4HElnf8faNUQV5",
@@ -9881,7 +9882,9 @@
         "energy:low": 0.7,
         "origin:us": 1,
         "char:singing-saw": 1,
-        "mood:tender": 0.6
+        "mood:tender": 0.6,
+        "char:athens-ga": 0.9,
+        "char:elephant-6": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6t54KjgOq1ExHaJAtwxzPP",
@@ -10623,7 +10626,8 @@
         "texture:noisy": 0.7,
         "era:00s": 0.9,
         "origin:us": 1,
-        "theme:monsters": 0.8
+        "theme:monsters": 0.8,
+        "char:brooklyn": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6Zgd7SomLTZkL1WPh4CUnV",
@@ -11233,7 +11237,8 @@
         "era:00s": 0.9,
         "origin:us": 1,
         "theme:grief": 0.7,
-        "char:tearjerker": 0.9
+        "char:tearjerker": 0.9,
+        "char:chicago": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7qTr6NXpNeVriU1jCbXqCg",

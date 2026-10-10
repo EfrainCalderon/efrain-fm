@@ -413,6 +413,9 @@ const TRAIT_ALIASES = {
   'cover song': 'char:covers', 'cover version': 'char:covers',
   'philadelphia': 'char:philly', 'philly': 'char:philly',
   'hoboken': 'char:nj', 'new jersey': 'char:nj',
+  'brooklyn': 'char:brooklyn', 'chicago': 'char:chicago',
+  'athens georgia': 'char:athens-ga', 'athens, ga': 'char:athens-ga',
+  'elephant 6': 'char:elephant-6', 'elephant six': 'char:elephant-6',
   'freak folk': 'genre:freak-folk', 'freak-folk': 'genre:freak-folk',
   'math rock': 'genre:math-rock', 'math-rock': 'genre:math-rock',
   'power pop': 'genre:power-pop', 'power-pop': 'genre:power-pop',
@@ -712,7 +715,7 @@ Character: "char:outsider", "char:political", "char:intimate", "char:beautiful",
 Theme (what the song is about — use when the request is about a subject): "theme:travel", "theme:war", "theme:rejection", "theme:anti-love", "theme:falling-in-love", "theme:empowerment", "theme:friendship", "theme:family", "theme:youth", "theme:high-school", "theme:grief", "theme:despair", "theme:dreams", "theme:halloween", "theme:monsters", "theme:violence", "theme:weed", "theme:showbiz", "theme:pop-culture", "theme:sports", "theme:history", "theme:ufo", "theme:accident"
 Occasion (when you'd play it): "char:rainy-day", "char:dinner-party", "char:drinking", "char:closer", "char:interlude", "char:late-night"
 Sound (a specific instrument or technique): "char:theremin", "char:harpsichord", "char:singing-saw", "char:guitar-tapping", "char:strings", "char:8-bit", "char:toy-instruments", "texture:piano"
-Place (a city or scene): "char:philly", "char:nj"
+Place (a city or scene — use when the request names one): "char:philly", "char:nj", "char:brooklyn", "char:athens-ga", "char:chicago", "char:elephant-6"
 Origin (use when user specifies a country or region): "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland", "origin:spain", "origin:colombia", "origin:jamaica"
 
 SITUATIONAL MAPPINGS:
