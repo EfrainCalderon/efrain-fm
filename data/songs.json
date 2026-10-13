@@ -4408,7 +4408,8 @@
         "mood:joyful": 0.7,
         "era:10s": 0.9,
         "origin:canada": 1,
-        "char:female-vocals": 0.9
+        "char:female-vocals": 0.9,
+        "char:elon-musk": 0.9
       },
       "streaming": {
         "spotify": "https://youtu.be/vIi57zhDl78?si=FbmM0MsvQUj_6kSE",
@@ -4438,7 +4439,8 @@
         "theme:survival": 0.9,
         "char:high-voice": 0.8,
         "char:female-vocals": 0.9,
-        "genre:synth-pop": 0.6
+        "genre:synth-pop": 0.6,
+        "char:elon-musk": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3LGsgpx4TfxhXbr07OFKqs",
@@ -18084,7 +18086,8 @@
         "char:weird": 0.6,
         "texture:noisy": 0.6,
         "origin:canada": 1,
-        "char:female-vocals": 0.9
+        "char:female-vocals": 0.9,
+        "char:elon-musk": 0.9
       }
     },
     {

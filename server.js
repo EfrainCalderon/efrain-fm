@@ -482,6 +482,7 @@ const TRAIT_ALIASES = {
   'rowdy': 'char:rowdy', 'sweaty': 'char:rowdy', 'trashy': 'char:rowdy', 'raucous': 'char:rowdy',
   'underrated': 'char:deep-cut', 'overlooked': 'char:deep-cut', 'deep cut': 'char:deep-cut', 'hidden gem': 'char:deep-cut',
   'prog': 'genre:prog', 'prog rock': 'genre:prog', 'progressive rock': 'genre:prog',
+  'elon musk': 'char:elon-musk', 'elon': 'char:elon-musk',
   'riot grrrl': 'genre:riot-grrrl', 'riot grrl': 'genre:riot-grrrl', 'riot girl': 'genre:riot-grrrl',
 };
 
@@ -499,7 +500,7 @@ const SPECIFIC_CHAR_TRAITS = new Set([
   'theremin', 'harpsichord', 'singing-saw', 'guitar-tapping', '8-bit', 'toy-instruments', 'melodica', 'guitar-solo',
   'overlapping-vocals', 'growl', 'muppet-voice', 'high-voice', 'spoken-word', 'nonsense', 'catchy', 'novelty',
   'dance-craze', 'siblings', 'soundtrack', 'abbey-road', 'garage-revival', 'queer', 'local-band',
-  'ahead-of-its-time', 'live', 'druggy', 'rowdy', 'deep-cut',
+  'ahead-of-its-time', 'live', 'druggy', 'rowdy', 'deep-cut', 'elon-musk',
 ].map(t => 'char:' + t));
 
 // Haiku sometimes files a real tag under the wrong prefix ("char:summer" for
@@ -840,6 +841,7 @@ SITUATIONAL MAPPINGS:
 - "guilty pleasure" → ["char:guilty-pleasure"]
 - "girl band", "all-female band" → ["char:girl-band"]
 - "something to feel badass", "swagger" → ["char:swagger"]
+- "Elon Musk", "something Elon would like", "Elon's ex" → ["char:elon-musk"] (and nothing else; he is not a musician, so "artist" stays null)
 - "a bike ride", "going cycling" → ["char:bike-ride"]; "autumn", "a fall day", "sweater weather" → ["char:autumn"]; "thanksgiving" → ["char:thanksgiving"] (and nothing else); "something for headphones" → ["char:headphones"]. Each of these on its own, with nothing added
 - "songs from 1968" → ["char:1968"]; "the Strokes era", "early 2000s 'the' bands", "garage rock revival" → ["char:garage-revival"]
 - "a female singer", "women singing" → ["char:female-vocals"]; "falsetto", "a high voice" → ["char:high-voice"]; "gravelly voice", "growling" → ["char:growl"]
