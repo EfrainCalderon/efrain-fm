@@ -20,7 +20,7 @@ npm start          # runs server.js on port 3000 (or $PORT)
 - Everything in `public/` is served as static files by the Express app. Use the `efrain-fm` entry in `.claude/launch.json` to preview.
 - **The server reads `data/songs.json` and `data/episodes/*.json` once at startup.** Restart it after editing data or `server.js`; frontend files only need a page reload.
 - **Hosting:** Vercel. `vercel.json` routes every request, including static files, through `server.js` as a Vercel Function. Functions have a documented 4.5 MB response cap, so keep any single served file (audio especially) under that.
-- **Every turn auto-publishes.** A Stop hook in `.claude/settings.json` commits all changes and pushes to `main` at the end of each Claude turn, and `main` deploys to the live site. Never describe a change as local-only without checking `git status`. Do unfinished or risky work on a branch (the hook then commits there and nothing new reaches `main`), and merge when it is ready.
+- **Every turn auto-publishes.** A Stop hook in `.claude/settings.json` runs `scripts/auto-publish.js`, which commits all changes and pushes to `main` at the end of each Claude turn, and `main` deploys to the live site. It then shows Efrain a one-line notice under the reply: published, saved on a branch only, or push failed. No notice means the turn changed no files. Never describe a change as local-only without checking `git status`. Do unfinished or risky work on a branch (the hook then commits there and nothing new reaches `main`), and merge when it is ready.
 - After a change that matters, confirm it on the live site (`curl https://efrain.fm/...`) instead of assuming the deploy worked.
 
 ### Environment variables
@@ -180,6 +180,7 @@ A keystone song must also be added to `GROOVE_KEYSTONES` in `server.js`, with it
 
 ## Other scripts
 
+- `scripts/auto-publish.js` — the Stop hook: commit, push, and the one-line notice.
 - `scripts/commit-msg.js` — writes the auto-commit message with Haiku.
 - `populate-apple-music.js` — fills in missing Apple Music embed URLs across the library.
 - `update-sheet.js` — pushes data to a Google Sheet (needs the gitignored service account file). `songs.json` is the source of truth; nothing reads from the sheet.
