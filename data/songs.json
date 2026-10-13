@@ -875,7 +875,9 @@
         "era:modern": 0.8,
         "origin:us": 1,
         "char:los-angeles": 0.8,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "char:samples": 0.9,
+        "char:nonsense": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4KOaLPxA3FrJA10mFRCDFo",
@@ -1544,7 +1546,8 @@
         "mood:defiant": 0.7,
         "origin:us": 1,
         "char:san-francisco": 0.8,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7J8A3XOuGFnGheoSsHUXC8",
@@ -3056,7 +3059,10 @@
         "texture:lush": 0.7,
         "era:00s": 0.9,
         "origin:us": 1,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "theme:violence": 0.9,
+        "theme:high-school": 0.5,
+        "theme:crush": 0.4
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2jSJm3Gv6GLxduWLenmjKS",
@@ -3110,7 +3116,9 @@
         "era:00s": 0.8,
         "char:cinematic": 0.5,
         "origin:us": 1,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "char:growl": 0.8,
+        "char:raw": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6kgihDrYlPoh5jDBg3nKl1",
@@ -4097,7 +4105,8 @@
         "char:beautiful": 0.9,
         "texture:warm": 0.8,
         "genre:latin": 0.4,
-        "origin:france": 1
+        "origin:france": 1,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6g5qyQrAcoBX4X7XjxBoTO",
@@ -4398,7 +4407,8 @@
         "energy:high": 0.8,
         "mood:joyful": 0.7,
         "era:10s": 0.9,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "char:female-vocals": 0.9
       },
       "streaming": {
         "spotify": "https://youtu.be/vIi57zhDl78?si=FbmM0MsvQUj_6kSE",
@@ -4424,7 +4434,11 @@
         "mood:dreamlike": 0.8,
         "char:beautiful": 0.8,
         "era:10s": 0.9,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "theme:survival": 0.9,
+        "char:high-voice": 0.8,
+        "char:female-vocals": 0.9,
+        "genre:synth-pop": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3LGsgpx4TfxhXbr07OFKqs",
@@ -4764,7 +4778,10 @@
         "origin:us": 1,
         "char:nj": 0.8,
         "char:long-island": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "char:local-band": 0.9,
+        "char:ahead-of-its-time": 0.5,
+        "genre:psychedelic": 0.5
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/19A1QF48vssMl778b4QlNl",
@@ -5735,7 +5752,11 @@
         "origin:us": 1,
         "char:new-york": 0.8,
         "char:brooklyn": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "theme:getting-older": 0.9,
+        "theme:hipsters": 0.9,
+        "theme:pop-culture": 0.6,
+        "char:spoken-word": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1XlDNpWy8dyEljyRd0RC2J",
@@ -5789,7 +5810,9 @@
         "era:00s": 0.9,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "genre:riot-grrrl": 0.7,
+        "char:female-vocals": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3m8KgKtNqtdMieItf9xA8X",
@@ -5817,7 +5840,10 @@
         "era:00s": 0.9,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "theme:bros": 0.9,
+        "genre:riot-grrrl": 0.7,
+        "char:female-vocals": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/36jHzg3f6e3WZdSfAlpKPP",
@@ -6032,7 +6058,9 @@
         "era:70s": 0.8,
         "genre:cumbia": 0.9,
         "char:colombian": 0.9,
-        "origin:colombia": 1
+        "origin:colombia": 1,
+        "char:dance-craze": 0.9,
+        "char:novelty": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3XoYIk3TJfBrn5JM6NjjjK",
@@ -6204,7 +6232,10 @@
         "era:10s": 0.8,
         "origin:us": 1,
         "char:detroit": 0.8,
-        "char:michigan": 0.8
+        "char:michigan": 0.8,
+        "char:druggy": 0.9,
+        "mood:erotic": 0.7,
+        "genre:dance": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/24dc5yY34SSdIffnSXKzOY",
@@ -6318,7 +6349,10 @@
         "origin:us": 1,
         "char:new-york": 0.8,
         "char:brooklyn": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "char:slow-burn": 0.9,
+        "char:deep-cut": 0.9,
+        "mood:cathartic": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3oxFVT3NByUX7qeQZGivGF",
@@ -6877,7 +6911,11 @@
         "char:beautiful": 0.8,
         "era:modern": 1,
         "texture:warm": 0.7,
-        "origin:korea": 1
+        "origin:korea": 1,
+        "char:thanksgiving": 0.9,
+        "genre:k-pop": 0.9,
+        "char:catchy": 0.7,
+        "char:female-vocals": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3r8RuvgbX9s7ammBn07D3W",
@@ -7094,7 +7132,11 @@
         "origin:us": 1,
         "char:athens-ga": 0.8,
         "char:elephant-6": 0.8,
-        "char:georgia": 0.8
+        "char:georgia": 0.8,
+        "char:queer": 0.8,
+        "char:acoustic": 0.8,
+        "char:sweet": 0.6,
+        "theme:crush": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5w0YVh60jFg0ArevIoMsUH",
@@ -7245,7 +7287,8 @@
         "energy:high": 0.7,
         "mood:joyful": 0.7,
         "era:60s": 0.9,
-        "origin:brazil": 1
+        "origin:brazil": 1,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/1R0e4UjiRmtWIAoWJx334e",
@@ -7418,7 +7461,10 @@
         "era:80s": 0.9,
         "origin:us": 1,
         "char:boston": 0.8,
-        "char:massachusetts": 0.8
+        "char:massachusetts": 0.8,
+        "char:raw": 0.8,
+        "char:beautiful": 0.7,
+        "char:confessional": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0p5eZCY0R7uNCZS1YDtIYI",
@@ -8085,7 +8131,8 @@
         "era:60s": 1,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0wwbxSLnXXws3sD0AKMfUT",
@@ -8164,7 +8211,11 @@
         "era:30s": 1,
         "texture:lo-fi": 0.8,
         "origin:us": 1,
-        "char:arkansas": 0.8
+        "char:arkansas": 0.8,
+        "char:ahead-of-its-time": 0.9,
+        "char:swagger": 0.8,
+        "char:guitar-driven": 0.7,
+        "char:female-vocals": 0.9
       },
       "streaming": {
         "spotify": "",
@@ -8838,7 +8889,8 @@
         "texture:warm": 0.8,
         "origin:us": 1,
         "char:detroit": 0.8,
-        "char:michigan": 0.8
+        "char:michigan": 0.8,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4kP69y3GKHi9tXckfgp4bK",
@@ -8866,7 +8918,9 @@
         "era:70s": 0.9,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "char:spoken-word": 0.9,
+        "theme:city-life": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3xn6HGZu0liOcgHUzuQJh9",
@@ -9134,7 +9188,8 @@
         "era:80s": 1,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "char:live": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2WDvW3o8WeGN4v4cpsYVhT",
@@ -9186,7 +9241,9 @@
         "texture:lush": 0.7,
         "energy:low": 0.7,
         "era:10s": 0.9,
-        "origin:australia": 1
+        "origin:australia": 1,
+        "theme:change": 0.9,
+        "theme:getting-older": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0xtIp0lgccN85GfGOekS5L",
@@ -9328,7 +9385,9 @@
         "energy:low": 0.7,
         "char:japanese": 0.9,
         "char:japanese-language": 0.8,
-        "origin:japan": 1
+        "origin:japan": 1,
+        "char:melodica": 0.9,
+        "char:female-vocals": 0.7
       },
       "streaming": {
         "spotify": "",
@@ -9624,7 +9683,10 @@
         "mood:dreamlike": 0.7,
         "era:00s": 0.8,
         "origin:us": 1,
-        "char:oklahoma": 0.8
+        "char:oklahoma": 0.8,
+        "theme:nature": 0.9,
+        "char:autumn": 0.7,
+        "char:existential": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3dl53mWkODbk3MkGuhoAx4",
@@ -9711,7 +9773,8 @@
         "mood:defiant": 0.8,
         "texture:noisy": 0.7,
         "era:00s": 0.9,
-        "origin:sweden": 1
+        "origin:sweden": 1,
+        "char:garage-revival": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4N9NC8JCz2hSimtbspc6Ng",
@@ -9737,7 +9800,8 @@
         "mood:defiant": 0.8,
         "texture:noisy": 0.7,
         "era:00s": 0.9,
-        "origin:sweden": 1
+        "origin:sweden": 1,
+        "char:garage-revival": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6xxXrNJnnsQNLdgNk8S4y8",
@@ -9867,7 +9931,11 @@
         "era:60s": 0.9,
         "texture:warm": 0.7,
         "energy:medium": 0.7,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "theme:empire": 0.9,
+        "theme:history": 0.8,
+        "char:satirical": 0.7,
+        "char:catchy": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/15mqVeWrB9bPHgI0s1Vq7w",
@@ -9977,7 +10045,11 @@
         "era:00s": 0.8,
         "origin:us": 1,
         "char:boston": 0.8,
-        "char:massachusetts": 0.8
+        "char:massachusetts": 0.8,
+        "theme:exes": 0.9,
+        "char:drinking": 0.8,
+        "char:witty": 0.8,
+        "char:breakup": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6WCdVDYvWFTrWBUxo395QN",
@@ -10141,7 +10213,9 @@
         "era:70s": 0.9,
         "origin:us": 1,
         "char:boston": 0.8,
-        "char:massachusetts": 0.8
+        "char:massachusetts": 0.8,
+        "theme:sobriety": 0.9,
+        "char:satirical": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/13ukxpBh4Tra731pchaP4i",
@@ -10169,7 +10243,11 @@
         "char:outsider": 0.5,
         "origin:us": 1,
         "char:boston": 0.8,
-        "char:massachusetts": 0.8
+        "char:massachusetts": 0.8,
+        "theme:artists": 0.9,
+        "char:witty": 0.8,
+        "char:deadpan": 0.7,
+        "char:cool": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4VqDn9jG4RnCN00jNk7BKK",
@@ -10289,7 +10367,8 @@
         "texture:lush": 0.7,
         "era:60s": 1,
         "char:weird": 0.5,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/4HXP9vwInhhLs4wY0X70fd",
@@ -10315,7 +10394,8 @@
         "char:weird": 0.7,
         "era:60s": 1,
         "texture:noisy": 0.6,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/01PiQmG1Ct8Rd21uZGGaYJ",
@@ -10367,7 +10447,9 @@
         "era:60s": 1,
         "texture:warm": 0.6,
         "char:beautiful": 0.6,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:abbey-road": 0.9,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0AMZ3OqWWb7udclLvYMHld",
@@ -10557,7 +10639,9 @@
         "texture:noisy": 0.6,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "char:garage-revival": 0.9,
+        "genre:garage": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3SUusuA9jH1v6PVwtYMbdv",
@@ -10587,7 +10671,9 @@
         "char:confrontational": 0.7,
         "origin:us": 1,
         "char:philly": 0.8,
-        "char:pennsylvania": 0.8
+        "char:pennsylvania": 0.8,
+        "theme:childhood": 0.8,
+        "theme:artists": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/13YZn9f8rGCXOx306t6r1I",
@@ -10703,7 +10789,8 @@
         "origin:uk": 1,
         "char:vocal-harmony": 0.9,
         "genre:baroque-pop": 0.7,
-        "mood:celebratory": 0.7
+        "mood:celebratory": 0.7,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3rXtVEHLj6m7LCXFQW2rC8",
@@ -10729,7 +10816,8 @@
         "texture:warm": 0.7,
         "era:60s": 1,
         "mood:erotic": 0.5,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6lx1n63qJmhzPpirxxksbI",
@@ -10781,7 +10869,8 @@
         "char:cinematic": 0.6,
         "era:70s": 0.9,
         "texture:warm": 0.7,
-        "origin:ireland": 1
+        "origin:ireland": 1,
+        "char:live": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7jT4VWw39yoEMDnL9Dc31n",
@@ -10895,7 +10984,9 @@
         "texture:lo-fi": 0.7,
         "origin:us": 1,
         "char:los-angeles": 0.8,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "char:growl": 0.9,
+        "char:muppet-voice": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/18nVec4X5DlXfePjAZkVwO",
@@ -10921,7 +11012,10 @@
         "genre:experimental": 0.6,
         "era:60s": 0.9,
         "mood:playful": 0.6,
-        "origin:brazil": 1
+        "origin:brazil": 1,
+        "theme:philosophy": 0.9,
+        "char:literate": 0.8,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2YXpMdEMEoy48OPr6VTzpI",
@@ -10948,7 +11042,8 @@
         "char:intimate": 0.8,
         "texture:sparse": 0.8,
         "origin:us": 1,
-        "char:texas": 0.8
+        "char:texas": 0.8,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7gtrXOGETM9OkerNjNXeie",
@@ -11032,7 +11127,10 @@
         "era:10s": 0.8,
         "origin:us": 1,
         "char:los-angeles": 0.8,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "char:catchy": 0.9,
+        "theme:crush": 0.8,
+        "mood:erotic": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6xV7Be6XEvkSnighmh2Tzj",
@@ -11086,7 +11184,8 @@
         "texture:noisy": 0.6,
         "origin:us": 1,
         "char:los-angeles": 0.8,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "char:1968": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/04ezdCPZeafm0rGdm1X6mO",
@@ -11352,7 +11451,10 @@
         "char:nostalgic": 0.7,
         "era:80s": 0.9,
         "origin:us": 1,
-        "char:wisconsin": 0.8
+        "char:wisconsin": 0.8,
+        "char:ahead-of-its-time": 0.8,
+        "theme:weed": 0.7,
+        "char:raw": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7jIAttgQTpLDoNtykIQXjH",
@@ -11551,7 +11653,9 @@
         "char:intimate": 0.6,
         "origin:us": 1,
         "char:los-angeles": 0.8,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "theme:crush": 0.8,
+        "theme:pop-culture": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3g2gQMeeQAEPztiQKMlGSl",
@@ -11607,7 +11711,9 @@
         "era:00s": 0.8,
         "origin:us": 1,
         "char:chicago": 0.8,
-        "char:illinois": 0.8
+        "char:illinois": 0.8,
+        "char:guitar-solo": 0.9,
+        "char:guitar-driven": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/6L0BBPYeWnaQJeDa0ox0IA",
@@ -11663,7 +11769,8 @@
         "char:danceable": 0.8,
         "char:weird": 0.6,
         "era:80s": 0.9,
-        "origin:nigeria": 1
+        "origin:nigeria": 1,
+        "genre:afrobeat": 0.5
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/3QPbXJa0qz3hxAFCQO2hU0",
@@ -11795,7 +11902,12 @@
         "energy:high": 0.8,
         "mood:defiant": 0.7,
         "era:70s": 0.9,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "genre:riot-grrrl": 0.6,
+        "char:queer": 0.8,
+        "char:cool": 0.7,
+        "char:ahead-of-its-time": 0.6,
+        "char:female-vocals": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/0rccdaligaDK8URad52GZG",
@@ -11848,7 +11960,12 @@
         "char:beautiful": 0.7,
         "era:90s": 0.8,
         "origin:us": 1,
-        "char:nj": 0.8
+        "char:nj": 0.8,
+        "theme:devotion": 0.9,
+        "char:headphones": 1,
+        "char:duet": 0.7,
+        "mood:romantic": 0.8,
+        "char:female-vocals": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5s91S8hSrJXqYdhwHOEioV",
@@ -11938,7 +12055,11 @@
         "origin:us": 1,
         "char:new-york": 0.8,
         "char:brooklyn": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "theme:summer": 0.9,
+        "texture:piano": 0.7,
+        "energy:chaotic": 0.5,
+        "char:female-vocals": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7BeAt3JCnQux4ISaSaAyas",
@@ -12005,7 +12126,11 @@
         "origin:us": 1,
         "char:new-york": 0.8,
         "char:brooklyn": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "theme:bad-relationship": 0.9,
+        "theme:anti-love": 0.7,
+        "energy:chaotic": 0.7,
+        "char:female-vocals": 0.8
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/7nfkTzXBJURWAKb4SqjBBA",
@@ -12124,7 +12249,11 @@
         "era:00s": 0.8,
         "char:british": 0.7,
         "char:harmonies": 0.8,
-        "origin:trinidad": 1
+        "origin:trinidad": 1,
+        "origin:uk": 1,
+        "char:siblings": 0.8,
+        "char:high-voice": 0.7,
+        "genre:indie-pop": 0.7
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/15EPooVeUVOVAbXuRLcOfQ",
@@ -12777,7 +12906,10 @@
         "era:00s": 0.8,
         "origin:us": 1,
         "char:portland": 0.8,
-        "char:oregon": 0.8
+        "char:oregon": 0.8,
+        "char:overlapping-vocals": 0.9,
+        "genre:riot-grrrl": 0.9,
+        "char:female-vocals": 0.9
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/2mleFoqDXcD3uCP3bDTAkK",
@@ -13210,7 +13342,14 @@
         "texture:lo-fi": 0.7,
         "mood:playful": 0.6,
         "era:00s": 0.7,
-        "origin:us": 1
+        "origin:us": 1,
+        "theme:bragging": 0.9,
+        "theme:hipsters": 0.8,
+        "theme:artists": 0.6,
+        "theme:pop-culture": 0.6,
+        "char:spoken-word": 0.8,
+        "genre:dance": 0.5,
+        "char:satirical": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/5J7z4yLD14F58hNEDeZMbj",
@@ -13662,7 +13801,10 @@
         "era:10s": 0.8,
         "origin:us": 1,
         "char:portland": 0.8,
-        "char:oregon": 0.8
+        "char:oregon": 0.8,
+        "char:bike-ride": 0.9,
+        "char:autumn": 0.8,
+        "char:guitar-driven": 0.6
       },
       "streaming": {
         "spotify": "https://open.spotify.com/embed/track/49vzuiR9YheTFslIuO4JRV",
@@ -14399,7 +14541,9 @@
         "char:los-angeles": 0.8,
         "char:miami": 0.8,
         "char:california": 0.8,
-        "char:florida": 0.8
+        "char:florida": 0.8,
+        "genre:synth-pop": 0.7,
+        "char:female-vocals": 0.8
       }
     },
     {
@@ -14451,7 +14595,8 @@
         "mood:playful": 0.7,
         "energy:medium": 0.6,
         "era:60s": 0.9,
-        "origin:brazil": 1
+        "origin:brazil": 1,
+        "char:1968": 0.9
       }
     },
     {
@@ -14721,7 +14866,9 @@
         "era:90s": 0.8,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "genre:riot-grrrl": 0.7,
+        "char:female-vocals": 0.9
       }
     },
     {
@@ -14749,7 +14896,9 @@
         "mood:playful": 0.6,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "genre:riot-grrrl": 0.7,
+        "char:female-vocals": 0.9
       }
     },
     {
@@ -15646,7 +15795,9 @@
         "mood:joyful": 0.7,
         "era:70s": 0.9,
         "char:nostalgic": 0.7,
-        "origin:uk": 1
+        "origin:uk": 1,
+        "genre:prog": 0.9,
+        "char:soundtrack": 0.9
       }
     },
     {
@@ -16337,7 +16488,8 @@
         "char:danceable": 0.6,
         "energy:medium": 0.7,
         "origin:us": 1,
-        "char:ohio": 0.8
+        "char:ohio": 0.8,
+        "char:1968": 0.9
       }
     },
     {
@@ -16391,7 +16543,8 @@
         "char:nostalgic": 0.6,
         "origin:us": 1,
         "char:new-york": 0.8,
-        "char:new-york-state": 0.8
+        "char:new-york-state": 0.8,
+        "char:1968": 0.9
       }
     },
     {
@@ -16474,9 +16627,10 @@
         "energy:low": 0.8,
         "char:late-night": 0.8,
         "texture:warm": 0.7,
-        "mood:erotic": 0.5,
+        "mood:erotic": 0.8,
         "origin:us": 1,
-        "char:georgia": 0.8
+        "char:georgia": 0.8,
+        "theme:flirting": 0.9
       }
     },
     {
@@ -16895,7 +17049,11 @@
         "energy:medium": 0.7,
         "origin:us": 1,
         "char:nashville": 0.8,
-        "char:tennessee": 0.8
+        "char:tennessee": 0.8,
+        "theme:drugs": 0.9,
+        "char:ahead-of-its-time": 0.7,
+        "char:live": 0.9,
+        "char:1968": 0.9
       }
     },
     {
@@ -17090,7 +17248,8 @@
         "origin:us": 1,
         "char:memphis": 0.8,
         "char:georgia": 0.8,
-        "char:tennessee": 0.8
+        "char:tennessee": 0.8,
+        "char:1968": 0.9
       }
     },
     {
@@ -17176,7 +17335,8 @@
         "energy:medium": 0.7,
         "origin:us": 1,
         "char:los-angeles": 0.8,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "char:1968": 0.9
       }
     },
     {
@@ -17204,7 +17364,8 @@
         "mood:dark": 0.5,
         "origin:us": 1,
         "char:los-angeles": 0.8,
-        "char:california": 0.8
+        "char:california": 0.8,
+        "char:1968": 0.9
       }
     },
     {
@@ -17478,7 +17639,8 @@
         "mood:melancholic": 0.7,
         "char:cinematic": 0.6,
         "energy:medium": 0.7,
-        "origin:australia": 1
+        "origin:australia": 1,
+        "char:1968": 0.9
       }
     },
     {
@@ -17613,7 +17775,8 @@
         "texture:psychedelic": 0.6,
         "energy:low": 0.7,
         "origin:us": 1,
-        "char:michigan": 0.8
+        "char:michigan": 0.8,
+        "char:1968": 0.9
       }
     },
     {
@@ -17920,7 +18083,8 @@
         "mood:defiant": 0.8,
         "char:weird": 0.6,
         "texture:noisy": 0.6,
-        "origin:canada": 1
+        "origin:canada": 1,
+        "char:female-vocals": 0.9
       }
     },
     {
@@ -18088,7 +18252,9 @@
         "char:texas": 0.8,
         "char:jammy": 0.7,
         "origin:us": 1,
-        "char:austin": 0.8
+        "char:austin": 0.8,
+        "char:rowdy": 0.9,
+        "mood:playful": 0.6
       }
     },
     {
@@ -19130,7 +19296,8 @@
         "char:beautiful": 0.7,
         "texture:warm": 0.8,
         "mood:tender": 0.6,
-        "char:political": 0.7
+        "char:political": 0.7,
+        "char:1968": 0.9
       }
     },
     {

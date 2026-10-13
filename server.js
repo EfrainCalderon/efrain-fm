@@ -430,6 +430,59 @@ const TRAIT_ALIASES = {
   'math rock': 'genre:math-rock', 'math-rock': 'genre:math-rock',
   'power pop': 'genre:power-pop', 'power-pop': 'genre:power-pop',
   'modern classical': 'genre:modern-classical', 'minimalist': 'genre:modern-classical',
+
+  // Second batch from the "Buried songs" tab (2026-10-13)
+  'surviving': 'theme:survival', 'survivor': 'theme:survival', 'trauma': 'theme:survival',
+  'bragging': 'theme:bragging', 'one-upping': 'theme:bragging', 'one-upmanship': 'theme:bragging', 'showing off': 'theme:bragging',
+  'hipster': 'theme:hipsters', 'scenester': 'theme:hipsters', 'too cool': 'theme:hipsters',
+  'british empire': 'theme:empire', 'victorian': 'theme:empire', 'monarchy': 'theme:empire', 'royal family': 'theme:empire',
+  'getting older': 'theme:getting-older', 'getting old': 'theme:getting-older', 'growing old': 'theme:getting-older', 'aging': 'theme:getting-older', 'ageing': 'theme:getting-older',
+  'personal growth': 'theme:change', 'becoming a different person': 'theme:change', 'reinventing': 'theme:change', 'changing': 'theme:change',
+  'philosophy': 'theme:philosophy', 'derrida': 'theme:philosophy', 'dualities': 'theme:philosophy',
+  'my ex': 'theme:exes', 'exes': 'theme:exes', 'ex-girlfriend': 'theme:exes', 'ex-boyfriend': 'theme:exes',
+  'mother nature': 'theme:nature', 'nature': 'theme:nature', 'environment': 'theme:nature', 'the planet': 'theme:nature',
+  'straight edge': 'theme:sobriety', 'sober': 'theme:sobriety', 'sobriety': 'theme:sobriety', 'not drinking': 'theme:sobriety',
+  'crush': 'theme:crush', 'infatuated': 'theme:crush', 'infatuation': 'theme:crush', 'unrequited': 'theme:crush',
+  'bros': 'theme:bros', 'mansplaining': 'theme:bros', 'blowhard': 'theme:bros',
+  'cocaine': 'theme:drugs', 'drugs': 'theme:drugs', 'about drugs': 'theme:drugs',
+  'painter': 'theme:artists', 'picasso': 'theme:artists', 'art world': 'theme:artists', 'art scene': 'theme:artists', 'being an artist': 'theme:artists',
+  'childhood': 'theme:childhood', 'growing up': 'theme:childhood',
+  'flirting': 'theme:flirting', 'flirty': 'theme:flirting', 'flirt': 'theme:flirting',
+  'city life': 'theme:city-life', 'subway': 'theme:city-life', 'living in the city': 'theme:city-life',
+  'summer': 'theme:summer', 'summertime': 'theme:summer', 'summery': 'theme:summer',
+  'bad relationship': 'theme:bad-relationship', 'toxic relationship': 'theme:bad-relationship', 'trapped in a relationship': 'theme:bad-relationship', 'wish i was single': 'theme:bad-relationship',
+  'devotion': 'theme:devotion', 'devoted': 'theme:devotion', 'unconditional love': 'theme:devotion',
+  'thanksgiving': 'char:thanksgiving',
+  'bike ride': 'char:bike-ride', 'biking': 'char:bike-ride', 'cycling': 'char:bike-ride', 'bicycle': 'char:bike-ride',
+  'autumn': 'char:autumn', 'autumnal': 'char:autumn', 'fall weather': 'char:autumn', 'sweater weather': 'char:autumn',
+  'headphones': 'char:headphones', 'binaural': 'char:headphones',
+  'melodica': 'char:melodica',
+  'guitar solo': 'char:guitar-solo', 'guitar hero': 'char:guitar-solo',
+  'overlapping vocals': 'char:overlapping-vocals', 'two singers at once': 'char:overlapping-vocals', 'two sets of lyrics': 'char:overlapping-vocals',
+  'growl': 'char:growl', 'growling': 'char:growl', 'gravelly': 'char:growl', 'raspy': 'char:growl', 'gruff': 'char:growl',
+  'muppet': 'char:muppet-voice', 'cookie monster': 'char:muppet-voice', 'sesame street': 'char:muppet-voice',
+  'falsetto': 'char:high-voice', 'high voice': 'char:high-voice', 'high-pitched': 'char:high-voice',
+  'female singer': 'char:female-vocals', 'female vocals': 'char:female-vocals', 'female vocalist': 'char:female-vocals', 'woman singing': 'char:female-vocals', 'women singers': 'char:female-vocals',
+  'spoken word': 'char:spoken-word', 'spoken-word': 'char:spoken-word',
+  'gibberish': 'char:nonsense', 'nonsense': 'char:nonsense', 'nonsensical': 'char:nonsense',
+  'catchy': 'char:catchy', 'earworm': 'char:catchy', 'stuck in my head': 'char:catchy', 'singable': 'char:catchy',
+  'witty': 'char:witty', 'clever lyrics': 'char:witty', 'funny lyrics': 'char:witty',
+  'novelty': 'char:novelty',
+  'dance craze': 'char:dance-craze', 'dance instructions': 'char:dance-craze', 'its own dance': 'char:dance-craze',
+  'siblings': 'char:siblings', 'brother and sister': 'char:siblings',
+  'soundtrack': 'char:soundtrack', 'from a movie': 'char:soundtrack', 'in a movie': 'char:soundtrack',
+  'abbey road': 'char:abbey-road',
+  '1968': 'char:1968',
+  'garage revival': 'char:garage-revival', 'rock revival': 'char:garage-revival', 'indie sleaze': 'char:garage-revival', 'the the bands': 'char:garage-revival',
+  'queer': 'char:queer', 'lgbtq': 'char:queer', 'gay': 'char:queer',
+  'local band': 'char:local-band', 'bands you know': 'char:local-band', 'your friends': 'char:local-band',
+  'ahead of its time': 'char:ahead-of-its-time', 'ahead of their time': 'char:ahead-of-its-time', 'before its time': 'char:ahead-of-its-time', 'pioneer': 'char:ahead-of-its-time', 'trailblazer': 'char:ahead-of-its-time',
+  'live recording': 'char:live', 'live version': 'char:live', 'live album': 'char:live', 'recorded live': 'char:live',
+  'druggy': 'char:druggy', 'woozy': 'char:druggy', 'drugged': 'char:druggy',
+  'rowdy': 'char:rowdy', 'sweaty': 'char:rowdy', 'trashy': 'char:rowdy', 'raucous': 'char:rowdy',
+  'underrated': 'char:deep-cut', 'overlooked': 'char:deep-cut', 'deep cut': 'char:deep-cut', 'hidden gem': 'char:deep-cut',
+  'prog': 'genre:prog', 'prog rock': 'genre:prog', 'progressive rock': 'genre:prog',
+  'riot grrrl': 'genre:riot-grrrl', 'riot grrl': 'genre:riot-grrrl', 'riot girl': 'genre:riot-grrrl',
 };
 
 // =====================
@@ -439,6 +492,27 @@ const TRAIT_ALIASES = {
 // The song's score = sum of trait weights for all matched traits.
 // This means a song with energy:high 1.0 beats one with energy:high 0.5.
 // =====================
+// char: tags that name one specific thing (an occasion, a sound, a quirk) and sit on
+// only a few songs. Like themes, they count triple in scoreSongs.
+const SPECIFIC_CHAR_TRAITS = new Set([
+  'rainy-day', 'dinner-party', 'drinking', 'closer', 'thanksgiving', 'bike-ride', 'autumn', 'headphones',
+  'theremin', 'harpsichord', 'singing-saw', 'guitar-tapping', '8-bit', 'toy-instruments', 'melodica', 'guitar-solo',
+  'overlapping-vocals', 'growl', 'muppet-voice', 'high-voice', 'spoken-word', 'nonsense', 'catchy', 'novelty',
+  'dance-craze', 'siblings', 'soundtrack', 'abbey-road', 'garage-revival', 'queer', 'local-band',
+  'ahead-of-its-time', 'live', 'druggy', 'rowdy', 'deep-cut',
+].map(t => 'char:' + t));
+
+// Haiku sometimes files a real tag under the wrong prefix ("char:summer" for
+// "theme:summer"). If the ID it returned is on no song but the same word is a tag
+// under exactly one other prefix, use that one.
+const KNOWN_TRAITS = new Set(songsData.songs.flatMap(song => Object.keys(song.traits || {})));
+function resolveTraitId(id) {
+  if (KNOWN_TRAITS.has(id)) return id;
+  const word = id.slice(id.indexOf(':') + 1);
+  const matches = [...KNOWN_TRAITS].filter(t => t.slice(t.indexOf(':') + 1) === word);
+  return matches.length === 1 ? matches[0] : id;
+}
+
 function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = null) {
   // First, map keywords to trait IDs
   const traitTargets = new Map(); // traitId → query weight (how strongly user asked for it)
@@ -448,7 +522,8 @@ function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = n
     const kwLower = kw.toLowerCase().trim();
     // Haiku may return fully-formed trait IDs (e.g. "genre:jazz") — add directly
     if (kwLower.includes(':') && !kwLower.startsWith('http')) {
-      traitTargets.set(kwLower, Math.max(traitTargets.get(kwLower) || 0, 1.0));
+      const traitId = resolveTraitId(kwLower);
+      traitTargets.set(traitId, Math.max(traitTargets.get(traitId) || 0, 1.0));
     } else if (TRAIT_ALIASES[kwLower]) {
       const traitId = TRAIT_ALIASES[kwLower];
       // If multiple keywords map to same trait, take the max weight (1.0)
@@ -513,7 +588,9 @@ function scoreSongs(songs, keywords, preferVideo = false, butWeightOverrides = n
         // A theme (what the song is about) counts triple: only a few songs carry each
         // one, and Haiku often pads a themed request with mood guesses that would
         // otherwise let an unrelated song outscore the one that is actually about it.
-        score += traits[traitId] * queryWeight * (traitId.startsWith('theme:') ? 3 : 1);
+        // The same goes for the specific char: tags (an occasion, a sound, a quirk).
+        const specific = traitId.startsWith('theme:') || SPECIFIC_CHAR_TRAITS.has(traitId);
+        score += traits[traitId] * queryWeight * (specific ? 3 : 1);
       }
     }
 
@@ -661,6 +738,7 @@ const ARTIST_STOPWORDS = new Set([
   'people', 'gang', 'crew', 'young', 'true', 'pure', 'wild',
   'black', 'white', 'red', 'blue', 'gold', 'silver',
   'tapes', 'records', 'collective', 'project', 'unit',
+  'being', // "a song about being …" must not find Being Dead; the full name still does
 ]);
 
 function findSongsByArtist(message) {
@@ -719,12 +797,12 @@ MAP TO THESE TRAIT VOCABULARY TERMS WHERE POSSIBLE:
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
 Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning", "mood:defeated", "mood:cathartic", "mood:hypnotic", "mood:romantic", "mood:celebratory", "mood:resigned"
 Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet", "texture:piano"
-Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk", "genre:k-pop", "genre:classical", "genre:opera", "genre:freak-folk", "genre:math-rock", "genre:power-pop", "genre:modern-classical", "genre:dub"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:lo-fi-folk", "genre:k-pop", "genre:classical", "genre:opera", "genre:freak-folk", "genre:math-rock", "genre:power-pop", "genre:modern-classical", "genre:dub", "genre:prog", "genre:riot-grrrl"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
-Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson", "char:hawaiian", "char:children", "char:instrumental", "char:satirical", "char:emo", "char:anthemic", "char:campy", "char:creepy", "char:haunting", "char:mysterious", "char:swagger", "char:tearjerker", "char:guilty-pleasure", "char:girl-band", "char:jazzy", "char:multi-part", "char:short", "char:samples", "char:covers", "char:ritual"
-Theme (what the song is about — use when the request is about a subject): "theme:travel", "theme:war", "theme:rejection", "theme:anti-love", "theme:falling-in-love", "theme:empowerment", "theme:friendship", "theme:family", "theme:youth", "theme:high-school", "theme:grief", "theme:despair", "theme:dreams", "theme:halloween", "theme:monsters", "theme:violence", "theme:weed", "theme:showbiz", "theme:pop-culture", "theme:sports", "theme:history", "theme:ufo", "theme:accident"
-Occasion (when you'd play it): "char:rainy-day", "char:dinner-party", "char:drinking", "char:closer", "char:interlude", "char:late-night"
-Sound (a specific instrument or technique): "char:theremin", "char:harpsichord", "char:singing-saw", "char:guitar-tapping", "char:strings", "char:8-bit", "char:toy-instruments", "texture:piano"
+Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:duet", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:bittersweet", "char:cool", "char:abstract", "char:wes-anderson", "char:hawaiian", "char:children", "char:instrumental", "char:satirical", "char:emo", "char:anthemic", "char:campy", "char:creepy", "char:haunting", "char:mysterious", "char:swagger", "char:tearjerker", "char:guilty-pleasure", "char:girl-band", "char:jazzy", "char:multi-part", "char:short", "char:samples", "char:covers", "char:ritual", "char:witty", "char:catchy", "char:spoken-word", "char:nonsense", "char:novelty", "char:rowdy", "char:druggy", "char:growl", "char:high-voice", "char:female-vocals", "char:overlapping-vocals", "char:queer", "char:siblings", "char:live", "char:soundtrack", "char:deep-cut", "char:ahead-of-its-time", "char:local-band", "char:garage-revival", "char:dance-craze", "char:muppet-voice", "char:abbey-road", "char:1968"
+Theme (what the song is about — use when the request is about a subject): "theme:travel", "theme:war", "theme:rejection", "theme:anti-love", "theme:falling-in-love", "theme:empowerment", "theme:friendship", "theme:family", "theme:youth", "theme:high-school", "theme:grief", "theme:despair", "theme:dreams", "theme:halloween", "theme:monsters", "theme:violence", "theme:weed", "theme:showbiz", "theme:pop-culture", "theme:sports", "theme:history", "theme:ufo", "theme:accident", "theme:survival", "theme:bragging", "theme:hipsters", "theme:empire", "theme:getting-older", "theme:change", "theme:philosophy", "theme:exes", "theme:nature", "theme:sobriety", "theme:crush", "theme:bros", "theme:drugs", "theme:artists", "theme:childhood", "theme:flirting", "theme:city-life", "theme:summer", "theme:bad-relationship", "theme:devotion"
+Occasion (when you'd play it): "char:rainy-day", "char:dinner-party", "char:drinking", "char:closer", "char:interlude", "char:late-night", "char:thanksgiving", "char:bike-ride", "char:autumn", "char:headphones"
+Sound (a specific instrument or technique): "char:theremin", "char:harpsichord", "char:singing-saw", "char:guitar-tapping", "char:strings", "char:8-bit", "char:toy-instruments", "char:melodica", "char:guitar-solo", "texture:piano"
 Place (a city or scene — use when the request names one): "char:new-york", "char:brooklyn", "char:nj", "char:philly", "char:baltimore", "char:dc", "char:boston", "char:chicago", "char:detroit", "char:minneapolis", "char:los-angeles", "char:san-francisco", "char:seattle", "char:portland", "char:austin", "char:texas", "char:memphis", "char:nashville", "char:atlanta", "char:athens-ga", "char:miami", "char:elephant-6". Return the place on its own: "a band from Detroit" → ["char:detroit"]; "something from the Bay Area" → ["char:san-francisco"]
 US state (every artist with a city tag also carries its state, so a state request reaches them): "char:arizona", "char:arkansas", "char:california", "char:florida", "char:georgia", "char:illinois", "char:indiana", "char:kentucky", "char:maryland", "char:massachusetts", "char:michigan", "char:minnesota", "char:missouri", "char:new-hampshire", "char:new-york-state", "char:north-carolina", "char:ohio", "char:oklahoma", "char:oregon", "char:pennsylvania", "char:tennessee", "char:virginia", "char:washington", "char:west-virginia", "char:wisconsin", "char:long-island". Return the state on its own: "California bands" → ["char:california"]; "anything from Ohio" → ["char:ohio"]. "New York" by itself means the city ("char:new-york"); use "char:new-york-state" only for "New York State" or "upstate". "Washington" by itself means the state; "DC" is "char:dc"
 Origin (use when user specifies a country or region): "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland", "origin:spain", "origin:colombia", "origin:jamaica"
@@ -753,7 +831,7 @@ SITUATIONAL MAPPINGS:
 - "bittersweet" → ["mood:bittersweet", "char:bittersweet"]
 - "k-pop", "kpop", "korean pop" → ["genre:k-pop", "origin:korea"]
 - "kids", "kids singing", "children", "children's music", "nursery" → ["char:children"] (and nothing else)
-- "a song about X", "songs about X" where X is one of the Theme terms → that theme trait (and nothing else). "songs about war" → ["theme:war"]; "something about getting dumped" → ["theme:rejection"]; "I'm done with dating" → ["theme:anti-love"]; "songs about weed", "stoner songs" → ["theme:weed"]; "werewolves", "zombies", "vampires" → ["theme:monsters"]; "halloween", "spooky season" → ["theme:halloween"]
+- "a song about X", "songs about X", "something that feels like X" where X is one of the Theme terms → that theme trait (and nothing else, no mood or character guesses). "a song about summer" → ["theme:summer"]; "a song about surviving trauma" → ["theme:survival"]; "something that feels like flirting" → ["theme:flirting"]. "songs about war" → ["theme:war"]; "something about getting dumped" → ["theme:rejection"]; "I'm done with dating" → ["theme:anti-love"]; "songs about weed", "stoner songs" → ["theme:weed"]; "werewolves", "zombies", "vampires" → ["theme:monsters"]; "halloween", "spooky season" → ["theme:halloween"]
 - A named instrument or technique from the Sound terms → that trait (and nothing else). "something with a theremin" → ["char:theremin"]
 - "rainy day", "gray day", "it's raining" → ["char:rainy-day"]
 - "dinner party", "having people over", "something classy for guests" → ["char:dinner-party"]
@@ -762,10 +840,15 @@ SITUATIONAL MAPPINGS:
 - "guilty pleasure" → ["char:guilty-pleasure"]
 - "girl band", "all-female band" → ["char:girl-band"]
 - "something to feel badass", "swagger" → ["char:swagger"]
+- "a bike ride", "going cycling" → ["char:bike-ride"]; "autumn", "a fall day", "sweater weather" → ["char:autumn"]; "thanksgiving" → ["char:thanksgiving"] (and nothing else); "something for headphones" → ["char:headphones"]. Each of these on its own, with nothing added
+- "songs from 1968" → ["char:1968"]; "the Strokes era", "early 2000s 'the' bands", "garage rock revival" → ["char:garage-revival"]
+- "a female singer", "women singing" → ["char:female-vocals"]; "falsetto", "a high voice" → ["char:high-voice"]; "gravelly voice", "growling" → ["char:growl"]
+- "getting older", "not being cool anymore" → ["theme:getting-older"]; "thinking about my ex" → ["theme:exes"]; "I have a crush" → ["theme:crush"]; "songs about drugs" → ["theme:drugs"] (weed is "theme:weed"); "staying sober", "straight edge" → ["theme:sobriety"]
+- "a song from a movie" → ["char:soundtrack"]; "a live recording" → ["char:live"]; "an underrated song", "a deep cut" → ["char:deep-cut"]; "something ahead of its time" → ["char:ahead-of-its-time"]; "something druggy", "woozy" → ["char:druggy"]; "loud and sweaty", "something trashy and fun" → ["char:rowdy"]; "a band you know personally", "a local band" → ["char:local-band"]
 
 RULES:
 - Prefer trait vocabulary terms over raw words whenever possible
-- When the request matches a Theme, Occasion or Sound term, return that term on its own. Do not pad it with mood, energy or texture guesses: those terms are rare and specific, and extra traits let unrelated songs outscore the one that fits. "I just got rejected" → ["theme:rejection"]; "music for a dinner party" → ["char:dinner-party"]
+- When the request matches a Theme, Occasion or Sound term, or one of the specific Character terms listed in the mappings above, return that term on its own. Do not pad it with mood, energy or texture guesses: those terms are rare and specific, and extra traits let unrelated songs outscore the one that fits. "I just got rejected" → ["theme:rejection"]; "music for a dinner party" → ["char:dinner-party"]
 - For artist names or song titles, return them as plain strings
 - Return ONLY the JSON object, no preamble or explanation
 - If the input is gibberish, a random string of characters, or clearly not a word in any language, return { "keywords": [] }. Do NOT return empty keywords for real words, genre names, mood words, artist names, or any legitimate request — even if it is very short or vague`
@@ -842,7 +925,7 @@ const EXTRACT_ARTIST_TRAITS_SYSTEM = [{ type: 'text', cache_control: { type: 'ep
 Energy: "energy:high", "energy:low", "energy:hypnotic", "energy:chaotic"
 Mood: "mood:melancholic", "mood:dark", "mood:joyful", "mood:tense", "mood:tender", "mood:defiant", "mood:dreamlike", "mood:playful", "mood:erotic", "mood:spiritual", "mood:bittersweet", "mood:yearning"
 Texture: "texture:lo-fi", "texture:lush", "texture:sparse", "texture:noisy", "texture:warm", "texture:cold", "texture:psychedelic", "texture:cinematic", "texture:quiet", "texture:piano"
-Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:classical", "genre:opera", "genre:freak-folk", "genre:math-rock", "genre:power-pop", "genre:modern-classical", "genre:dub"
+Genre: "genre:punk", "genre:post-punk", "genre:garage", "genre:krautrock", "genre:electronic", "genre:hip-hop", "genre:soul", "genre:funk", "genre:folk", "genre:experimental", "genre:noise", "genre:ambient", "genre:dance", "genre:psychedelic", "genre:art-rock", "genre:afrobeat", "genre:r&b", "genre:jazz", "genre:country", "genre:latin", "genre:dream-pop", "genre:indie-rock", "genre:indie-folk", "genre:new-wave", "genre:synth-pop", "genre:yacht-rock", "genre:anti-folk", "genre:chamber-folk", "genre:chamber-pop", "genre:blues-rock", "genre:baroque-pop", "genre:ye-ye", "genre:glam", "genre:classical", "genre:opera", "genre:freak-folk", "genre:math-rock", "genre:power-pop", "genre:modern-classical", "genre:dub", "genre:prog", "genre:riot-grrrl"
 Era: "era:50s", "era:60s", "era:70s", "era:80s", "era:90s", "era:00s", "era:modern"
 Character: "char:outsider", "char:political", "char:intimate", "char:beautiful", "char:late-night", "char:danceable", "char:nostalgic", "char:weird", "char:heavy", "char:cinematic", "char:literate", "char:acoustic", "char:ethereal", "char:hazy", "char:driving", "char:angular", "char:eccentric", "char:narrative", "char:confessional", "char:existential", "char:vocal-harmony", "char:slow-burn", "char:sweet", "char:cool"
 Origin: "origin:us", "origin:uk", "origin:france", "origin:germany", "origin:sweden", "origin:japan", "origin:korea", "origin:brazil", "origin:nigeria", "origin:canada", "origin:australia", "origin:norway", "origin:iceland"
