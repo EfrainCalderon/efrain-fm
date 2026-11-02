@@ -107,6 +107,7 @@ function loadEpisodes() {
         name: raw.name || '',   // the title without its "Episode 01:" prefix, shown under the EP label
         duration_minutes: raw.duration_minutes || null,
         intro: raw.intro || '',
+        start_label: raw.start_label || '',   // footer button before the first song; blank = "Drop the needle"
         outro: raw.outro || '',
         song_count: steps.filter(s => s.type === 'song').length,
         steps,

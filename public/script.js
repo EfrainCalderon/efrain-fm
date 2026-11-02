@@ -3151,7 +3151,7 @@ function createVoiceEmbed(audioUrl, title = 'Welcome', { controls = false } = {}
     if (!next) return 'Explore';
     if (next.type === 'transmission') return 'Transmission from Efrain';
     if (next.type === 'outro') return 'Final message';
-    return songNumber(current + 1) === 1 ? 'Drop the needle' : 'Next up';
+    return songNumber(current + 1) === 1 ? (episode.start_label || 'Drop the needle') : 'Next up';
   }
 
   // "2026-10" → "Oct 2026", for the label line above the title

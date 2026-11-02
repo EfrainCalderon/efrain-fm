@@ -20352,6 +20352,95 @@
         "char:new-york": 0.8,
         "char:new-york-state": 0.8
       }
+    },
+    {
+      "id": "0727",
+      "title": "Ghost Hardware",
+      "artist": "Burial",
+      "year": 2007,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/5m1VR5YlkswXMoHSmGWFqa",
+        "apple_music": "https://embed.music.apple.com/us/album/893175779?i=893175790",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C2",
+      "cluster_secondary": "C9",
+      "traits": {
+        "genre:electronic": 1,
+        "mood:dark": 0.9,
+        "char:late-night": 1,
+        "char:haunting": 0.9,
+        "char:mysterious": 0.7,
+        "mood:dreamlike": 0.6,
+        "texture:lo-fi": 0.7,
+        "energy:medium": 0.6,
+        "era:00s": 0.8,
+        "origin:uk": 1
+      }
+    },
+    {
+      "id": "0728",
+      "title": "Hide in Plain Sight",
+      "artist": "Jim James",
+      "year": 2016,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/6U6VpAgLFTb7wKxFS0e7tI",
+        "apple_music": "https://embed.music.apple.com/us/album/1440936660?i=1440936666",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C5",
+      "cluster_secondary": "C4",
+      "traits": {
+        "genre:soul": 0.7,
+        "genre:psychedelic": 0.6,
+        "mood:dreamlike": 0.7,
+        "texture:lush": 0.7,
+        "energy:hypnotic": 0.7,
+        "char:political": 0.6,
+        "era:10s": 0.8,
+        "origin:us": 1,
+        "char:kentucky": 0.8
+      }
+    },
+    {
+      "id": "0729",
+      "title": "Ramona (Acoustic Version)",
+      "artist": "Beck",
+      "year": 2010,
+      "streaming": {
+        "spotify": "https://open.spotify.com/embed/track/1Z50OHs5UJCybYStfwIcot",
+        "apple_music": "https://embed.music.apple.com/us/album/1440769218?i=1440769435",
+        "youtube": ""
+      },
+      "commentary": "",
+      "tag_title": "",
+      "tag_url": "",
+      "audio_story": "",
+      "cluster": "C8",
+      "cluster_secondary": "C6",
+      "traits": {
+        "char:acoustic": 0.9,
+        "char:intimate": 0.8,
+        "mood:tender": 0.8,
+        "mood:longing": 0.7,
+        "texture:sparse": 0.8,
+        "energy:low": 0.9,
+        "char:short": 0.8,
+        "char:soundtrack": 0.7,
+        "theme:crush": 0.6,
+        "era:10s": 0.8,
+        "origin:us": 1,
+        "char:los-angeles": 0.8,
+        "char:california": 0.8
+      }
     }
   ]
 }

@@ -1,0 +1,33 @@
+{
+  "id": "2026-11",
+  "number": 2,
+  "edition": "November 2026",
+  "title": "Episode 02: You will be safe in the dark",
+  "name": "You will be safe in the dark",
+  "duration_minutes": 64,
+  "intro": "This month I'm really feeling the seasons change up and starting off with some spooky tunes for the Day of the Dead, longer nights, and cooler temps...",
+  "start_label": "Play the first tune",
+  "outro": "Thanks for listening to this month's episode, see you next month!",
+  "steps": [
+    { "type": "song", "song_id": "0528" },
+    { "type": "song", "song_id": "0066" },
+    { "type": "song", "song_id": "0278" },
+    { "type": "song", "song_id": "0108" },
+    { "type": "transmission", "title": "Transmission 1", "audio": "/audio/episodes/2026-11/transmission-1.m4a" },
+    { "type": "song", "song_id": "0415" },
+    { "type": "song", "song_id": "0690" },
+    { "type": "song", "song_id": "0684" },
+    { "type": "song", "song_id": "0728" },
+    { "type": "transmission", "title": "Transmission 2", "audio": "/audio/episodes/2026-11/transmission-2.m4a" },
+    { "type": "song", "song_id": "0727" },
+    { "type": "song", "song_id": "0474" },
+    { "type": "song", "song_id": "0250" },
+    { "type": "song", "song_id": "0067" },
+    { "type": "transmission", "title": "Transmission 3", "audio": "/audio/episodes/2026-11/transmission-3.m4a" },
+    { "type": "song", "song_id": "0729" },
+    { "type": "song", "song_id": "0316" },
+    { "type": "song", "song_id": "0135" },
+    { "type": "transmission", "title": "Transmission 4", "audio": "/audio/episodes/2026-11/transmission-4.m4a" },
+    { "type": "song", "song_id": "0664" }
+  ]
+}
